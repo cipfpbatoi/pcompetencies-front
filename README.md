@@ -1,5 +1,13 @@
 # Programacions
 
+Per a provar l'aplicació (recorda que està en desenvolupament):
+- descarrega el repositori
+- instal·la les dependències: `npm i`
+- si no tens instal·lat json-server instal·La-ho amb: `npm i -D json-server`
+- executa `json-server JSON/pcompetencies.json`
+- executa `npm run dev`
+- obri la pàgina en el navegador
+
 This template should help get you started developing with Vue 3 in Vite.
 
 ## Recommended IDE Setup

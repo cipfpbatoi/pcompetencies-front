@@ -1,0 +1,273 @@
+[
+ {
+  "id": 1,
+  "short_name": "3",
+  "complete_name": "CFM APD (LOE)",
+  "royal_decree_title": "TÈCNIC EN ATENCIÓ A PERSONES EN SITUACIÓ DE DEPENDÈNCIA",
+  "royal_decree_title_new": "1593\/2011 (BOE 15\/12\/2011)",
+  "description": "Orde 30\/2015, de 13 de març (DOGV 25\/03\/2015)",
+  "department_id": "Atenció a persones en situació de dependència",
+  "KEY": "2"
+ },
+ {
+  "id": 2,
+  "short_name": "4",
+  "complete_name": "CFM FARMACIA (LOE)",
+  "royal_decree_title": "TÈCNIC EN FARMÀCIA I PARAFARMÀCIA",
+  "royal_decree_title_new": "1689\/2007 (BOE 17\/01\/2008)",
+  "description": "Orde de 29 de juliol (DOGV 02\/09\/2009)",
+  "department_id": "Farmàcia i parafarmàcia",
+  "KEY": "6"
+ },
+ {
+  "id": 3,
+  "short_name": "8",
+  "complete_name": "CFM CAE (LOGSE)",
+  "royal_decree_title": "TÈCNIC EN CURES AUXILIARS D'INFERMERIA",
+  "royal_decree_title_new": "546\/1995 (BOE 05\/06\/95)",
+  "department_id": "Cures auxiliares d'infermeria",
+  "KEY": "6"
+ },
+ {
+  "id": 4,
+  "short_name": "12",
+  "complete_name": "CFM CUINA (LOE)",
+  "royal_decree_title": "TÈCNIC EN CUINA I GASTRONOMIA",
+  "royal_decree_title_new": "1396\/2007 BOE 23-11-2007",
+  "description": "Orde de 29 de juliol de 2009 (DOGV 03\/09\/2009)",
+  "department_id": "Cuina i gastronomia",
+  "KEY": "10"
+ },
+ {
+  "id": 5,
+  "short_name": "16",
+  "complete_name": "CFM ESTÈTICA I BELL. (LOE)",
+  "royal_decree_title": "TÈCNIC EN ESTÈTICA I BELLESA",
+  "royal_decree_title_new": "256\/2011 de 28 de febrero (BOE 7\/04\/2011)",
+  "description": "Decret 158\/2017, de 6 d'octubre (DOGV 20\/10\/2017)",
+  "department_id": "Estètica i bellesa",
+  "KEY": "3"
+ },
+ {
+  "id": 6,
+  "short_name": "18",
+  "complete_name": "CFM GESTIÓ ADMVA. (LOE)",
+  "royal_decree_title": "TÈCNIC EN GESTIÓ ADMINISTRATIVA",
+  "royal_decree_title_new": "1631\/2009 (BOE 1\/12\/2009)",
+  "order_resume": "Rd 1126\/2010 (BOE 11\/09\/2010)",
+  "description": "Orde 37\/2012",
+  "department_id": "Gestió administrativa",
+  "KEY": "5"
+ },
+ {
+  "id": 7,
+  "short_name": "20",
+  "complete_name": "CFM PERRUQUERIA (LOE)",
+  "royal_decree_title": "TÈCNIC EN PERRUQUERIA I COSMÈTICA CAPILAR",
+  "royal_decree_title_new": "1588\/2011 (BOE 15\/12\/2011)",
+  "description": "Orde 32\/2015, de 13 de març (DOGV 26\/03\/2015)",
+  "department_id": "Perruqueria i cosmètica capilar",
+  "KEY": "3"
+ },
+ {
+  "id": 8,
+  "short_name": "22",
+  "complete_name": "CFM SERV. RESTAURACIÓ (LOE)",
+  "royal_decree_title": "TÈCNIC EN SERVICIS EN RESTAURACIÓ",
+  "royal_decree_title_new": "1690\/2007 BOE 18-01-2008",
+  "description": "Orde de 29 de juliol de 2009 (DOGV 04\/09\/2009)",
+  "department_id": "Servicis en restauració",
+  "KEY": "10"
+ },
+ {
+  "id": 9,
+  "short_name": "24",
+  "complete_name": "CFM SMX  (LOE)",
+  "royal_decree_title": "TÈCNIC EN SISTEMES MICROINFORMÀTICS I XARXES",
+  "royal_decree_title_new": "1691\/2007, BOE 17-01-2008",
+  "description": "Orde de 29 de juliol de 2009 (DOGV 03\/09\/2009)",
+  "department_id": "Sistemes microinformàtics i xarxes",
+  "KEY": "24"
+ },
+ {
+  "id": 10,
+  "short_name": "28",
+  "complete_name": "CFS ADM. I FINANC. (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN ADMINISTRACIÓ I FINANCES.",
+  "royal_decree_title_new": "1584\/2011 de 4 de novembre (BOE 15\/12\/2011) ",
+  "description": "Orde 13\/2015 de 5 de març de 2015 (DOGV 10\/03\/2015)",
+  "department_id": "Administració i finances",
+  "KEY": "5"
+ },
+ {
+  "id": 11,
+  "short_name": "29",
+  "complete_name": "CFS ASSISTENCIA A LA DIRECCIÓ (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN ASSITÈNCIA A LA DIRECCIÓ",
+  "royal_decree_title_new": "1584\/2011 de 4 de novembre (BOE 15\/12\/2011)",
+  "description": "Orde 13\/2015 de 5 de març de 2015 (DOGV 10\/03\/2015)",
+  "department_id": "Assitència a la direcció",
+  "KEY": "5"
+ },
+ {
+  "id": 12,
+  "short_name": "30",
+  "complete_name": "CFS ASIX (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN ADMINISTRACIÓ DE SISTEMES INFORMÀTICS EN XARXA",
+  "royal_decree_title_new": "1629\/2009 (BOE 18-11-2009)",
+  "description": "Orde 36\/2012 de 22 de juny (DOGV 06\/07\/2012)",
+  "department_id": "Administració de sistemes informàtics en xarxa",
+  "KEY": "24"
+ },
+ {
+  "id": 13,
+  "short_name": "32",
+  "complete_name": "CFS DAM (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN DESENROTLLAMENT D'APLICACIONS MULTIPLATAFORMA",
+  "royal_decree_title_new": "450\/2010, BOE 20-05-2010",
+  "description": "Orde 58\/2012 de 5 de setembre de 2012 (DOGV 24\/09\/2012)",
+  "department_id": "Desenrotllament d'aplicacions multiplataforma",
+  "KEY": "24"
+ },
+ {
+  "id": 14,
+  "short_name": "35",
+  "complete_name": "CFS DAW (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN DESENROTLLAMENT D'APLICACIONS WEB",
+  "royal_decree_title_new": "686\/2010 (BOE 12-06-2010)",
+  "order_resume": "Reial decret 405\/2023, de 29 de maig",
+  "description": "Orde 60\/2012 de 25 de setembre (DOGV 08\/10\/2012)",
+  "department_id": "Desenrotllament d'aplicacions web",
+  "KEY": "24"
+ },
+ {
+  "id": 15,
+  "short_name": "36",
+  "complete_name": "CFS DIREC. CUINA (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN DIRECCIÓ DE CUINA",
+  "royal_decree_title_new": "687\/2010 (BOE 12-06-2010)",
+  "description": "Orde 32\/2013 de 26 d'abril (DOGV 06\/05\/2013)",
+  "department_id": "Direcció de cuina",
+  "KEY": "10"
+ },
+ {
+  "id": 16,
+  "short_name": "38",
+  "complete_name": "CFS DIREC.RESTAURACIÓ (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN DIRECCIÓ DE SERVICIS DE RESTAURACIÓ",
+  "royal_decree_title_new": "688\/2010 (BOE 12-06-2010)",
+  "description": "Orde 24\/2013, de 21 d'abril (DOGV 25\/04\/2013)",
+  "department_id": "Direcció en servicis de restauració",
+  "KEY": "10"
+ },
+ {
+  "id": 17,
+  "short_name": "39",
+  "complete_name": "CFS EDUC.INFANTIL (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN EDUCACIÓ INFANTIL.",
+  "royal_decree_title_new": "1394\/2007 (BOE 24\/11\/2007)",
+  "description": "Orde de 29 de juliol de 2009 (DOGV 02\/09\/2009)",
+  "department_id": "Educació infantil",
+  "KEY": "2"
+ },
+ {
+  "id": 18,
+  "short_name": "42",
+  "complete_name": "CFS ESTET.INTEG. (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN ESTÈTICA INTEGRAL I BENESTAR",
+  "royal_decree_title_new": "881\/2011, (BOE 23\/07\/2011)",
+  "description": "Orde 19\/2015 de 5 de març de 2015 (DOGV 10\/03\/2015)",
+  "department_id": "Estètica integral i benestar",
+  "KEY": "3"
+ },
+ {
+  "id": 19,
+  "short_name": "44",
+  "complete_name": "CFS INTEGR.SOCIAL (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN INTEGRACIÓ SOCIAL",
+  "royal_decree_title_new": "1074\/2012 de 13 de juliol (BOE 15\/08\/12)",
+  "description": "Orde 29\/2017, de 3 de març (DOGV 13\/03\/2017)",
+  "department_id": "Integració Social",
+  "KEY": "2"
+ },
+ {
+  "id": 20,
+  "short_name": "45",
+  "complete_name": "CFS LABORATORI (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN LABORATORI CLÍNIC I BIOMÈDIC",
+  "royal_decree_title_new": "771\/2014 (BOE 4\/10\/2014)",
+  "description": "'",
+  "department_id": "Laboratori clínic i biomèdic",
+  "KEY": "6"
+ },
+ {
+  "id": 21,
+  "short_name": "51",
+  "complete_name": "CFS RXMN (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN IMATGE PER AL DIAGNÒSTIC I MEDICINA NUCLEAR",
+  "royal_decree_title_new": "770\/2014, de 12 de setembre (BOE 04\/10\/2014)",
+  "description": "'",
+  "department_id": "Imatge per al diagnòtic i medicina nuclear",
+  "KEY": "6"
+ },
+ {
+  "id": 22,
+  "short_name": "54",
+  "complete_name": "CFS SALUT AMBIENTAL (LOGSE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN SALUT AMBIENTAL",
+  "royal_decree_title_new": "540\/95 BOE 10-06-95",
+  "description": "'",
+  "department_id": "Salut ambiental",
+  "KEY": "6"
+ },
+ {
+  "id": 23,
+  "short_name": "56",
+  "complete_name": "CFS TASOCIT (LOE)",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN ANIMACIÓ SOCIOCULTURAL I TURÍSTICA",
+  "royal_decree_title_new": "1684\/2011 de 18 de novembre (BOE 27\/12\/11)",
+  "description": "Decret 120\/2017, de 8 de setembre (DOGV 18\/09\/2017)",
+  "department_id": "Animació Sociocultural i turística",
+  "KEY": "2"
+ },
+ {
+  "id": 24,
+  "short_name": "57",
+  "complete_name": "TPB Perruqueria i Estética",
+  "royal_decree_title": "PROFESSIONAL BÀSIC EN PERRUQUERIA I ESTÈTICA",
+  "royal_decree_title_new": "127\/2014, de 28 febrer",
+  "order_resume": "356\/2014, de 16 maig",
+  "description": "Decret 185\/2014, de 31 d'octubre",
+  "department_id": "FP Bàsica Perruqueria i Estètica",
+  "KEY": "3"
+ },
+ {
+  "id": 25,
+  "short_name": "58",
+  "complete_name": "CFS QUIMICA I SALUT AMBIENTAL",
+  "royal_decree_title": "TÈCNIC SUPERIOR EN QUÍMICA I SALUT AMBIENTAL",
+  "royal_decree_title_new": "283\/2019 (BOE 22\/4\/2019)",
+  "description": "'",
+  "department_id": "Química i Salut Ambiental",
+  "KEY": "25"
+ },
+ {
+  "id": 26,
+  "short_name": "59",
+  "complete_name": "MASTER CIBERSEGURETAT",
+  "royal_decree_title": "MASTER SEGURETAT",
+  "royal_decree_title_new": "283\/2019 (BOE 22\/4\/2019)",
+  "description": "'",
+  "department_id": "Curs d'EspecialiTzació en Ciberseguretat en Entorns de les Tecnologies de la Información",
+  "KEY": "24"
+ },
+ {
+  "id": 27,
+  "short_name": "60",
+  "complete_name": "CFM ESA (LOE)",
+  "royal_decree_title": "TÈCNIC EN EMERGÈNCIES SANITÀRIES",
+  "description": "'",
+  "department_id": "Emergències Sanitàries",
+  "KEY": "6"
+ }
+]

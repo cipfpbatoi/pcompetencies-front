@@ -1,0 +1,44 @@
+[
+ {
+  "id": 1,
+  "title": "1",
+  "contents": "Implantació d’arquitectures web",
+  "learning_result_id": "Aspectes generals d’arquitectures web,Escalabilitat, portabilitat, componentització, patrons de disseny, entre altres,Arquitectures web. Models.,Plataformes web lliures i propietàries,Servidors web i d’aplicacions. Instal·lació i configuració bàsica,Tipus, model de programari lliure i programari propietari,Instal·lació de servidors web de programari lliure i programari propietari,Estructura i recursos que componen una aplicació web. Descriptor de desplegament",
+  "KEY": "1"
+ },
+ {
+  "id": 2,
+  "title": "2",
+  "contents": "Administració de servidors web",
+  "learning_result_id": "Característiques generals d’un servidor web,Protocol HTTP,Tipus MIME,Configuració avançada del servidor web,Fitxers de configuració i\/o ferramentes de configuració,Mòduls: instal·lació, configuració i ús,Amfitrions virtuals. Creació, configuració i utilització,Autenticació i control d’accés,El protocol HTTPS,Configuració segura de servidors http,Certificats. Servidors de certificats,Navegadors web,Paràmetres d’aparença i ús,Desplegament d’aplicacions sobre servidors web,Proves de funcionament de l’aplicació web",
+  "KEY": "2"
+ },
+ {
+  "id": 3,
+  "title": "3",
+  "contents": "Administració de servidors d’aplicacions:",
+  "learning_result_id": "Configuració i ús dels components web,Tecnologia bàsica de servicis web,Protocols,Llenguatges de descripció de servicis web,Arquitectura i configuració bàsica del servidor d’aplicacions,Administrar aplicacions web,Autenticació d’usuaris. Dominis de seguretat per a l’autenticació,Administració de sessions. Sessions persistents,Arxius de registre d’accés i filtre de sol·licituds,Configurar el servidor d’aplicacions per a cooperar amb servidors web,Desplegament d’aplicacions en el servidor d’aplicacions,Seguretat en el servidor d’aplicacions. Configurar el servidor d’aplicacions amb suport SSL\/T,Allotjament compartit del servidor d’aplicacions",
+  "KEY": "3"
+ },
+ {
+  "id": 4,
+  "title": "4",
+  "contents": "Instal·lació i administració de servidors de transferència de fitxers",
+  "learning_result_id": "Funcionalitat del servici de transferència de fitxers.,Servidors i clients,Configuració del servici de transferència de fitxers. Permisos i quotes,Tipus d’usuaris i accessos al servici,Modes de connexió del client,Tipus de transferència de fitxers,Protocol segur de transferència de fitxers,Utilització de ferramentes gràfiques,Servici de transferència d’arxius des del servidor web,Utilització del servici de transferència de fitxers en mode text,Ordes,Utilització del servici de transferència d’arxius des del navegador,Utilització del servici de transferència d’arxius en el procés de desplegament de l’aplicació web",
+  "KEY": "4"
+ },
+ {
+  "id": 5,
+  "title": "5",
+  "contents": "Servicis de xarxa implicats en el desplegament d’una aplicació web",
+  "learning_result_id": "Sistemes de noms plans.,Sistemes de noms jeràrquics.,Resolutors de noms. Procés de resolució d’un nom de domini.,Dominis de primer nivell i successius.,Instal·lació de servidors de resolució de noms.,Paràmetres de configuració i registres del servidor de noms afec- tats en el desplegament,Servici de directoris: característiques i funcionalitat,Instal·lació de servidors de servici de directori,Fitxers bàsics de configuració. Interpretació i ús,Autenticació d’usuaris en el servici de directoris,Adaptació de la configuració del servidor de directoris per al des- plegament de l’aplicació. Usuaris centralitzats,Documentació associada als processos d’adaptació dels servicis",
+  "KEY": "5"
+ },
+ {
+  "id": 6,
+  "title": "6",
+  "contents": "Documentació i sistemes de control de versions",
+  "learning_result_id": "Formats estàndard per a la documentació,Llenguatges de marques per a la documentació,Descripció de tipus de documents,Ferramentes externes per a la generació de documentació. Instal- lació, configuració i ús,Creació i utilització de plantilles,Instal·lació, configuració i ús de sistemes de control de versions,Operacions avançades,Seguretat dels sistemes de control de versions,Història d’un repositori,Documentació sobre la instal·lació, la configuració i l’ús del sis- tema de control de versions",
+  "KEY": "6"
+ }
+]

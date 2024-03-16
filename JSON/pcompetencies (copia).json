@@ -1,0 +1,3278 @@
+{
+  "department": [
+    {
+      "id": 1,
+      "name": "ANGLES",
+      "short_name": "Ang"
+    },
+    {
+      "id": 2,
+      "name": "SERVEIS A LA COMUNITAT",
+      "short_name": "SCo"
+    },
+    {
+      "id": 3,
+      "name": "IMATGE PERSONAL",
+      "short_name": "Img"
+    },
+    {
+      "id": 5,
+      "name": "DEPARTAMENT ADMINISTRACIÓ",
+      "short_name": "Adm"
+    },
+    {
+      "id": 6,
+      "name": "DEPARTAMENT SANITARI",
+      "short_name": "San"
+    },
+    {
+      "id": 10,
+      "name": "HOSTELERIA I TURISME",
+      "short_name": "Hos"
+    },
+    {
+      "id": 12,
+      "name": "FORMACIO I ORIENTACIO LABORAL",
+      "short_name": "Fol"
+    },
+    {
+      "id": 18,
+      "name": "ORIENTACIO",
+      "short_name": "Ori"
+    },
+    {
+      "id": 24,
+      "name": "DEPARTAMENT INFORMÀTICA",
+      "short_name": "Inf"
+    },
+    {
+      "id": 25,
+      "name": "SEGURETAT I MEDI AMBIENT",
+      "short_name": "SMA"
+    }
+  ],
+  "evaluation_criteria": [
+    {
+      "id": 1,
+      "description": "S'han analitzat aspectes generals d'arquitectures web, les seues característiques, avantatges i inconvenients.",
+      "code": "a",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 45,
+      "description": "S'ha instal·lat, configurat i utilitzat un sistema de control de versions.",
+      "code": "e",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 2,
+      "description": "S'han descrit els fonaments i protocols en els quals es basa el funcionament d'un servidor web",
+      "code": "b",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 46,
+      "description": "S'ha garantit l'accessibilitat i seguretat de la informació i codi emmagatzemada pel sistema de control de versions",
+      "code": "f",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 48,
+      "description": "S'han utilitzat ferramentes per a la integració contínua del codi",
+      "code": "h",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 4,
+      "description": "S'ha realitzat la instal·lació i configuració bàsica de servidors d'aplicacions.",
+      "code": "d",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 5,
+      "description": "S'ha realitzat la instal·lació i configuració bàsica de tecnologies de virtualització de servidors en el núvol i en contenidors.",
+      "code": "e",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 7,
+      "description": "S'ha analitzat l'estructura i recursos que componen una aplicació web.",
+      "code": "g",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 47,
+      "description": "S'ha documentat la instal·lació, configuració i ús del sistema de control de versions utilitzat.",
+      "code": "g",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 8,
+      "description": "S'han descrit els requeriments del procés d'implantació d'una aplicació web.",
+      "code": "h",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 3,
+      "description": "S'ha realitzat la instal·lació i configuració bàsica de servidors web.",
+      "code": "c",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 9,
+      "description": "S'han documentat els processos d'instal·lació i configuració realitzats sobre els servidors web, d'aplicacions. i sobre tecnologies de virtualització en el núvol i en contenidors",
+      "code": "i",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 10,
+      "description": "S'han reconegut els paràmetres d'administració més importants del servidor  web.",
+      "code": "a",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 11,
+      "description": "S'ha ampliat la funcionalitat del servidor mitjançant l'activació i configuració de mòduls",
+      "code": "b",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 12,
+      "description": "S'han creat i configurat llocs virtuals.",
+      "code": "c",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 13,
+      "description": "S'han configurat els mecanismes d'autenticació i control d'accés del servidor",
+      "code": "d",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 14,
+      "description": "S'han obtingut i instal·lat certificats digitals.",
+      "code": "e",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 15,
+      "description": "S'han establit mecanismes per a assegurar les comunicacions entre el client i el servidor.",
+      "code": "f",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 16,
+      "description": "S'ha elaborat documentació relativa a la configuració, administració segura i recomanacions d'ús del servidor.",
+      "code": "g",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 17,
+      "description": "S'han realitzat els ajustos necessaris per a la implantació d'aplicacions  en el servidor web.",
+      "code": "h",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 19,
+      "description": "S'han instal·lat, configurat i utilitzat conjunts de ferramentes de gestió de *logs, permetent el seu monitoratge, consolidació i anàlisi en temps real.",
+      "code": "j",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 18,
+      "description": "S'han utilitzat tecnologies de virtualització en el desplegament de servidors web en el núvol i en contenidors",
+      "code": "i",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 20,
+      "description": "S'han descrit els components i el funcionament dels servicis proporcionats pel servidor d'aplicacions.",
+      "code": "a",
+      "learning_result_id": "3"
+    },
+    {
+      "id": 21,
+      "description": "S'han identificat els principals arxius de configuració i de biblioteques compartides",
+      "code": "b",
+      "learning_result_id": "3"
+    },
+    {
+      "id": 22,
+      "description": "S'ha configurat el servidor d'aplicacions per a cooperar amb el servidor web.",
+      "code": "c",
+      "learning_result_id": "3"
+    },
+    {
+      "id": 23,
+      "description": "S'han configurat i activat els mecanismes de seguretat del servidor d'aplicacions.",
+      "code": "d",
+      "learning_result_id": "3"
+    },
+    {
+      "id": 24,
+      "description": "S'han configurat i utilitzat els components web del servidor d'aplicacions.",
+      "code": "e",
+      "learning_result_id": "3"
+    },
+    {
+      "id": 25,
+      "description": "S'han instal·lat i configurat servidors de transferència d'arxius.",
+      "code": "a",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 26,
+      "description": "S'han creat usuaris i grups per a l'accés remot al servidor.",
+      "code": "b",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 27,
+      "description": "S'ha comprovat l'accés al servidor, tant en mode actiu com en mode passiu.",
+      "code": "c",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 6,
+      "description": "S'han realitzat proves de funcionament dels servidors web i d'aplicacions",
+      "code": "f",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 28,
+      "description": "S'han realitzat proves amb clients en línia de comandos i clients en mode gràfic",
+      "code": "d",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 29,
+      "description": "S'ha utilitzat el protocol segur de transferència d'arxius.",
+      "code": "e",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 30,
+      "description": "S'han configurat i utilitzat servicis de transferència d'arxius integrats en servidors web",
+      "code": "f",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 31,
+      "description": "S'ha elaborat documentació relativa a la configuració i administració del servici de transferència d'arxius.",
+      "code": "g",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 32,
+      "description": "S'han utilitzat tecnologies de virtualització en el desplegament de servidors de transferència d'arxius en el núvol i en contenidors.",
+      "code": "h",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 33,
+      "description": "S'ha descrit l'estructura, nomenclatura i funcionalitat dels sistemes de noms jeràrquics.",
+      "code": "a",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 34,
+      "description": "S'han identificat les necessitats de configuració del servidor de noms en funció dels requeriments d'execució de les aplicacions web desplegades.",
+      "code": "b",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 35,
+      "description": "S'han identificat la funció, elements i estructures lògiques del servici de directori.",
+      "code": "c",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 36,
+      "description": "S'ha analitzat la configuració i personalització del servici de directori",
+      "code": "d",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 37,
+      "description": "S'ha analitzat la capacitat del servici de directori com a mecanisme d'autenticació centralitzada dels usuaris en una xarxa.",
+      "code": "e",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 38,
+      "description": "S'han especificat els paràmetres de configuració en el servici de directoris adequats per al procés de validació d'usuaris de l'aplicació web.",
+      "code": "f",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 39,
+      "description": "S'ha elaborat documentació relativa a les adaptacions realitzades en els servicis de xarxa",
+      "code": "g",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 41,
+      "description": "S'han identificat diferents ferramentes de generació de documentació.",
+      "code": "a",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 42,
+      "description": "S'han documentat el component programari utilitzant els generadors específics de les plataformes.",
+      "code": "b",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 40,
+      "description": "S'han utilitzat tecnologies de virtualització en el desplegament de servidors de directoris en el núvol i en contenidors.",
+      "code": "h",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 43,
+      "description": "S'han utilitzat diferents formats per a la documentació.",
+      "code": "c",
+      "learning_result_id": "6"
+    },
+    {
+      "id": 44,
+      "description": "S'han utilitzat ferramentes col·laboratives per a l'elaboració i manteniment de la documentació",
+      "code": "d",
+      "learning_result_id": "6"
+    }
+  ],
+  "learning_result": [
+    {
+      "id": 1,
+      "description": "Implanta arquitectures web analitzant i aplicant criteris dernfuncionalitat.",
+      "number": "1",
+      "module_id": "0614"
+    },
+    {
+      "id": 2,
+      "description": "Implanta aplicacions web en servidors web, avaluant i aplicant criteris de configuració per al seu funcionament segur",
+      "number": "2",
+      "module_id": "0614"
+    },
+    {
+      "id": 3,
+      "description": "Implanta aplicacions web en servidors d'aplicacions, avaluant irnaplicant criteris de configuració per al seu funcionament segur",
+      "number": "3",
+      "module_id": "0614"
+    },
+    {
+      "id": 4,
+      "description": "Administra servidors de transferència d'arxius, avaluant i aplicant criteris de configuració que garantisquen la disponibilitat del servici.",
+      "number": "4",
+      "module_id": "0614"
+    },
+    {
+      "id": 5,
+      "description": "Verifica l'execució d'aplicacions web comprovant els paràmetres dernconfiguració de servicis de xarxa.",
+      "number": "5",
+      "module_id": "0614"
+    },
+    {
+      "id": 6,
+      "description": "Elabora la documentació de l'aplicació web avaluant i seleccionantrnferramentes de generació de documentació, control de versions i d'integraciórn contínua",
+      "number": "6",
+      "module_id": "0614"
+    }
+  ],
+  "modules": [
+    {
+      "code": "0011",
+      "name": "Didàctica de l'educación infantil",
+      "department_id": 2
+    },
+    {
+      "code": "0012",
+      "name": "Autonomia personal i salut infantil",
+      "department_id": 2
+    },
+    {
+      "code": "0013",
+      "name": "El joc infantil i la seua metodolog",
+      "department_id": 2
+    },
+    {
+      "code": "0014",
+      "name": "Expressió i comunicació",
+      "department_id": 2
+    },
+    {
+      "code": "0015",
+      "name": "Desenrotllament cognitiu i motor",
+      "department_id": 2
+    },
+    {
+      "code": "0016",
+      "name": "Desenrotllament socioafectiu",
+      "department_id": 2
+    },
+    {
+      "code": "0017",
+      "name": "Habilitats socials"
+    },
+    {
+      "code": "0018",
+      "name": "Intervenció amb famílies i atenció a menors"
+    },
+    {
+      "code": "0020",
+      "name": "Primers auxilis"
+    },
+    {
+      "code": "0021",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0022",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0026",
+      "name": "Processos bàsics de pastisseria i rebosteria"
+    },
+    {
+      "code": "0028",
+      "name": "Postres en restauració"
+    },
+    {
+      "code": "0031",
+      "name": "Seguretat i higiene en la manipulació d'aliments"
+    },
+    {
+      "code": "0045",
+      "name": "Ofertes gastronòmiques"
+    },
+    {
+      "code": "0046",
+      "name": "Preelaboració i conservació d'alime"
+    },
+    {
+      "code": "0047",
+      "name": "Tècniques culinàries"
+    },
+    {
+      "code": "0048",
+      "name": "Productes culinaris"
+    },
+    {
+      "code": "0049",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0050",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0052",
+      "name": "Manteniment mecànic preventiu "
+    },
+    {
+      "code": "0054",
+      "name": "Dotació sanitària"
+    },
+    {
+      "code": "0055",
+      "name": "Atenció sanitària inicial "
+    },
+    {
+      "code": "0057",
+      "name": "Evacuació i trasllats de pacients"
+    },
+    {
+      "code": "0058",
+      "name": "Suport psicològic en situacions"
+    },
+    {
+      "code": "0061",
+      "name": "Anatomofisiologia i patologia bàsiques"
+    },
+    {
+      "code": "0062",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0099",
+      "name": "Disposició i venda de productes"
+    },
+    {
+      "code": "0100",
+      "name": "Oficina de farmàcia"
+    },
+    {
+      "code": "0101",
+      "name": "Dispensació de productes farmacèut."
+    },
+    {
+      "code": "0102",
+      "name": "Dispensació de productes parafarmac"
+    },
+    {
+      "code": "0103",
+      "name": "Operacions bàsiques de laboratori"
+    },
+    {
+      "code": "0104",
+      "name": "Formulació magistral"
+    },
+    {
+      "code": "0105",
+      "name": "Promoció de la salut"
+    },
+    {
+      "code": "0106",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0107",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0150",
+      "name": "Operacions bàsiques en bar cafeteria"
+    },
+    {
+      "code": "0151",
+      "name": "Operacions bàsiques en restaurant"
+    },
+    {
+      "code": "0152",
+      "name": "Servicis en bar cafeteria"
+    },
+    {
+      "code": "0153",
+      "name": "Servicis en restaurant i esdevenime"
+    },
+    {
+      "code": "0154",
+      "name": "El vi i el seu servici"
+    },
+    {
+      "code": "0155",
+      "name": "Tècniques de comunicació en restauració"
+    },
+    {
+      "code": "0156",
+      "name": "Anglés"
+    },
+    {
+      "code": "0157",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0158",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0179",
+      "name": "Anglés"
+    },
+    {
+      "code": "0180",
+      "name": "Segona Llengua estrangera"
+    },
+    {
+      "code": "0210",
+      "name": "Organització de l'atenció a les persones en situació de dependència"
+    },
+    {
+      "code": "0211",
+      "name": "Destreses socials"
+    },
+    {
+      "code": "0212",
+      "name": "Característiques i necessitats de les persones en situació de dependència"
+    },
+    {
+      "code": "0213",
+      "name": "Atenció i suport psicosocial"
+    },
+    {
+      "code": "0214",
+      "name": "Suport a la comunicació"
+    },
+    {
+      "code": "0215",
+      "name": "Suport domiciliari"
+    },
+    {
+      "code": "0216",
+      "name": "Atenció sanitària"
+    },
+    {
+      "code": "0217",
+      "name": "Atenció higiènica"
+    },
+    {
+      "code": "0218",
+      "name": "Formació i orientació laboral."
+    },
+    {
+      "code": "0219",
+      "name": "Empresa i iniciativa emprenedora."
+    },
+    {
+      "code": "0221",
+      "name": "Muntatge i manteniment d'equips"
+    },
+    {
+      "code": "0222",
+      "name": "Sistemes operatius monolloc"
+    },
+    {
+      "code": "0223",
+      "name": "Aplicacions ofimàtiques"
+    },
+    {
+      "code": "0224",
+      "name": "Sistemes operatius en xarxa"
+    },
+    {
+      "code": "0225",
+      "name": "Xarxes locals",
+      "department_id": 24
+    },
+    {
+      "code": "0226",
+      "name": "Seguretat informàtica"
+    },
+    {
+      "code": "0227",
+      "name": "Servicis en xarxa"
+    },
+    {
+      "code": "0228",
+      "name": "Aplicacions web"
+    },
+    {
+      "code": "0229",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0230",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "028001",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "028100",
+      "name": "Relacions en l'equip de treball"
+    },
+    {
+      "code": "028501",
+      "name": "Operacions administratives i documentació sanitària"
+    },
+    {
+      "code": "028502",
+      "name": "Tècniques bàsiques d'infermeria"
+    },
+    {
+      "code": "028503",
+      "name": "Higiene del medi hospitalari i neteja de material"
+    },
+    {
+      "code": "028504",
+      "name": "Promoció de la salut i suport psicològic al pacient"
+    },
+    {
+      "code": "028505",
+      "name": "Tècniques d'ajuda odontològica/estomatològica"
+    },
+    {
+      "code": "029001",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "029506",
+      "name": "Organització i gestió de la unitat "
+    },
+    {
+      "code": "029507",
+      "name": "Aigües d'ús i consum"
+    },
+    {
+      "code": "029508",
+      "name": "Residus sòlids i medi construït"
+    },
+    {
+      "code": "029509",
+      "name": "Control i vigilància de la contam."
+    },
+    {
+      "code": "029510",
+      "name": "Contaminació atmosfèrica, sorolls"
+    },
+    {
+      "code": "029511",
+      "name": "Productes químics i vectors "
+    },
+    {
+      "code": "029512",
+      "name": "Educació sanitària i promoció "
+    },
+    {
+      "code": "0337",
+      "name": "Context de la intervenció social"
+    },
+    {
+      "code": "0338",
+      "name": "Inserció sociolaboral"
+    },
+    {
+      "code": "0339",
+      "name": "Atenció a les unitats de convivència"
+    },
+    {
+      "code": "0340",
+      "name": "Mediació comunitària"
+    },
+    {
+      "code": "0341",
+      "name": "Suport a la intervenció educativa"
+    },
+    {
+      "code": "0342",
+      "name": "Promoció de l'autonomia personal"
+    },
+    {
+      "code": "0343",
+      "name": "Sistemes alternatius i augmentatius de comunicació"
+    },
+    {
+      "code": "0344",
+      "name": "Metodologia de la intervenció social"
+    },
+    {
+      "code": "0346",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0347",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0369",
+      "name": "Implantació de Sistemes Operatius"
+    },
+    {
+      "code": "0370",
+      "name": "Planificació i Administració de Xarxes"
+    },
+    {
+      "code": "0371",
+      "name": "Fonaments de Maquinari"
+    },
+    {
+      "code": "0372",
+      "name": "Gestió de Bases de Dades"
+    },
+    {
+      "code": "0373",
+      "name": "Llenguatges de marques i sistemes de gestió d'informació"
+    },
+    {
+      "code": "0374",
+      "name": "Administració de Sistemes Operatius"
+    },
+    {
+      "code": "0375",
+      "name": "Servicis de Xarxa i Internet"
+    },
+    {
+      "code": "0376",
+      "name": "Implantació d'Aplicacions Web"
+    },
+    {
+      "code": "0377",
+      "name": "Administració de Sistemes Gestors de Bases de Dades"
+    },
+    {
+      "code": "0378",
+      "name": "Seguretat i Alta Disponibilitat"
+    },
+    {
+      "code": "0380",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0381",
+      "name": "Empresa i Iniciativa emprenedora"
+    },
+    {
+      "code": "0437",
+      "name": "Comunicació empresarial i atenció al client"
+    },
+    {
+      "code": "0438",
+      "name": "Operacions administrativa de compra-venda"
+    },
+    {
+      "code": "0439",
+      "name": "Empresa i administració"
+    },
+    {
+      "code": "0440",
+      "name": "Tractament informàtic de la informació "
+    },
+    {
+      "code": "0441",
+      "name": "Tècnica comptable"
+    },
+    {
+      "code": "0442",
+      "name": "Operacions administratives de recursos humans"
+    },
+    {
+      "code": "0443",
+      "name": "Tractament de la documentació comptable"
+    },
+    {
+      "code": "0446",
+      "name": "Empresa en l'aula"
+    },
+    {
+      "code": "0448",
+      "name": "Operacions auxiliars de gestió de tresoreria"
+    },
+    {
+      "code": "0449",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "045604",
+      "name": "Organització i gestió empresa"
+    },
+    {
+      "code": "045701",
+      "name": "Desenrotllament comunitari"
+    },
+    {
+      "code": "045702",
+      "name": "Animació cultural"
+    },
+    {
+      "code": "045703",
+      "name": "Animació d'oci i temps lliure"
+    },
+    {
+      "code": "045704",
+      "name": "Animació i dinàmica de grups"
+    },
+    {
+      "code": "045705",
+      "name": "Metodologia de la intervenció soc."
+    },
+    {
+      "code": "0483",
+      "name": "Sistemes informàtics"
+    },
+    {
+      "code": "0484",
+      "name": "Bases de Dades"
+    },
+    {
+      "code": "0485",
+      "name": "Programació"
+    },
+    {
+      "code": "0486",
+      "name": "Accés a dades"
+    },
+    {
+      "code": "0487",
+      "name": "Entorns de desenrotllament"
+    },
+    {
+      "code": "0488",
+      "name": "Desenrotllament d'interfícies"
+    },
+    {
+      "code": "0489",
+      "name": "Programació multimèdia i dispositius mòbils"
+    },
+    {
+      "code": "0490",
+      "name": "Programació de servicis i processos"
+    },
+    {
+      "code": "0491",
+      "name": "Sistemes de gestió empresarial"
+    },
+    {
+      "code": "0493",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0494",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0496",
+      "name": "Control de l'aprovisionament  de matèries primeres"
+    },
+    {
+      "code": "0497",
+      "name": "Processos de preelaboració i conservació en cuina"
+    },
+    {
+      "code": "0498",
+      "name": "Elaboracions de pastisseria i rebosteria"
+    },
+    {
+      "code": "0499",
+      "name": "Processos d'elaboració culinària"
+    },
+    {
+      "code": "0500",
+      "name": "Gestión de la producción en cocina"
+    },
+    {
+      "code": "0501",
+      "name": "Gestió de la qualitat i de la seguretat i higiene alimentàries"
+    },
+    {
+      "code": "0502",
+      "name": "Gastronomia i nutrició"
+    },
+    {
+      "code": "0503",
+      "name": "Gestió administrativa i comercial en restauració"
+    },
+    {
+      "code": "0504",
+      "name": "Recursos humans i direcció d'equips en restauració"
+    },
+    {
+      "code": "0506",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0507",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0509",
+      "name": "Processos de servicis en bar-cafeteria"
+    },
+    {
+      "code": "0510",
+      "name": "Processos de servicis en restaurant"
+    },
+    {
+      "code": "0511",
+      "name": "Sumilleria"
+    },
+    {
+      "code": "0512",
+      "name": "Planificació i direcció de servicis i esdeveniments en restauració"
+    },
+    {
+      "code": "0514",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0515",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "056604",
+      "name": "Organització i gestió de l'àrea "
+    },
+    {
+      "code": "056701",
+      "name": "Fonaments i tècniques d'exploració "
+    },
+    {
+      "code": "056702",
+      "name": "Fonaments i tècniques digitalitzac."
+    },
+    {
+      "code": "056703",
+      "name": "Anatomia radiològica"
+    },
+    {
+      "code": "056704",
+      "name": "Processament i tractament imatge"
+    },
+    {
+      "code": "056705",
+      "name": "Fonaments i tècniques m. nuclear"
+    },
+    {
+      "code": "056706",
+      "name": "Protecció radiològica"
+    },
+    {
+      "code": "0612",
+      "name": "Desenrotllament WEB en entorn client"
+    },
+    {
+      "code": "0613",
+      "name": "Desenrotllament WEB en entorn servidor"
+    },
+    {
+      "code": "0614",
+      "name": "Desplegament d'aplicacions WEB",
+      "department_id": 24
+    },
+    {
+      "code": "0615",
+      "name": "Disseny d'interfícies WEB"
+    },
+    {
+      "code": "0617",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0618",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0633",
+      "name": "Tècniques d'higiene facial i corporal"
+    },
+    {
+      "code": "0634",
+      "name": "Maquillatge"
+    },
+    {
+      "code": "0635",
+      "name": "DEPILACIÓ MECÀNICA I DECOLORACIÓ DEL BORRISSOL"
+    },
+    {
+      "code": "0636",
+      "name": "Estètica de mans i peus"
+    },
+    {
+      "code": "0637",
+      "name": "TÈCNIQUES D'UNGLES ARTIFICIALS"
+    },
+    {
+      "code": "0638",
+      "name": "Anàlisi estètica"
+    },
+    {
+      "code": "0639",
+      "name": "ACTIVITATS EN CABINA D'ESTÈTICA"
+    },
+    {
+      "code": "0640",
+      "name": "Imatge corporal i hàbits saludables"
+    },
+    {
+      "code": "0641",
+      "name": "Cosmetologia per a estètica i bellesa"
+    },
+    {
+      "code": "0642",
+      "name": "PERFUMERIA I COSMÈTICA NATURAL"
+    },
+    {
+      "code": "0643",
+      "name": "Màrqueting i venda en imatge personal."
+    },
+    {
+      "code": "0644",
+      "name": "FORMACIÓ I ORIENTACIÓ LABORAL"
+    },
+    {
+      "code": "0645",
+      "name": "EMPRESA I INICIATIVA EMPRENEDORA"
+    },
+    {
+      "code": "0647",
+      "name": "Gestió de la documentació jurídica i empresarial"
+    },
+    {
+      "code": "0648",
+      "name": "Recursos humans i responsabilitat social corporativa "
+    },
+    {
+      "code": "0649",
+      "name": "Ofimàtica i procés de la informació"
+    },
+    {
+      "code": "0650",
+      "name": "Procés integral de l'activitat comercial"
+    },
+    {
+      "code": "0651",
+      "name": "Comunicació i atenció al client"
+    },
+    {
+      "code": "0652",
+      "name": "Gestió de recursos humans"
+    },
+    {
+      "code": "0653",
+      "name": "Gestió financera "
+    },
+    {
+      "code": "0654",
+      "name": "Comptabilitat i fiscalitat"
+    },
+    {
+      "code": "0655",
+      "name": "Gestió logística i comercial"
+    },
+    {
+      "code": "0656",
+      "name": "Simulació empresarial"
+    },
+    {
+      "code": "0658",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0661",
+      "name": "Protocol empresarial"
+    },
+    {
+      "code": "0662",
+      "name": "Organització d'esdeveniments empresarials"
+    },
+    {
+      "code": "0663",
+      "name": "Gestió avançada de la informació"
+    },
+    {
+      "code": "0665",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0744",
+      "name": "Aparellologia estètica "
+    },
+    {
+      "code": "0745",
+      "name": "Estètica hidrotermal"
+    },
+    {
+      "code": "0746",
+      "name": "Depilació avançada"
+    },
+    {
+      "code": "0747",
+      "name": "Massatge estètic"
+    },
+    {
+      "code": "0748",
+      "name": "Drenatge estètic i tècniques per pressió"
+    },
+    {
+      "code": "0749",
+      "name": "Micropigmentació"
+    },
+    {
+      "code": "0750",
+      "name": "Processos fisiològics i d'higiene en imatge personal"
+    },
+    {
+      "code": "0751",
+      "name": "Dermoestètica"
+    },
+    {
+      "code": "0752",
+      "name": "Cosmètica aplicada a estètica i benestar"
+    },
+    {
+      "code": "0753",
+      "name": "Tractaments estètics integrals"
+    },
+    {
+      "code": "0755",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "0756",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "0831",
+      "name": "Teleasistència"
+    },
+    {
+      "code": "0842",
+      "name": "Pentinats i arreplegats"
+    },
+    {
+      "code": "0843",
+      "name": "Coloració capil·lar"
+    },
+    {
+      "code": "0844",
+      "name": "Cosmètica per a perruqueria"
+    },
+    {
+      "code": "0845",
+      "name": "Tècniques de tall del cabell"
+    },
+    {
+      "code": "0846",
+      "name": "Canvis de forma permanent del cabell"
+    },
+    {
+      "code": "0848",
+      "name": "Perruqueria i estilisme masculí"
+    },
+    {
+      "code": "0849",
+      "name": "Anàlisi capil·lar"
+    },
+    {
+      "code": "0851",
+      "name": "Formació i orientació laboral."
+    },
+    {
+      "code": "0852",
+      "name": "Empresa i iniciativa emprenedora."
+    },
+    {
+      "code": "1123",
+      "name": "ACTIVITATS D'OCI I TEMPS LLIURE"
+    },
+    {
+      "code": "1124",
+      "name": "DINAMITZACIÓ GRUPAL"
+    },
+    {
+      "code": "1125",
+      "name": "ANIMACIÓ I GESTIÓ CULTURAL"
+    },
+    {
+      "code": "1126",
+      "name": "ANIMACIÓ TURÍSTICA"
+    },
+    {
+      "code": "1128",
+      "name": "Desenrotllament comunitari"
+    },
+    {
+      "code": "1129",
+      "name": "INFORMACIÓ JUVENIL"
+    },
+    {
+      "code": "1130",
+      "name": "INTERVENCIÓ SOCIOEDUCATIVA AMB JÓVENS"
+    },
+    {
+      "code": "1131",
+      "name": "CONTEXT DE L'ANIMACIÓ SOCIOCULTURAL"
+    },
+    {
+      "code": "1133",
+      "name": "FORMACIÓ I ORIENTACIÓ LABORAL"
+    },
+    {
+      "code": "1134",
+      "name": "EMPRESA I INICIATIVA EMPRENEDORA"
+    },
+    {
+      "code": "1345",
+      "name": "Atenció al pacient"
+    },
+    {
+      "code": "1346",
+      "name": "Fonaments físics i equips"
+    },
+    {
+      "code": "1347",
+      "name": "Anatomia per la imatge"
+    },
+    {
+      "code": "1348",
+      "name": "Protecció radiològica"
+    },
+    {
+      "code": "1349",
+      "name": "Tècniques de radiologia simple"
+    },
+    {
+      "code": "1350",
+      "name": "Tècniques de radiologia especial"
+    },
+    {
+      "code": "1351",
+      "name": "Tècniques de tomografia computada i ecografia"
+    },
+    {
+      "code": "1352",
+      "name": "Tècniques d¿imatge per ressonància magnètica"
+    },
+    {
+      "code": "1353",
+      "name": "Tècniques d¿imatge en medicina nuclear"
+    },
+    {
+      "code": "1354",
+      "name": "Tècniques de radiofarmàcia"
+    },
+    {
+      "code": "1355",
+      "name": "Projecte d¿Imatge per al Diagnòstic i Medicina Nuclear"
+    },
+    {
+      "code": "1356",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "1357",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "1358",
+      "name": "Formació en Centres de Treball"
+    },
+    {
+      "code": "1367",
+      "name": "Gestió de mostres biològiques"
+    },
+    {
+      "code": "1368",
+      "name": "Tècniques generals de laboratori"
+    },
+    {
+      "code": "1369",
+      "name": "Biologia molecular i citogenètica"
+    },
+    {
+      "code": "1370",
+      "name": "Fisiopatologia general"
+    },
+    {
+      "code": "1371",
+      "name": "Anàlisi bioquímica"
+    },
+    {
+      "code": "1372",
+      "name": "Tècniques d¿immunodiagnòstic"
+    },
+    {
+      "code": "1373",
+      "name": "Microbiologia clínica"
+    },
+    {
+      "code": "1374",
+      "name": "Tècniques d¿anàlisi hematològica"
+    },
+    {
+      "code": "1376",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "1377",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "1546",
+      "name": "Sistemes de gestió ambiental"
+    },
+    {
+      "code": "1547",
+      "name": "Educació per a la salut i el medi ambient"
+    },
+    {
+      "code": "1548",
+      "name": "Control d'aigües"
+    },
+    {
+      "code": "1549",
+      "name": "Control de residus"
+    },
+    {
+      "code": "1550",
+      "name": "Salut i riscos del mig construït"
+    },
+    {
+      "code": "1551",
+      "name": "Control i seguretat alimentària"
+    },
+    {
+      "code": "1552",
+      "name": "Contaminació ambiental i atmosfèrica"
+    },
+    {
+      "code": "1553",
+      "name": "Control d'organismes nocius"
+    },
+    {
+      "code": "1554",
+      "name": "Unitat de salut ambiental"
+    },
+    {
+      "code": "1556",
+      "name": "Formació i orientació laboral"
+    },
+    {
+      "code": "1557",
+      "name": "Empresa i iniciativa emprenedora"
+    },
+    {
+      "code": "1558",
+      "name": "Formació en centres de treball"
+    },
+    {
+      "code": "3005",
+      "name": "Atenció al client"
+    },
+    {
+      "code": "3009",
+      "name": "Ciències aplicades I"
+    },
+    {
+      "code": "3011",
+      "name": "Comunicació i societat I"
+    },
+    {
+      "code": "3011cv",
+      "name": "Castellà-Valencià"
+    },
+    {
+      "code": "3011e",
+      "name": "Llengua Estrangera"
+    },
+    {
+      "code": "3011s",
+      "name": "Ciències Socials "
+    },
+    {
+      "code": "3012",
+      "name": "Comunicació i Societat II"
+    },
+    {
+      "code": "3012cv",
+      "name": "Castellà-Valencià II"
+    },
+    {
+      "code": "3012e",
+      "name": "Llengua Estrangera II"
+    },
+    {
+      "code": "3012s",
+      "name": "Ciències Socials II"
+    },
+    {
+      "code": "3037",
+      "name": "Tècniques elementals de servici"
+    },
+    {
+      "code": "3038",
+      "name": "Processos bàsics de preparació d'aliments i begudes"
+    },
+    {
+      "code": "3039",
+      "name": "Preparació i muntatge de materials per a col·lectivitats i càtering"
+    },
+    {
+      "code": "3042",
+      "name": "Ciències Aplicades II"
+    },
+    {
+      "code": "3060",
+      "name": "Preparació de l'entorn professional"
+    },
+    {
+      "code": "3061",
+      "name": "Cures estètiques bàsiques d'ungles"
+    },
+    {
+      "code": "3062",
+      "name": "Depilació mecànica i decoloració del borrissol superflu"
+    },
+    {
+      "code": "3063",
+      "name": "Maquillatge"
+    },
+    {
+      "code": "3064",
+      "name": "Llavat i canvis de forma del cabell"
+    },
+    {
+      "code": "3065",
+      "name": "Canvi de color del cabell"
+    },
+    {
+      "code": "3067",
+      "name": "Formació en centres de treball "
+    },
+    {
+      "code": "3067p",
+      "name": "Formació en centres de treball (UF1)"
+    },
+    {
+      "code": "5021",
+      "name": "Incidents de ciberseguretat"
+    },
+    {
+      "code": "5022",
+      "name": "Bastionado de xarxes i sistemes"
+    },
+    {
+      "code": "5023",
+      "name": "Posada en producció segura"
+    },
+    {
+      "code": "5024",
+      "name": "Anàlisi forense informàtic"
+    },
+    {
+      "code": "5025",
+      "name": "Hacking ètic"
+    },
+    {
+      "code": "5026",
+      "name": "Normativa de ciberseguretat"
+    },
+    {
+      "code": "CV0001",
+      "name": "Anglés Tècnic I-M / Horari reservat per a la docència en anglés"
+    },
+    {
+      "code": "CV0002",
+      "name": "Anglés Tècnic II-M / Horari reservat per a la docència en anglés"
+    },
+    {
+      "code": "CV0003",
+      "name": "Anglés Técnic I-S / Horari reservat per a la docència en anglés"
+    },
+    {
+      "code": "CV0004",
+      "name": "Anglés Tècnic II-S / Horari reservat per a la docència en anglés"
+    },
+    {
+      "code": "CV0005",
+      "name": "Formació i orientació laboral "
+    },
+    {
+      "code": "CV0006",
+      "name": "Formació i Orientació Laboral II"
+    }
+  ],
+  "user": [
+    {
+      "id": 1,
+      "email": "1",
+      "name": "acoloma@cipfpbatoi.es",
+      "surname": "Alexandre",
+      "roles": "Coloma Gisbert",
+      "password": "[\"ROLE_SUPER_ADMIN\"]",
+      "department_id": "$2y$13$pVL6ENvpy.vC.A7MqacBg.Le8SXuln8EzoJlh5ebiE/wMzK3Ouqby",
+      "KEY": "1"
+    },
+    {
+      "id": 2,
+      "email": "3",
+      "name": "acoloma122@cipfpbatoi.es",
+      "surname": "32131",
+      "roles": "123131",
+      "password": "[]",
+      "department_id": "$2y$13$mcFA1Jxhe/Z.CTQBKbSjx.vfLNziC3/ItSW1J1QBiYiN28EdcpbYq",
+      "KEY": "2"
+    }
+  ],
+  "programmings": [
+    {
+      "id": 1,
+      "cycle_id": 0,
+      "module_id": 0
+    },
+    {
+      "cycle_id": 2,
+      "module_id": "0011",
+      "id": 2
+    }
+  ],
+  "contents_block": [
+    {
+      "id": 1,
+      "title": "Implantació d’arquitectures web",
+      "contents": "Aspectes generals d’arquitectures web,Escalabilitat, portabilitat, componentització, patrons de disseny, entre altres,Arquitectures web. Models.,Plataformes web lliures i propietàries,Servidors web i d’aplicacions. Instal·lació i configuració bàsica,Tipus, model de programari lliure i programari propietari,Instal·lació de servidors web de programari lliure i programari propietari,Estructura i recursos que componen una aplicació web. Descriptor de desplegament",
+      "learning_result_id": "1"
+    },
+    {
+      "id": 2,
+      "title": "Administració de servidors web",
+      "contents": "Característiques generals d’un servidor web,Protocol HTTP,Tipus MIME,Configuració avançada del servidor web,Fitxers de configuració i/o ferramentes de configuració,Mòduls: instal·lació, configuració i ús,Amfitrions virtuals. Creació, configuració i utilització,Autenticació i control d’accés,El protocol HTTPS,Configuració segura de servidors http,Certificats. Servidors de certificats,Navegadors web,Paràmetres d’aparença i ús,Desplegament d’aplicacions sobre servidors web,Proves de funcionament de l’aplicació web",
+      "learning_result_id": "2"
+    },
+    {
+      "id": 3,
+      "title": "Administració de servidors d’aplicacions:",
+      "contents": "Configuració i ús dels components web,Tecnologia bàsica de servicis web,Protocols,Llenguatges de descripció de servicis web,Arquitectura i configuració bàsica del servidor d’aplicacions,Administrar aplicacions web,Autenticació d’usuaris. Dominis de seguretat per a l’autenticació,Administració de sessions. Sessions persistents,Arxius de registre d’accés i filtre de sol·licituds,Configurar el servidor d’aplicacions per a cooperar amb servidors web,Desplegament d’aplicacions en el servidor d’aplicacions,Seguretat en el servidor d’aplicacions. Configurar el servidor d’aplicacions amb suport SSL/T,Allotjament compartit del servidor d’aplicacions",
+      "learning_result_id": "3"
+    },
+    {
+      "id": 4,
+      "title": "Instal·lació i administració de servidors de transferència de fitxers",
+      "contents": "Funcionalitat del servici de transferència de fitxers.,Servidors i clients,Configuració del servici de transferència de fitxers. Permisos i quotes,Tipus d’usuaris i accessos al servici,Modes de connexió del client,Tipus de transferència de fitxers,Protocol segur de transferència de fitxers,Utilització de ferramentes gràfiques,Servici de transferència d’arxius des del servidor web,Utilització del servici de transferència de fitxers en mode text,Ordes,Utilització del servici de transferència d’arxius des del navegador,Utilització del servici de transferència d’arxius en el procés de desplegament de l’aplicació web",
+      "learning_result_id": "4"
+    },
+    {
+      "id": 5,
+      "title": "Servicis de xarxa implicats en el desplegament d’una aplicació web",
+      "contents": "Sistemes de noms plans.,Sistemes de noms jeràrquics.,Resolutors de noms. Procés de resolució d’un nom de domini.,Dominis de primer nivell i successius.,Instal·lació de servidors de resolució de noms.,Paràmetres de configuració i registres del servidor de noms afec- tats en el desplegament,Servici de directoris: característiques i funcionalitat,Instal·lació de servidors de servici de directori,Fitxers bàsics de configuració. Interpretació i ús,Autenticació d’usuaris en el servici de directoris,Adaptació de la configuració del servidor de directoris per al des- plegament de l’aplicació. Usuaris centralitzats,Documentació associada als processos d’adaptació dels servicis",
+      "learning_result_id": "5"
+    },
+    {
+      "id": 6,
+      "title": "Documentació i sistemes de control de versions",
+      "contents": "Formats estàndard per a la documentació,Llenguatges de marques per a la documentació,Descripció de tipus de documents,Ferramentes externes per a la generació de documentació. Instal- lació, configuració i ús,Creació i utilització de plantilles,Instal·lació, configuració i ús de sistemes de control de versions,Operacions avançades,Seguretat dels sistemes de control de versions,Història d’un repositori,Documentació sobre la instal·lació, la configuració i l’ús del sis- tema de control de versions",
+      "learning_result_id": "6"
+    }
+  ],
+  "work_units": [
+    {
+      "learningResults": [
+        2,
+        5
+      ],
+      "title": "ut1",
+      "sessions": 2,
+      "programming_id": 2,
+      "order": 1,
+      "id": 1
+    }
+  ],
+  "cicles": [
+    {
+      "id": 1,
+      "short_name": "CFM APD (LOE)",
+      "complete_name": "TÈCNIC EN ATENCIÓ A PERSONES EN SITUACIÓ DE DEPENDÈNCIA",
+      "royal_decree_title": "1593/2011 (BOE 15/12/2011)",
+      "royal_decree_title_new": "Orde 30/2015, de 13 de març (DOGV 25/03/2015)",
+      "description": "Atenció a persones en situació de dependència",
+      "department_id": "2"
+    },
+    {
+      "id": 2,
+      "short_name": "CFM FARMACIA (LOE)",
+      "complete_name": "TÈCNIC EN FARMÀCIA I PARAFARMÀCIA",
+      "royal_decree_title": "1689/2007 (BOE 17/01/2008)",
+      "royal_decree_title_new": "Orde de 29 de juliol (DOGV 02/09/2009)",
+      "description": "Farmàcia i parafarmàcia",
+      "department_id": "6"
+    },
+    {
+      "id": 3,
+      "short_name": "CFM CAE (LOGSE)",
+      "complete_name": "TÈCNIC EN CURES AUXILIARS D'INFERMERIA",
+      "royal_decree_title": "546/1995 (BOE 05/06/95)",
+      "description": "Cures auxiliares d'infermeria",
+      "department_id": "6"
+    },
+    {
+      "id": 4,
+      "short_name": "CFM CUINA (LOE)",
+      "complete_name": "TÈCNIC EN CUINA I GASTRONOMIA",
+      "royal_decree_title": "1396/2007 BOE 23-11-2007",
+      "royal_decree_title_new": "Orde de 29 de juliol de 2009 (DOGV 03/09/2009)",
+      "description": "Cuina i gastronomia",
+      "department_id": "10"
+    },
+    {
+      "id": 5,
+      "short_name": "CFM ESTÈTICA I BELL. (LOE)",
+      "complete_name": "TÈCNIC EN ESTÈTICA I BELLESA",
+      "royal_decree_title": "256/2011 de 28 de febrero (BOE 7/04/2011)",
+      "royal_decree_title_new": "Decret 158/2017, de 6 d'octubre (DOGV 20/10/2017)",
+      "description": "Estètica i bellesa",
+      "department_id": "3"
+    },
+    {
+      "id": 6,
+      "short_name": "CFM GESTIÓ ADMVA. (LOE)",
+      "complete_name": "TÈCNIC EN GESTIÓ ADMINISTRATIVA",
+      "royal_decree_title": "1631/2009 (BOE 1/12/2009)",
+      "royal_decree_title_new": "Orde 37/2012",
+      "description": "Gestió administrativa",
+      "department_id": "5"
+    },
+    {
+      "id": 7,
+      "short_name": "CFM PERRUQUERIA (LOE)",
+      "complete_name": "TÈCNIC EN PERRUQUERIA I COSMÈTICA CAPILAR",
+      "royal_decree_title": "1588/2011 (BOE 15/12/2011)",
+      "royal_decree_title_new": "Orde 32/2015, de 13 de març (DOGV 26/03/2015)",
+      "description": "Perruqueria i cosmètica capilar",
+      "department_id": "3"
+    },
+    {
+      "id": 8,
+      "short_name": "CFM SERV. RESTAURACIÓ (LOE)",
+      "complete_name": "TÈCNIC EN SERVICIS EN RESTAURACIÓ",
+      "royal_decree_title": "1690/2007 BOE 18-01-2008",
+      "royal_decree_title_new": "Orde de 29 de juliol de 2009 (DOGV 04/09/2009)",
+      "description": "Servicis en restauració",
+      "department_id": "10"
+    },
+    {
+      "id": 9,
+      "short_name": "CFM SMX  (LOE)",
+      "complete_name": "TÈCNIC EN SISTEMES MICROINFORMÀTICS I XARXES",
+      "royal_decree_title": "1691/2007, BOE 17-01-2008",
+      "royal_decree_title_new": "Orde de 29 de juliol de 2009 (DOGV 03/09/2009)",
+      "description": "Sistemes microinformàtics i xarxes",
+      "department_id": "24"
+    },
+    {
+      "id": 10,
+      "short_name": "CFS ADM. I FINANC. (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN ADMINISTRACIÓ I FINANCES.",
+      "royal_decree_title": "1584/2011 de 4 de novembre (BOE 15/12/2011) ",
+      "royal_decree_title_new": "Orde 13/2015 de 5 de març de 2015 (DOGV 10/03/2015)",
+      "description": "Administració i finances",
+      "department_id": "5"
+    },
+    {
+      "id": 11,
+      "short_name": "CFS ASSISTENCIA A LA DIRECCIÓ (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN ASSITÈNCIA A LA DIRECCIÓ",
+      "royal_decree_title": "1584/2011 de 4 de novembre (BOE 15/12/2011)",
+      "royal_decree_title_new": "Orde 13/2015 de 5 de març de 2015 (DOGV 10/03/2015)",
+      "description": "Assitència a la direcció",
+      "department_id": "5"
+    },
+    {
+      "id": 12,
+      "short_name": "CFS ASIX (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN ADMINISTRACIÓ DE SISTEMES INFORMÀTICS EN XARXA",
+      "royal_decree_title": "1629/2009 (BOE 18-11-2009)",
+      "royal_decree_title_new": "Orde 36/2012 de 22 de juny (DOGV 06/07/2012)",
+      "description": "Administració de sistemes informàtics en xarxa",
+      "department_id": "24"
+    },
+    {
+      "id": 13,
+      "short_name": "CFS DAM (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN DESENROTLLAMENT D'APLICACIONS MULTIPLATAFORMA",
+      "royal_decree_title": "450/2010, BOE 20-05-2010",
+      "royal_decree_title_new": "Orde 58/2012 de 5 de setembre de 2012 (DOGV 24/09/2012)",
+      "description": "Desenrotllament d'aplicacions multiplataforma",
+      "department_id": "24"
+    },
+    {
+      "id": 14,
+      "short_name": "CFS DAW (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN DESENROTLLAMENT D'APLICACIONS WEB",
+      "royal_decree_title": "686/2010 (BOE 12-06-2010)",
+      "royal_decree_title_new": "Orde 60/2012 de 25 de setembre (DOGV 08/10/2012)",
+      "description": "Desenrotllament d'aplicacions web",
+      "department_id": "24"
+    },
+    {
+      "id": 15,
+      "short_name": "CFS DIREC. CUINA (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN DIRECCIÓ DE CUINA",
+      "royal_decree_title": "687/2010 (BOE 12-06-2010)",
+      "royal_decree_title_new": "Orde 32/2013 de 26 d'abril (DOGV 06/05/2013)",
+      "description": "Direcció de cuina",
+      "department_id": "10"
+    },
+    {
+      "id": 16,
+      "short_name": "CFS DIREC.RESTAURACIÓ (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN DIRECCIÓ DE SERVICIS DE RESTAURACIÓ",
+      "royal_decree_title": "688/2010 (BOE 12-06-2010)",
+      "royal_decree_title_new": "Orde 24/2013, de 21 d'abril (DOGV 25/04/2013)",
+      "description": "Direcció en servicis de restauració",
+      "department_id": "10"
+    },
+    {
+      "id": 17,
+      "short_name": "CFS EDUC.INFANTIL (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN EDUCACIÓ INFANTIL.",
+      "royal_decree_title": "1394/2007 (BOE 24/11/2007)",
+      "royal_decree_title_new": "Orde de 29 de juliol de 2009 (DOGV 02/09/2009)",
+      "description": "Educació infantil",
+      "department_id": "2"
+    },
+    {
+      "id": 18,
+      "short_name": "CFS ESTET.INTEG. (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN ESTÈTICA INTEGRAL I BENESTAR",
+      "royal_decree_title": "881/2011, (BOE 23/07/2011)",
+      "royal_decree_title_new": "Orde 19/2015 de 5 de març de 2015 (DOGV 10/03/2015)",
+      "description": "Estètica integral i benestar",
+      "department_id": "3"
+    },
+    {
+      "id": 19,
+      "short_name": "CFS INTEGR.SOCIAL (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN INTEGRACIÓ SOCIAL",
+      "royal_decree_title": "1074/2012 de 13 de juliol (BOE 15/08/12)",
+      "royal_decree_title_new": "Orde 29/2017, de 3 de març (DOGV 13/03/2017)",
+      "description": "Integració Social",
+      "department_id": "2"
+    },
+    {
+      "id": 20,
+      "short_name": "CFS LABORATORI (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN LABORATORI CLÍNIC I BIOMÈDIC",
+      "royal_decree_title": "771/2014 (BOE 4/10/2014)",
+      "royal_decree_title_new": "'",
+      "description": "Laboratori clínic i biomèdic",
+      "department_id": "6"
+    },
+    {
+      "id": 21,
+      "short_name": "CFS RXMN (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN IMATGE PER AL DIAGNÒSTIC I MEDICINA NUCLEAR",
+      "royal_decree_title": "770/2014, de 12 de setembre (BOE 04/10/2014)",
+      "royal_decree_title_new": "'",
+      "description": "Imatge per al diagnòtic i medicina nuclear",
+      "department_id": "6"
+    },
+    {
+      "id": 22,
+      "short_name": "CFS SALUT AMBIENTAL (LOGSE)",
+      "complete_name": "TÈCNIC SUPERIOR EN SALUT AMBIENTAL",
+      "royal_decree_title": "540/95 BOE 10-06-95",
+      "royal_decree_title_new": "'",
+      "description": "Salut ambiental",
+      "department_id": "6"
+    },
+    {
+      "id": 23,
+      "short_name": "CFS TASOCIT (LOE)",
+      "complete_name": "TÈCNIC SUPERIOR EN ANIMACIÓ SOCIOCULTURAL I TURÍSTICA",
+      "royal_decree_title": "1684/2011 de 18 de novembre (BOE 27/12/11)",
+      "royal_decree_title_new": "Decret 120/2017, de 8 de setembre (DOGV 18/09/2017)",
+      "description": "Animació Sociocultural i turística",
+      "department_id": "2"
+    },
+    {
+      "id": 24,
+      "short_name": "TPB Perruqueria i Estética",
+      "complete_name": "PROFESSIONAL BÀSIC EN PERRUQUERIA I ESTÈTICA",
+      "royal_decree_title": "127/2014, de 28 febrer",
+      "royal_decree_title_new": "Decret 185/2014, de 31 d'octubre",
+      "description": "FP Bàsica Perruqueria i Estètica",
+      "department_id": "3"
+    },
+    {
+      "id": 25,
+      "short_name": "CFS QUIMICA I SALUT AMBIENTAL",
+      "complete_name": "TÈCNIC SUPERIOR EN QUÍMICA I SALUT AMBIENTAL",
+      "royal_decree_title": "283/2019 (BOE 22/4/2019)",
+      "royal_decree_title_new": "'",
+      "description": "Química i Salut Ambiental",
+      "department_id": "25"
+    },
+    {
+      "id": 26,
+      "short_name": "MASTER CIBERSEGURETAT",
+      "complete_name": "MASTER SEGURETAT",
+      "royal_decree_title": "283/2019 (BOE 22/4/2019)",
+      "royal_decree_title_new": "'",
+      "description": "Curs d'EspecialiTzació en Ciberseguretat en Entorns de les Tecnologies de la Información",
+      "department_id": "24"
+    },
+    {
+      "id": 27,
+      "short_name": "CFM ESA (LOE)",
+      "complete_name": "TÈCNIC EN EMERGÈNCIES SANITÀRIES",
+      "royal_decree_title_new": "'",
+      "description": "Emergències Sanitàries",
+      "department_id": "6"
+    }
+  ],
+  "cicle_module": [
+    {
+      "cycle_id": 3,
+      "module_code": "0020"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0210"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0211"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0212"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0213"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0214"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0215"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0216"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0217"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0218"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0219"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "0831"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 3,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0020"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0061"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0099"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0100"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0101"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0102"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0103"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0104"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0105"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0106"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "0107"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 4,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028001"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028100"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028501"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028502"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028503"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028504"
+    },
+    {
+      "cycle_id": 8,
+      "module_code": "028505"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0026"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0028"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0031"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0045"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0046"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0047"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0048"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0049"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "0050"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 12,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0633"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0634"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0635"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0636"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0637"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0638"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0639"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0640"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0641"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0642"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0643"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0644"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "0645"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 16,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0156"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0437"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0438"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0439"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0440"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0441"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0442"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0443"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0446"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0448"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "0449"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 18,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0636"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0640"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0643"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0842"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0843"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0844"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0845"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0846"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0848"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0849"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0851"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "0852"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 20,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0031"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0045"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0150"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0151"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0152"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0153"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0154"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0155"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0156"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0157"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "0158"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 22,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0221"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0222"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0223"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0224"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0225"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0226"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0227"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0228"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0229"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "0230"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "CV0001"
+    },
+    {
+      "cycle_id": 24,
+      "module_code": "CV0002"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0179"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0647"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0648"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0649"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0650"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0651"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0652"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0653"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0654"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0655"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0656"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "0658"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 28,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0179"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0180"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0647"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0648"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0649"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0650"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0651"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0661"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0662"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0663"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "0665"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 29,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0369"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0370"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0371"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0372"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0373"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0374"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0375"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0376"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0377"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0378"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0380"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "0381"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 30,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0373"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0483"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0484"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0485"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0486"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0487"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0488"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0489"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0490"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0491"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0493"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "0494"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 32,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0373"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0483"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0484"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0485"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0487"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0612"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0613"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0614"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0615"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0617"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "0618"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 35,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0179"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0496"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0497"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0498"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0499"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0500"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0501"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0502"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0503"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0504"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0506"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "0507"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 36,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0179"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0180"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0496"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0501"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0502"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0503"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0504"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0509"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0510"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0511"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0512"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0514"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "0515"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 38,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0011"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0012"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0013"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0014"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0015"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0016"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0017"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0018"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0020"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0021"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "0022"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 39,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0744"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0745"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0746"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0747"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0748"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0749"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0750"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0751"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0752"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0753"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0755"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "0756"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 42,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0017"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0020"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0337"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0338"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0339"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0340"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0341"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0342"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0343"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0344"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0346"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "0347"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 44,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1367"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1368"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1369"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1370"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1371"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1372"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1373"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1374"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1376"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "1377"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 45,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1345"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1346"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1347"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1348"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1349"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1350"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1351"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1352"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1353"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1354"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1355"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1356"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1357"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "1358"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 51,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029001"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029506"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029507"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029508"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029509"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029510"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029511"
+    },
+    {
+      "cycle_id": 54,
+      "module_code": "029512"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "0020"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "0179"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "0344"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1123"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1124"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1125"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1126"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1128"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1129"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1130"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1131"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1133"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "1134"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 56,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3005"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3009"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3011"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3011cv"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3011e"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3011s"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3012"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3012cv"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3012e"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3012s"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3042"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3060"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3061"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3062"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3063"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3064"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3065"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "3067p"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "CV0005"
+    },
+    {
+      "cycle_id": 57,
+      "module_code": "CV0006"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1546"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1547"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1548"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1549"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1550"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1551"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1552"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1553"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1554"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1556"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "1557"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "CV0003"
+    },
+    {
+      "cycle_id": 58,
+      "module_code": "CV0004"
+    },
+    {
+      "cycle_id": 59,
+      "module_code": "5021"
+    },
+    {
+      "cycle_id": 59,
+      "module_code": "5022"
+    },
+    {
+      "cycle_id": 59,
+      "module_code": "5023"
+    },
+    {
+      "cycle_id": 59,
+      "module_code": "5024"
+    },
+    {
+      "cycle_id": 59,
+      "module_code": "5025"
+    },
+    {
+      "cycle_id": 59,
+      "module_code": "5026"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0052"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0054"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0055"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0057"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0058"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0061"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "0062"
+    },
+    {
+      "cycle_id": 60,
+      "module_code": "CV0001"
+    }
+  ]
+}

@@ -1,0 +1,1394 @@
+[
+ {
+  "cycle_id": 3,
+  "module_code": "0020"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0210"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0211"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0212"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0213"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0214"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0215"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0216"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0217"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0218"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0219"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "0831"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 3,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0020"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0061"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0099"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0100"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0101"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0102"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0103"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0104"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0105"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0106"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "0107"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 4,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028001"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028100"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028501"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028502"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028503"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028504"
+ },
+ {
+  "cycle_id": 8,
+  "module_code": "028505"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0026"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0028"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0031"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0045"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0046"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0047"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0048"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0049"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "0050"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 12,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0633"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0634"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0635"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0636"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0637"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0638"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0639"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0640"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0641"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0642"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0643"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0644"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "0645"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 16,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0156"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0437"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0438"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0439"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0440"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0441"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0442"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0443"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0446"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0448"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "0449"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 18,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0636"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0640"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0643"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0842"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0843"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0844"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0845"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0846"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0848"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0849"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0851"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "0852"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 20,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0031"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0045"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0150"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0151"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0152"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0153"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0154"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0155"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0156"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0157"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "0158"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 22,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0221"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0222"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0223"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0224"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0225"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0226"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0227"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0228"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0229"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "0230"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "CV0001"
+ },
+ {
+  "cycle_id": 24,
+  "module_code": "CV0002"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0179"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0647"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0648"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0649"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0650"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0651"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0652"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0653"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0654"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0655"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0656"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "0658"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 28,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0179"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0180"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0647"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0648"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0649"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0650"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0651"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0661"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0662"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0663"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "0665"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 29,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0369"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0370"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0371"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0372"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0373"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0374"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0375"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0376"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0377"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0378"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0380"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "0381"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 30,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0373"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0483"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0484"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0485"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0486"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0487"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0488"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0489"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0490"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0491"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0493"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "0494"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 32,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0373"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0483"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0484"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0485"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0487"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0612"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0613"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0614"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0615"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0617"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "0618"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 35,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0179"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0496"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0497"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0498"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0499"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0500"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0501"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0502"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0503"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0504"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0506"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "0507"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 36,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0179"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0180"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0496"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0501"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0502"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0503"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0504"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0509"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0510"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0511"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0512"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0514"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "0515"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 38,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0011"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0012"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0013"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0014"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0015"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0016"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0017"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0018"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0020"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0021"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "0022"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 39,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0744"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0745"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0746"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0747"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0748"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0749"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0750"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0751"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0752"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0753"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0755"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "0756"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 42,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0017"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0020"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0337"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0338"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0339"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0340"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0341"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0342"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0343"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0344"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0346"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "0347"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 44,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1367"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1368"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1369"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1370"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1371"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1372"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1373"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1374"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1376"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "1377"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 45,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1345"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1346"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1347"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1348"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1349"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1350"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1351"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1352"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1353"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1354"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1355"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1356"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1357"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "1358"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 51,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029001"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029506"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029507"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029508"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029509"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029510"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029511"
+ },
+ {
+  "cycle_id": 54,
+  "module_code": "029512"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "0020"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "0179"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "0344"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1123"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1124"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1125"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1126"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1128"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1129"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1130"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1131"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1133"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "1134"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 56,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3005"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3009"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3011"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3011cv"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3011e"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3011s"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3012"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3012cv"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3012e"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3012s"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3042"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3060"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3061"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3062"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3063"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3064"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3065"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "3067p"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "CV0005"
+ },
+ {
+  "cycle_id": 57,
+  "module_code": "CV0006"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1546"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1547"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1548"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1549"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1550"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1551"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1552"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1553"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1554"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1556"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "1557"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "CV0003"
+ },
+ {
+  "cycle_id": 58,
+  "module_code": "CV0004"
+ },
+ {
+  "cycle_id": 59,
+  "module_code": "5021"
+ },
+ {
+  "cycle_id": 59,
+  "module_code": "5022"
+ },
+ {
+  "cycle_id": 59,
+  "module_code": "5023"
+ },
+ {
+  "cycle_id": 59,
+  "module_code": "5024"
+ },
+ {
+  "cycle_id": 59,
+  "module_code": "5025"
+ },
+ {
+  "cycle_id": 59,
+  "module_code": "5026"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0052"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0054"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0055"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0057"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0058"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0061"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "0062"
+ },
+ {
+  "cycle_id": 60,
+  "module_code": "CV0001"
+ }
+]

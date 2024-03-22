@@ -41,12 +41,34 @@ export const useDataStore = defineStore('data', {
       if (localStorage.user) {
         this.user = JSON.parse(localStorage.user);
       }
+      this.apiClient = new APIService(this.user.token)
     },
-    setUser(user) {
-      this.user = user
-      localStorage.user = JSON.stringify(user)
+    async loginUser(credentials) {
+      this.apiClient = new APIService()
+      try {
+        const user = await this.apiClient.login(credentials)
+        this.user = user        
+        localStorage.user = JSON.stringify(user)
+        this.addMessage('success', 'Usuario logueado')
+        this.apiClient = new APIService(this.user.token)
+      } catch (error) {
+        this.user = {}
+        this.addMessage('error', error)
+        return
+      }
+      if (!this.cicles.length) {
+        this.loadData()
+      }
     },
-    addMessage(type, text) {
+    logoutUser() {
+      localStorage.removeItem('user')
+      this.user = {}
+    },
+    addMessage(type, error) {
+      const text = error.response 
+      ? error.response.data.title + ` (${error.response.data.status}): `
+        + error.response.data.detail
+      : error
       const newMessage = { id: ++id, text }
       switch (type) {
         case 'error':
@@ -75,10 +97,8 @@ export const useDataStore = defineStore('data', {
       this.messages.splice(index, 1)
     },
     async loadData() {
-      this.apiClient = new APIService(this.user.access_token)
       try {
-        const [cicles] = await Promise.all([this.apiClient.getCicles()])
-        this.cicles = cicles
+        this.cicles = await this.apiClient.getCicles()
         this.addMessage('success', 'Datos cargados')
       } catch (error) {
         this.addMessage('error', error)
@@ -94,8 +114,8 @@ export const useDataStore = defineStore('data', {
     },
     async loadModules(cicleId) {
       try {
-        const modules = await this.apiClient.getModules(cicleId)
-        this.modules = modules
+        const response = await this.apiClient.getModules(cicleId)
+        this.modules = response.modules
       } catch (error) {
         this.modules = []
         this.addMessage('error', error)
@@ -133,9 +153,24 @@ export const useDataStore = defineStore('data', {
         this.addMessage('error', error)
       }
     },
-    async addProgramming(cycleId, moduleId) {
-      this.programming = await this.apiClient.addProgramming(cycleId, moduleId)
-      this.addMessage('success', 'Programació creada')
+    async getProgrammings(cycleId, moduleId) {
+      try {
+        return await this.apiClient.getProgramming(cycleId, moduleId)
+      } catch (error) {
+        this.addMessage('error', error)
+        return []
+      }
+    },
+    setProgramming(prog) {
+      this.programming = prog
+    },
+    async addProgramming(cycleId, moduleId, turn) {
+      try {
+        this.programming = await this.apiClient.addProgramming(cycleId, moduleId, turn)
+        this.addMessage('success', 'Programació creada')          
+      } catch (error) {
+        this.addMessage('error', error)
+      }
     },
     async saveWorkUnit(unit) {
       if (!unit.id) {

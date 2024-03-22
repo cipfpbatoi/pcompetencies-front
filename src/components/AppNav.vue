@@ -4,14 +4,10 @@ import { mapState, mapActions } from 'pinia'
 
 export default {
   computed: {
-    ...mapState(useDataStore, ['user', 'constants']),
+    ...mapState(useDataStore, ['user']),
     isLogged() {
-      return true //!!this.user.access_token
+      return !!this.user.token
     },
-    isNormalUser() {
-      return this.user.rol == this.constants.ROL_STUDENT
-        || this.user.rol == this.constants.ROL_EMPLOYER
-    }
   },
   methods: {
     ...mapActions(useDataStore, ['logoutUser']),
@@ -42,9 +38,6 @@ export default {
       <template v-else>
         <li class="nav-item">
           <RouterLink class="nav-link" to="/login">Login</RouterLink>
-        </li>
-        <li class="nav-item">
-          <RouterLink class="nav-link" to="/register">Registrarse</RouterLink>
         </li>
       </template>
       <li class="nav-item">

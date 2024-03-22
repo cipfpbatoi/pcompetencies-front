@@ -9,11 +9,12 @@ export default {
     ShowMessages,
     AppNav,
   },
-  mounted() {
+  async mounted() {
+    await this.loadUser()
     this.loadData()
   },
   methods: {
-    ...mapActions(useDataStore, ['loadData', 'arregla'])
+    ...mapActions(useDataStore, ['loadData', 'loadUser'])
   }
 }
 </script>

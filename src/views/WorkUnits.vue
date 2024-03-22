@@ -50,7 +50,8 @@ export default {
   <main>
     <div class="bg-secondary text-white">
       <button @click="$router.push('/')" class="btn btn-sm btn-link">Pas 1: selecciona mòdul</button> -> 
-      Pas 2: unitats de treball -> 
+      <button @click="$router.push('/impr-prop')" class="btn btn-sm btn-link">Pas 2: propostes de millora</button> -> 
+      Pas 3: unitats de treball -> 
       <button @click="$router.push('/test')" :disabled="!done">Següent pas</button>
     </div>
     <h2>{{ currentModule.name }}</h2>

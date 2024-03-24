@@ -33,6 +33,7 @@ export default class ApiService {
 //                    router.push('/login')
                 }
             }
+            return error
         }
     );
 }
@@ -75,8 +76,8 @@ export default class ApiService {
       throw error
     }
   }
-  addProgramming(cicleId, moduleCode, turn="Presencial") {
-    return this.send('post', `/syllabus`, { cicleId, moduleCode, turn })
+  addProgramming(cycleId, moduleCode, turn="Presencial") {
+    return this.send('post', `/syllabus`, { cycleId, moduleCode, turn })
   }
   getWorkUnits(programmingId) {
     return this.send('get', '/work_units?programming_id=' + programmingId)
@@ -94,7 +95,7 @@ export default class ApiService {
 
   async send(method, endpoint, data) {
     const response = await this.instance[method](endpoint, data)
-    return response.data
+    return response?.data
   }
 
   auth() {

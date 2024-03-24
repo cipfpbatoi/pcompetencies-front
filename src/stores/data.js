@@ -17,29 +17,33 @@ export const useDataStore = defineStore('data', {
       evaluationCriteria: [],
       contentsBlocks: [],
       programming: {},
-      workUnits: [],
+      workUnits: []
     }
   },
   getters: {
-    getEvalCriteriaByLearningResult: (state) => (learningResultId) => state.evaluationCriteria.filter((item) => item.learning_result_id == learningResultId),
-    currentModule: (state) => state.modules.find((item) => item.code === state.currentModuleId) || {},
+    getEvalCriteriaByLearningResult: (state) => (learningResultId) =>
+      state.evaluationCriteria.filter((item) => item.learning_result_id == learningResultId),
+    currentModule: (state) =>
+      state.modules.find((item) => item.code === state.currentModuleId) || {}
   },
   actions: {
     async arregla() {
       const EC = await this.apiClient.get('/cicles')
-      EC.forEach(((crit) => this.apiClient.arregla({
-        id: crit.id, 
-        short_name: crit.complete_name,
-        complete_name: crit.royal_decree_title,
-        royal_decree_title: crit.royal_decree_title_new,
-        royal_decree_title_new: crit.description,
-        description: crit.department_id,
-        department_id: crit.KEY,
-      })))
+      EC.forEach((crit) =>
+        this.apiClient.arregla({
+          id: crit.id,
+          short_name: crit.complete_name,
+          complete_name: crit.royal_decree_title,
+          royal_decree_title: crit.royal_decree_title_new,
+          royal_decree_title_new: crit.description,
+          description: crit.department_id,
+          department_id: crit.KEY
+        })
+      )
     },
     loadUser() {
       if (localStorage.user) {
-        this.user = JSON.parse(localStorage.user);
+        this.user = JSON.parse(localStorage.user)
       }
       this.apiClient = new APIService(this.user.token)
     },
@@ -47,7 +51,7 @@ export const useDataStore = defineStore('data', {
       this.apiClient = new APIService()
       try {
         const user = await this.apiClient.login(credentials)
-        this.user = user        
+        this.user = user
         localStorage.user = JSON.stringify(user)
         this.addMessage('success', 'Usuario logueado')
         this.apiClient = new APIService(this.user.token)
@@ -64,11 +68,20 @@ export const useDataStore = defineStore('data', {
       localStorage.removeItem('user')
       this.user = {}
     },
-    addMessage(type, error) {
-      const text = error.response 
-      ? error.response.data.title + ` (${error.response.data.status}): `
-        + error.response.data.detail
-      : error
+    addMessage(type, message) {
+      let text = ''
+      if (message.response) {
+        if (message.response.data?.title) {
+          text = message.response.data.title +
+            ` (${message.response.data.status})` +
+            message.response.data.detail
+        } else {
+          // token expired
+          text = message.name + ` (${message.response.data.code}): ` + message.response.data.message
+        }
+      } else {
+        text = message
+      }
       const newMessage = { id: ++id, text }
       switch (type) {
         case 'error':
@@ -132,9 +145,9 @@ export const useDataStore = defineStore('data', {
       try {
         this.currentModuleId = moduleId
         this.learningResults = await this.apiClient.getLearningResults(moduleId)
-        this.evaluationCriteria = await this.apiClient
-        .getEvaluationCriteria(this.learningResults
-          .map(lr => lr.id))
+        this.evaluationCriteria = await this.apiClient.getEvaluationCriteria(
+          this.learningResults.map((lr) => lr.id)
+        )
         this.contentsBlocks = await this.apiClient.getContentsBlocks(moduleId)
         const programming = await this.apiClient.getProgramming(cycleId, moduleId)
         this.programming = programming[0]
@@ -167,21 +180,23 @@ export const useDataStore = defineStore('data', {
     async addProgramming(cycleId, moduleId, turn) {
       try {
         this.programming = await this.apiClient.addProgramming(cycleId, moduleId, turn)
-        this.addMessage('success', 'Programació creada')          
+        this.addMessage('success', 'Programació creada')
       } catch (error) {
         this.addMessage('error', error)
       }
     },
     async saveWorkUnit(unit) {
       if (!unit.id) {
-        const maxOrder = this.workUnits
-        .reduce((max, item) => Number.max(max, item.order), 0)
-        unit.order = maxOrder +1  
+        const maxOrder = this.workUnits.reduce((max, item) => Number.max(max, item.order), 0)
+        unit.order = maxOrder + 1
       }
       const newWorkUnit = await this.apiClient.saveWorkUnit(unit)
       if (unit.id) {
-        this.workUnits.splice(this.workUnits
-          .findIndex((item) => item.id === unit.id), 1, newWorkUnit)
+        this.workUnits.splice(
+          this.workUnits.findIndex((item) => item.id === unit.id),
+          1,
+          newWorkUnit
+        )
       } else {
         this.workUnits.push(newWorkUnit)
       }
@@ -189,8 +204,11 @@ export const useDataStore = defineStore('data', {
     },
     async delWorkUnit(unitId) {
       await this.apiClient.delWorkUnit(unitId)
-      this.workUnits.splice(this.workUnits.findIndex((item) => item.id ===unitId), 1)
+      this.workUnits.splice(
+        this.workUnits.findIndex((item) => item.id === unitId),
+        1
+      )
       this.addMessage('success', 'Unitat eliminada')
-    },
+    }
   }
 })

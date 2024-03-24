@@ -28,7 +28,7 @@ export default {
     },
     async createProg(turn) {
       await this.addProgramming(this.cicle, this.module, turn)
-      this.$router.push('/work-units')
+      this.$router.push('/impr-prop')
     }
   }
 }

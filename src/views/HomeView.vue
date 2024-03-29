@@ -1,34 +1,90 @@
 <script>
-import { mapState, mapActions } from 'pinia'
+import { api } from '../repositories/api.js'
+import { mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
 export default {
+  components: {
+    AppBreadcrumb,
+  },
+  async mounted() {
+    try {
+      const response = await api.getCycles()
+      this.cycles = response.data
+      this.addMessage('success', 'Datos cargados')
+    } catch (error) {
+      this.addMessage('error', error)
+    } finally {
+      this.cycleInfo = {}
+      this.syllabuses = []
+    }
+  },
   computed: {
-    ...mapState(useDataStore, ['cicles', 'modules']),
+    selectedModule() {
+      return this.cycleInfo.modules.find((item) => item.code == this.module) || {}
+    }
   },
   data() {
     return {
-      cicle: '',
+      cycles: [],
+      cycle: '',
+      cycleInfo: {},
       module: '',
-      programmings: [],
-      done: false,
+      syllabuses: [],
+      done: false
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['loadModules', 'getProgrammings', 'setProgramming', 'addProgramming']),
-    getModules() {
-      if (this.cicle) {
-        this.loadModules(this.cicle)
+    ...mapActions(useDataStore, ['addMessage', 'fetchModule', 'fetchSyllabus']),
+    async getModules() {
+      if (this.cycle) {
+        try {
+          const response = await api.getCycleById(this.cycle)
+          this.cycleInfo = response.data
+        } catch (error) {
+          this.cycleInfo = {}
+          this.addMessage('error', error)
+        } finally {
+          this.syllabuses = []
+        }
       }
       this.module = ''
       this.done = false
     },
-    async getProg() {
-      this.programmings = await this.getProgrammings(this.cicle, this.module)
+    async fetchSyl() {
+      try {
+        const response = await api.getSyllabusByCycleAndModule(this.cycle, this.module)
+        this.syllabuses = response.data
+      } catch (error) {
+        this.syllabuses = []
+        this.addMessage('error', error)
+      }
     },
-    async createProg(turn) {
-      await this.addProgramming(this.cicle, this.module, turn)
+    async getSyl(turn) {
+      let syllabus = this.existsSyllabusInTurn(turn)
+      if (!syllabus) {
+        try {
+          const response = await api.createSyllabus({
+            cycleId: this.cycle,
+            moduleCode: this.module,
+            turn
+          })
+          syllabus = response.data
+          this.addMessage('success', 'Programació creada')
+        } catch (error) {
+          this.addMessage('error', error)
+          return
+        }
+      }
+      await Promise.all([
+        this.fetchModule(this.module),
+        this.fetchSyllabus(syllabus.id)
+      ])
       this.$router.push('/impr-prop')
+    },
+    existsSyllabusInTurn(turn) {
+      return this.syllabuses.find((item) => item.turn === turn)
     }
   }
 }
@@ -36,41 +92,46 @@ export default {
 
 <template>
   <main>
-    <div class="bg-secondary text-white">
-      Pas 1: selecciona mòdul -> 
-      <button @click="$router.push('/work-units')" :disabled="!done">Següent pas</button>
-    </div>
+    <app-breadcrumb :actualStep="1" :done="done"></app-breadcrumb>
     <div>
-      <label>Cicle</label>
-      <select v-model="cicle" @change="getModules" class="form-select" aria-label="Selecciona cicle">
-        <option value="">-- Selecciona cicle --</option>
-        <option v-for="cicle in cicles" :key="cicle.id" :value="cicle.id">
-          {{ cicle.completeName }}
+      <label>Ciclo</label>
+      <select
+        v-model="cycle"
+        @change="getModules"
+        class="form-select"
+        aria-label="Selecciona cycle"
+      >
+        <option value="">-- Selecciona ciclo --</option>
+        <option v-for="cycle in cycles" :key="cycle.id" :value="cycle.id">
+          {{ cycle.completeName }}
         </option>
       </select>
     </div>
-    <div v-if="cicle">
+    <div v-if="cycle">
       <label>Mòdul</label>
-      <select v-model="module" @change="getProg" class="form-select" aria-label="Default select example">
+      <select
+        v-model="module"
+        @change="fetchSyl"
+        class="form-select"
+        aria-label="Default select example"
+      >
         <option value="">-- Selecciona mòdul --</option>
-        <option v-for="module in modules" :key="module.code" :value="module.code">
+        <option v-for="module in cycleInfo.modules" :key="module.code" :value="module.code">
           {{ module.name }}
         </option>
       </select>
     </div>
-    <br>
+    <br />
     <div v-if="module">
-      <h3>Programació</h3>
-      <ul v-if="programmings.length">
-        <li v-for="prog in programmings" :key="prog.id">
-        {{prog.module.name}} ({{ prog.cycle.shortName }}) {{ prog.turn }}
-        <RouterLink @click="setProgramming(prog)" to="/impr-prop">Editar</RouterLink>
-      </li>
-          </ul>
-      <p v-else>No hi ha programació d'aquest mòdul. 
-        <button @click="createProg('presential')" type="button btn-sm">Crear nova programació presencial</button>
-        <button @click="createProg('half-presential')" type="button btn-sm">Crear nova programació presencial</button>
-      </p>
+      <h3>Torns</h3>
+      <ul>
+        <li v-for="(turn, index) in cycleInfo.availableTurns" :key="index">
+          {{ turn.toUpperCase() }}:
+          <button @click="getSyl(turn)" type="button btn-sm">
+            {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}
+          </button>
+        </li>
+      </ul>
     </div>
   </main>
 </template>

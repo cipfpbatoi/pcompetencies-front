@@ -2,19 +2,18 @@
 import { useDataStore } from './stores/data';
 import { mapActions } from 'pinia';
 import ShowMessages from './components/ShowMessages.vue'
-import AppNav from './components/AppNav.vue';
+import AppNav from './components/AppNav.vue'
 
 export default {
   components: {
     ShowMessages,
-    AppNav,
+    AppNav
   },
-  async mounted() {
-    await this.loadUser()
+  mounted() {
     this.loadData()
   },
   methods: {
-    ...mapActions(useDataStore, ['loadData', 'loadUser'])
+    ...mapActions(useDataStore, ['loadData'])
   }
 }
 </script>
@@ -26,18 +25,17 @@ export default {
       <div>
         <h1>Programacions per competències</h1>
         <div class="wrapper">
-      <AppNav />
-    </div>
+          <AppNav />
+        </div>
       </div>
     </header>
-<!-- <button @click="arregla" disabled>Arregla</button> -->
+    <!-- <button @click="arregla" disabled>Arregla</button> -->
 
-
-  <RouterView />
-  <show-messages></show-messages>
+    <RouterView />
+    <show-messages></show-messages>
   </div>
 </template>
 
 <style scoped>
-@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 </style>

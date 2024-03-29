@@ -1,17 +1,9 @@
 <script>
-import { useDataStore } from '../stores/data'
-import { mapState } from 'pinia'
-
 export default {
   props: {
-    learningResultId: Number
+    evaluationCriterias: Array
   },
-  computed: {
-    ...mapState(useDataStore, ['getEvalCriteriaByLearningResult']),
-    evalCriteria() {
-      return this.getEvalCriteriaByLearningResult(this.learningResultId)
-    }
-  }
+
 }
 </script>
 
@@ -24,7 +16,7 @@ export default {
         <th></th>
       </thead>
       <tbody>
-        <template v-for="criteri in evalCriteria" :key="criteri.id">
+        <template v-for="criteri in evaluationCriterias" :key="criteri.id">
           <tr>
             <td>{{ criteri.code }}</td>
             <td>{{ criteri.description }}</td>

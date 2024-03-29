@@ -5,36 +5,31 @@ import { useDataStore } from '../stores/data'
 import { mapState, mapActions } from 'pinia'
 export default {
   components: {
-    UnitModal,
+    UnitModal
   },
   props: {
-    units: Array,
     editable: {
       type: Boolean,
       default: false
     }
   },
   computed: {
-    ...mapState(useDataStore, ['programming', 'workUnits'])
+    ...mapState(useDataStore, ['syllabus', 'module', 'getLearningResultById'])
   },
   data() {
     return {
       unitModal: null,
-      modalData: { learningResults: [] }
+      modalData: { ponderedLearningResults: [] }
     }
   },
   async mounted() {
     this.unitModal = new Modal(document.getElementById('unitMmodalComp'))
   },
   methods: {
-    ...mapActions(useDataStore, ['saveWorkUnit', 'delWorkUnit']),
+    ...mapActions(useDataStore, ['saveLearningSituation', 'deleteLearningSituation']),
     showModal(unit) {
       this.modalData = unit
       this.unitModal.show()
-    },
-    saveUnit(unit) {
-      unit.programming_id = this.programming.id
-      this.saveWorkUnit(unit)
     },
     delUnit(unit) {
       if (
@@ -44,9 +39,15 @@ export default {
             '". Aquest procés NO es por des-fer !!!'
         )
       ) {
-        this.delWorkUnit(unit.id)
+        this.deleteLearningSituation(unit.id)
       }
     },
+    showPonderedLearningResults(ponderedLR) {
+      if (!ponderedLR) return ''
+      return ponderedLR.map((item) => 
+        (item.learningResultId || item.learningResult.number) 
+        + ` (${item.percentageWeight} %)`).join(', ')
+    }
   }
 }
 </script>
@@ -54,20 +55,20 @@ export default {
 <template>
   <div>
     <h3>Unitats de treball</h3>
-    <table v-if="workUnits.length" class="table table-striped">
+    <table v-if="syllabus.learningSituations?.length" class="table table-striped">
       <thead>
         <th>Num.</th>
         <th>Títol</th>
-        <th>Sessions</th>
+        <th>hours</th>
         <th>R.A.</th>
         <th>Accions</th>
       </thead>
       <tbody>
-        <tr class="unit" v-for="unit in units" :key="unit.id">
-          <td>{{ unit.order }}</td>
+        <tr class="unit" v-for="unit in syllabus.learningSituations" :key="unit.id">
+          <td>{{ unit.position }}</td>
           <td>{{ unit.title }}</td>
-          <td>{{ unit.sessions }}</td>
-          <td>{{ unit.learningResults.join(', ') }}</td>
+          <td>{{ unit.hours }}</td>
+          <td>{{ showPonderedLearningResults(unit.ponderedLearningResults) }}</td>
           <td>
             <template v-if="editable">
               <button @click="showModal(unit)" class="btn btn-secondary" title="Editar">
@@ -82,8 +83,10 @@ export default {
       </tbody>
     </table>
     <p v-else>No hi ha cap unitat de treball</p>
-    <button class="btn btn-sm btn-secondary" @click="showModal({learningResults: []})">Afegir unitat</button>
-    <UnitModal @save="saveUnit" :unit="modalData"></UnitModal>
+    <button class="btn btn-sm btn-secondary" @click="showModal({ ponderedLearningResults: [] })">
+      Afegir unitat
+    </button>
+    <UnitModal :unit="modalData"></UnitModal>
   </div>
 </template>
 

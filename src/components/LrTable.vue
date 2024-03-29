@@ -6,7 +6,11 @@ export default {
     EcTable
   },
   props: {
-    learningResults: Array
+    learningResults: Array,
+    percentageWeight: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
@@ -27,13 +31,15 @@ export default {
       <thead>
         <th>RA</th>
         <th>Descrip.</th>
+        <th v-if="percentageWeight">Pes</th>
         <th>Accions</th>
       </thead>
       <tbody>
         <template v-for="(result, index) in learningResults" :key="result.id">
           <tr>
             <td>{{ result.number }}</td>
-            <td>{{ result.description }}</td>
+            <td>{{ result.descriptor }}</td>
+            <td v-if="percentageWeight">{{ result.percentageWeight }} %</td>
             <td>
               <button
                 @click="toogleDeployedRa(result.id)"
@@ -48,7 +54,7 @@ export default {
           </tr>
           <tr v-if="deployedRA == result.id">
             <td colspan="3">
-              <EcTable :learningResultId="result.id"></EcTable>
+              <EcTable :evaluationCriterias="result.evaluationCriterias"></EcTable>
             </td>
           </tr>
         </template>

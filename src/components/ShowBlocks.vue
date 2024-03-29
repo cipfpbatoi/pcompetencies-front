@@ -1,6 +1,6 @@
 <script>
-import { useDataStore } from '../stores/data';
-import { mapState } from 'pinia';
+import { useDataStore } from '../stores/data'
+import { mapState } from 'pinia'
 
 export default {
   emits: ['delete'],
@@ -11,7 +11,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(useDataStore, ['contentsBlocks']),
+    ...mapState(useDataStore, ['contentsBlocks'])
   },
   data() {
     return {}
@@ -43,7 +43,10 @@ export default {
         <tr class="block" v-for="block in contentsBlocks" :key="block.id">
           <td>{{ block.id }}</td>
           <td>
-            <h5 class="d-flex justify-content-between"><span>{{ block.title }}</span><span>Resultat d'Aprenentatge: {{ block.learning_result_id }}</span></h5>
+            <h5 class="d-flex justify-content-between">
+              <span>{{ block.title }}</span
+              ><span>Resultat d'Aprenentatge: {{ block.learning_result_id }}</span>
+            </h5>
             <p>{{ block.contents }}</p>
           </td>
         </tr>

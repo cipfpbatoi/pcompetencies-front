@@ -43,14 +43,17 @@ export default {
       <div class="mb-3">
         <label for="utRA" class="form-label">RA</label>
         <RATable :resultApren="utRA"></RATable>
-        <Field as="select" class="form-select" v-model="raSelect" name="utRA" aria-describedby="utRAHelp">
+        <Field
+          as="select"
+          class="form-select"
+          v-model="raSelect"
+          name="utRA"
+          aria-describedby="utRAHelp"
+        >
           <option value="">-- Selecciona RA --</option>
-          <option v-for="ra in resultApren" :key="ra.id" 
-          value="ra.id">ra.nom</option>
-          </Field>
-          <button type="button" class="btn btn-primary" @click="addRA">
-            Afegeix
-          </button>
+          <option v-for="ra in resultApren" :key="ra.id" value="ra.id">ra.nom</option>
+        </Field>
+        <button type="button" class="btn btn-primary" @click="addRA">Afegeix</button>
         <div id="utRAHelp" class="form-text">Afegeix tots els RA relacionats amb aquesta UT</div>
       </div>
     </Form>

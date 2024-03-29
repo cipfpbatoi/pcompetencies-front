@@ -2,7 +2,7 @@
 export default {
   props: {
     title: String,
-    text: String,
+    text: String
   }
 }
 </script>

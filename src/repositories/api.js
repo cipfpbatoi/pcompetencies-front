@@ -29,7 +29,10 @@ instance.interceptors.response.use(
       // Eliminar el token caducado del almacenamiento local
       localStorage.removeItem('token');
       // Redireccionar al usuario al inicio de sesión
-      localStorage.setItem('redirectPath', error.response.fullPath);
+      localStorage.redirect = JSON.stringify({
+        path: window.location.pathname,
+        message: 'La sessió ha caducat. Per favor, loguejat de nou',
+      })
       window.location.replace('/login'); // Redirigir a la página de inicio de sesión
       //      router.push('/login')
     }
@@ -48,9 +51,16 @@ export const api = {
   createImprovement: (id, data) => instance.post(`/syllabus/${id}/improvements`, data),
   evaluateImprovement: (id, data) => instance.put(`/syllabus/${id}/improvements/evaluate`, data),
 
-  // DefaultLearningSituation
+  // LearningSituation
   getLearningSituationById: (id) => instance.get(`/learningSituation/${id}`),
   deleteLearningSituation: (id) => instance.delete(`/learningSituation/${id}`),
+  replaceLearningSituation: (lsId, data) =>
+    instance.put(`/syllabus/learningSituation/${lsId}`, data),
+  createLearningSituationObjectives: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/objectives`, data),
+  createLearningSituationPriorKnowledge: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/priorKnowledge`, data),
+  createLearningSituation: (id, data) => instance.post(`/syllabus/${id}/learningSituation`, data),
   getLearningSituationsBySyllabusId: (id) => instance.get(`/syllabus/${id}/learningSituations`),
 
   // Login Check
@@ -66,11 +76,7 @@ export const api = {
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),
   createSyllabus: (data) => instance.post('/syllabus', data),
-
-  // LearningSituation
-  replaceLearningSituation: (lsId, data) =>
-    instance.put(`/syllabus/learningSituation/${lsId}`, data),
-  createLearningSituation: (id, data) => instance.post(`/syllabus/${id}/learningSituation`, data)
+  createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
 }
 
 export default instance

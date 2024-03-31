@@ -1,6 +1,6 @@
 <script>
 import { api } from '../repositories/api.js'
-import { mapActions } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
@@ -12,49 +12,40 @@ export default {
     try {
       const response = await api.getCycles()
       this.cycles = response.data
-      this.addMessage('success', 'Datos cargados')
     } catch (error) {
       this.addMessage('error', error)
     } finally {
-      this.cycleInfo = {}
       this.syllabuses = []
     }
   },
   computed: {
+    ...mapState(useDataStore, ['cycle']),
     selectedModule() {
-      return this.cycleInfo.modules.find((item) => item.code == this.module) || {}
+      return this.cycle.modules.find((item) => item.code == this.moduleSelect) || {}
     }
   },
   data() {
     return {
       cycles: [],
-      cycle: '',
-      cycleInfo: {},
-      module: '',
+      cycleSelect: '',
+      moduleSelect: '',
       syllabuses: [],
       done: false
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['addMessage', 'fetchModule', 'fetchSyllabus']),
+    ...mapActions(useDataStore, ['addMessage', 'fetchData', 'fetchCycle']),
     async getModules() {
-      if (this.cycle) {
-        try {
-          const response = await api.getCycleById(this.cycle)
-          this.cycleInfo = response.data
-        } catch (error) {
-          this.cycleInfo = {}
-          this.addMessage('error', error)
-        } finally {
-          this.syllabuses = []
-        }
+      if (this.cycleSelect) {
+        await this.fetchCycle(this.cycleSelect)
       }
-      this.module = ''
+      this.syllabuses = []
+      this.moduleSelect = ''
       this.done = false
     },
     async fetchSyl() {
       try {
-        const response = await api.getSyllabusByCycleAndModule(this.cycle, this.module)
+        const response = await api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect)
         this.syllabuses = response.data
       } catch (error) {
         this.syllabuses = []
@@ -66,8 +57,8 @@ export default {
       if (!syllabus) {
         try {
           const response = await api.createSyllabus({
-            cycleId: this.cycle,
-            moduleCode: this.module,
+            cycleId: this.cycleSelect,
+            moduleCode: this.moduleSelect,
             turn
           })
           syllabus = response.data
@@ -77,11 +68,8 @@ export default {
           return
         }
       }
-      await Promise.all([
-        this.fetchModule(this.module),
-        this.fetchSyllabus(syllabus.id)
-      ])
-      this.$router.push('/impr-prop')
+      await this.fetchData(this.moduleSelect, syllabus.id)
+      this.$router.push('/context')
     },
     existsSyllabusInTurn(turn) {
       return this.syllabuses.find((item) => item.turn === turn)
@@ -96,36 +84,36 @@ export default {
     <div>
       <label>Ciclo</label>
       <select
-        v-model="cycle"
+        v-model="cycleSelect"
         @change="getModules"
         class="form-select"
-        aria-label="Selecciona cycle"
+        aria-label="Selecciona cycleSelect"
       >
         <option value="">-- Selecciona ciclo --</option>
-        <option v-for="cycle in cycles" :key="cycle.id" :value="cycle.id">
-          {{ cycle.completeName }}
+        <option v-for="cycleSelect in cycles" :key="cycleSelect.id" :value="cycleSelect.id">
+          {{ cycleSelect.completeName }}
         </option>
       </select>
     </div>
-    <div v-if="cycle">
+    <div v-if="cycleSelect">
       <label>Mòdul</label>
       <select
-        v-model="module"
+        v-model="moduleSelect"
         @change="fetchSyl"
         class="form-select"
         aria-label="Default select example"
       >
         <option value="">-- Selecciona mòdul --</option>
-        <option v-for="module in cycleInfo.modules" :key="module.code" :value="module.code">
+        <option v-for="module in cycle.modules" :key="module.code" :value="module.code">
           {{ module.name }}
         </option>
       </select>
     </div>
     <br />
-    <div v-if="module">
+    <div v-if="moduleSelect">
       <h3>Torns</h3>
       <ul>
-        <li v-for="(turn, index) in cycleInfo.availableTurns" :key="index">
+        <li v-for="(turn, index) in cycle.availableTurns" :key="index">
           {{ turn.toUpperCase() }}:
           <button @click="getSyl(turn)" type="button btn-sm">
             {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}

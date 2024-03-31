@@ -15,6 +15,7 @@ const validationSchema = object({
 })
 
 export default {
+  emits: ['saved'],
   props: {
     unit: Object
   },
@@ -30,7 +31,6 @@ export default {
       return this.editedUnit.ponderedLearningResults.map((item) => {
         const lRid = item.learningResultId || item.learningResult.id
         const lR = this.getLearningResultById(lRid)
-        //        console.log(item)
         return {
           id: item.id,
           percentageWeight: item.percentageWeight,
@@ -55,7 +55,6 @@ export default {
   },
   watch: {
     unit(newValue) {
-      console.log(newValue)
       this.editedUnit = JSON.parse(JSON.stringify(newValue))
       this.simplifyPLR(newValue)
       this.$forceUpdate()
@@ -77,7 +76,6 @@ export default {
           if (item.learningResultId) {
             return item
           }
-          console.log(item)
           return {
             id: item.id,
             percentageWeight: item.percentageWeight,
@@ -112,6 +110,7 @@ export default {
         })
       ) {
         this.editedUnit = { ponderedLearningResults: [] }
+        this.$emit('saved')
       }
     }
   }
@@ -216,7 +215,7 @@ export default {
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tanca</button>
-          <button @click="saveLS" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Guarda</button>
+          <button @click="saveLS" type="button" class="btn btn-secondary">Guarda</button>
           <slot></slot>
         </div>
       </div>

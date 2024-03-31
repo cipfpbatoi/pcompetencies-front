@@ -1,9 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LearningSituations from '../views/LearningSituations.vue'
+import LearningSituationsObjectives from '../views/LearningSituationsObjectives.vue'
+import LSPriorKnowledge from '../views/LSPriorKnowledge.vue'
 import TestWorkUnitLR from '../views/TestWorkUnitLR.vue'
 import LoginView from '../views/LoginView.vue'
 import ImprovementProposal from '../views/ImprovementProposal.vue'
+import ContextSyllabus from '../views/ContextSyllabus.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +23,12 @@ const router = createRouter({
       component: LoginView
     },
     {
+      path: '/context',
+      name: 'contextSyl',
+      component: ContextSyllabus,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/impr-prop',
       name: 'imprProp',
       component: ImprovementProposal,
@@ -33,8 +42,20 @@ const router = createRouter({
     },
     {
       path: '/test',
-      name: 'testLS-LR',
-      component: TestWorkUnitLR
+      name: 'LSTest',
+      component: TestWorkUnitLR,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/objectives',
+      name: 'LSOjectives',
+      component: LearningSituationsObjectives,
+      meta: { requiresAuth: true }
+    },    {
+      path: '/prior-knowledge',
+      name: 'LSPriorKnowledge',
+      component: LSPriorKnowledge,
+      meta: { requiresAuth: true }
     },
     {
       path: '/about',

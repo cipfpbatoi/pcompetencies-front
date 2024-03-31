@@ -11,6 +11,7 @@ export const useDataStore = defineStore('data', {
       messages: [],
       syllabus: {},
       module: {},
+      cycle: {},
     }
   },
   getters: {
@@ -74,43 +75,80 @@ export const useDataStore = defineStore('data', {
       const index = this.messages.findIndex((item) => item.id === id)
       this.messages.splice(index, 1)
     },
-    loadData() {
-      if (localStorage.module) {
-        this.module = JSON.parse(localStorage.module)
-      }
-      if (localStorage.syllabus) {
-        this.syllabus = JSON.parse(localStorage.syllabus)
+    async reloadData() {
+      if (localStorage.data) {
+        const data = JSON.parse(localStorage.data)
+        this.syllabus = { id: data.syllabusId }
+        try {
+          const [respCycle, respMod, respSyl] = await Promise.all([
+            api.getCycleById(data.cycleId),
+            api.getModuleByCode(data.moduleCode),
+            api.getSyllabusById(data.syllabusId),
+          ])
+          this.cycle = respCycle.data
+          this.module = respMod.data
+          this.syllabus = respSyl.data            
+        } catch (error) {
+          this.cycle = {}
+          this.module = {}
+          this.syllabus = {}
+          this.addMessage('error', error)            
+        }
       }
     },
-    async fetchModule(moduleCode) {
+    async fetchCycle(cycleId) {
       try {
-        const respMod = await api.getModuleByCode(moduleCode)
+        const response = await api.getCycleById(cycleId)
+        this.cycle = response.data
+      } catch (error) {
+        this.cycle = {}
+        this.addMessage('error', error)
+      }
+    },
+    async fetchData(moduleCode, syllabusId) {
+      try {
+        const [respMod, respSyl] = await Promise.all([
+          api.getModuleByCode(moduleCode),
+          api.getSyllabusById(syllabusId),
+        ]) 
         this.module = respMod.data
-        localStorage.module = JSON.stringify(this.module)
+        this.syllabus = respSyl.data
+        localStorage.data = JSON.stringify({
+          cycleId: this.cycle.id,
+          moduleCode: this.module.code,
+          syllabusId: this.syllabus.id
+        })
       } catch (error) {
         this.module = {}
-        localStorage.module = JSON.stringify({})
+        this.module = {}
+        localStorage.removeItem('data')
         this.addMessage('error', error)
       }
     },
-    async fetchSyllabus(syllabusId) {
+    async saveSyllabusGroupContext(id, data) {
       try {
-        const respSyl = await api.getSyllabusById(syllabusId)
-        this.syllabus = respSyl.data
-        localStorage.syllabus = JSON.stringify(this.syllabus)
+        const response = await api.createSyllabusGroupContext(id, data)
+        this.syllabus.groupContext = response.data.groupContext
+        this.addMessage('success', 'Contextualització guardada')
+        return 'ok'
       } catch (error) {
-        this.syllabus = {}
-        localStorage.syllabus = JSON.stringify({})
-        this.addMessage('error', error)
+        if (error.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
       }
     },
-    async evaluateImprovement(data) {
+    async evaluateImprovement(id, data) {
       try {
-        await api.evaluateImprovement(this.syllabus.improvementProposal.id, data)
-        return true
+        const response = await api.evaluateImprovement(id, data)
+        this.syllabus.improvementProposal = response.data.improvementProposal
+        this.addMessage('success', 'Avaluació de propostes guardada')
+        return 'ok'
       } catch (error) {
-        this.addMessage('error', error)
-        return false
+        if (error.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
       }
 
     },
@@ -122,13 +160,14 @@ export const useDataStore = defineStore('data', {
           0
         )
         ls.position = maxPosition + 1
-
         try {
           await api.createLearningSituation(this.syllabus.id, ls)
         } catch (error) {
-          this.addMessage('error', error)
-          return false
-        }
+          if (error.status != 422) {
+            this.addMessage('error', error)
+          }
+          return error
+          }
       } else {
         // Estamos modificando una existente
         try {
@@ -136,13 +175,15 @@ export const useDataStore = defineStore('data', {
           delete ls.id
           await api.replaceLearningSituation(id, ls)
         } catch (error) {
-          this.addMessage('error', error)
-          return false
-        }
+          if (error.status != 422) {
+            this.addMessage('error', error)
+          }
+          return error
+          }
       }
-      this.addMessage('success', 'Unitat guardada')
+      this.addMessage('success', "Situació d'aprenentatge guardada")
       this.fetchSyllabus(this.syllabus.id)
-      return true
+      return 'ok'
     },
     async deleteLearningSituation(lsId) {
       try {
@@ -151,12 +192,47 @@ export const useDataStore = defineStore('data', {
           this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
           1
         )
-        localStorage.syllabus = JSON.stringify(this.syllabus)
       } catch (error) {
         this.addMessage('error', error)
         return
       }
-      this.addMessage('success', 'Unitat eliminada')
-    }
+      this.addMessage('success', "Situació d'aprenentatge eliminada")
+    },
+    async saveLearningSituationObjectives(lsId, data) {
+      try {
+        const response = await api.createLearningSituationObjectives(lsId, data)
+        this.syllabus.learningSituations
+        .splice(
+          this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
+          1,
+          response.data
+        )
+      } catch (error) {
+        if (error.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+      this.addMessage('success', 'Objectius guardats')
+      return 'ok'
+    },
+    async saveLearningSituationPriorKnowledge(lsId, data) {
+      try {
+        const response = await api.createLearningSituationPriorKnowledge(lsId, data)
+        this.syllabus.learningSituations
+        .splice(
+          this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
+          1,
+          response.data
+        )
+      } catch (error) {
+        if (error.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+      this.addMessage('success', 'Coneixements previs guardats')
+      return 'ok'
+    },
   }
 })

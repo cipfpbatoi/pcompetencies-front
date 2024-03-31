@@ -2,7 +2,7 @@
 import { useDataStore } from '@/stores/data'
 import { mapActions } from 'pinia'
 import * as yup from 'yup'
-import { object, string } from 'yup'
+import { object } from 'yup'
 
 const validationSchema = object({
   email: yup
@@ -17,10 +17,16 @@ export default {
   data() {
     return {
       errors: [],
-      user: {}
+      user: {},
+      redirect: false,
     }
   },
-  mounted() {},
+  mounted() {
+    if (localStorage.redirect) {
+      this.redirect = JSON.parse(localStorage.redirect)
+      this.addMessage('error', this.redirect.message)
+    }
+  },
   methods: {
     ...mapActions(useDataStore, ['loginUser', 'addMessage']),
     async handleForm() {
@@ -39,10 +45,9 @@ export default {
         return
       }
       if (await this.loginUser(this.user)) {
-          const redirectPath = localStorage.getItem('redirectPath')
-          if (redirectPath) {
+          if (this.redirect) {
             localStorage.removeItem('redirectPath') // Limpiar la ruta de redirección
-            this.$router.push(redirectPath) // Redirigir al usuario a la ruta almacenada
+            this.$router.push(this.redirect.path) // Redirigir al usuario a la ruta almacenada
           } else {
             this.$router.push('/') // Redirigir al usuario a la página de inicio
           }

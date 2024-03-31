@@ -10,10 +10,12 @@ export default {
     AppNav
   },
   mounted() {
-    this.loadData()
+    if (window.location.pathname !== '/login') {
+      this.reloadData()
+    }
   },
   methods: {
-    ...mapActions(useDataStore, ['loadData'])
+    ...mapActions(useDataStore, ['reloadData'])
   }
 }
 </script>

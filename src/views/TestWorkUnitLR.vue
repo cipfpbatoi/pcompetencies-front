@@ -25,7 +25,6 @@ export default {
   },
   methods: {
     includesLearningResult(ponderedLearningReslts, lRid) {
-      console.log(ponderedLearningReslts)
       const isIncluded = ponderedLearningReslts.some((item) => 
       item.learningResult.id == lRid)
       if (isIncluded) {
@@ -39,7 +38,7 @@ export default {
 
 <template>
   <main>
-    <app-breadcrumb :actualStep="4" :done="areAllLearningResultsInluded"></app-breadcrumb>
+    <app-breadcrumb :actualStep="5" :done="areAllLearningResultsInluded"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <p v-if="areAllLearningResultsInluded">
       La programació inclou tots els resultats d'aprenentatge. Pots continuar al següent pas. 

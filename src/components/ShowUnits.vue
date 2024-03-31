@@ -1,47 +1,12 @@
 <script>
-import { Modal } from 'bootstrap'
-import UnitModal from '../components/UnitModal.vue'
 import { useDataStore } from '../stores/data'
-import { mapState, mapActions } from 'pinia'
+import { mapState } from 'pinia'
 export default {
-  components: {
-    UnitModal
-  },
-  props: {
-    editable: {
-      type: Boolean,
-      default: false
-    }
-  },
+  props: ['title'],
   computed: {
-    ...mapState(useDataStore, ['syllabus', 'module', 'getLearningResultById'])
-  },
-  data() {
-    return {
-      unitModal: null,
-      modalData: { ponderedLearningResults: [] }
-    }
-  },
-  async mounted() {
-    this.unitModal = new Modal(document.getElementById('unitMmodalComp'))
+    ...mapState(useDataStore, ['syllabus'])
   },
   methods: {
-    ...mapActions(useDataStore, ['saveLearningSituation', 'deleteLearningSituation']),
-    showModal(unit) {
-      this.modalData = unit
-      this.unitModal.show()
-    },
-    delUnit(unit) {
-      if (
-        confirm(
-          'ATENCIÓ: Vas a esborrar la unitat "' +
-            unit.title +
-            '". Aquest procés NO es por des-fer !!!'
-        )
-      ) {
-        this.deleteLearningSituation(unit.id)
-      }
-    },
     showPonderedLearningResults(ponderedLR) {
       if (!ponderedLR) return ''
       return ponderedLR.map((item) => 
@@ -54,7 +19,7 @@ export default {
 
 <template>
   <div>
-    <h3>Unitats de treball</h3>
+    <h3>{{ title }}</h3>
     <table v-if="syllabus.learningSituations?.length" class="table table-striped">
       <thead>
         <th>Num.</th>
@@ -70,23 +35,12 @@ export default {
           <td>{{ unit.hours }}</td>
           <td>{{ showPonderedLearningResults(unit.ponderedLearningResults) }}</td>
           <td>
-            <template v-if="editable">
-              <button @click="showModal(unit)" class="btn btn-secondary" title="Editar">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button @click="delUnit(unit)" class="btn btn-secondary" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
-            </template>
+            <slot :item="unit"></slot>
           </td>
         </tr>
       </tbody>
     </table>
     <p v-else>No hi ha cap unitat de treball</p>
-    <button class="btn btn-sm btn-secondary" @click="showModal({ ponderedLearningResults: [] })">
-      Afegir unitat
-    </button>
-    <UnitModal :unit="modalData"></UnitModal>
   </div>
 </template>
 

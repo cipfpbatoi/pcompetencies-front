@@ -21,9 +21,9 @@ export default {
     ...mapState(useDataStore, ['syllabus'])
   },
   mounted() {
-    // if (!this.syllabus.id) {
-    //   this.$router.push('/')
-    // }
+    if (!this.syllabus.id) {
+      this.$router.push('/')
+    }
     if (this.syllabus.groupContext) {
       this.context = this.syllabus.groupContext
       this.done = true
@@ -61,8 +61,10 @@ export default {
       ) {
         this.done = true
       } else {
-        if (response.status == 422) {
-          console.log(response)
+        if (response.response?.status == 422) {
+          const serverError = response.response.data.detail.split(': ')
+          this.errors[serverError[0]] = serverError[1]
+          return
         }
       }
     }

@@ -73,9 +73,12 @@ export default {
         this.done = true
         this.data.accepted = this.syllabus.improvementProposal.status == 2
       } else {
-        if (response.status == 422) {
-          console.log(response)
+        if (response.response?.status == 422) {
+          const serverError = response.response.data.detail.split(': ')
+          this.errors[serverError[0]] = serverError[1]
+          return
         }
+
       }
     }
   }

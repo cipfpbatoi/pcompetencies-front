@@ -46,7 +46,7 @@ export default {
       }
       if (await this.loginUser(this.user)) {
           if (this.redirect) {
-            localStorage.removeItem('redirectPath') // Limpiar la ruta de redirección
+            localStorage.removeItem('redirect') // Limpiar la ruta de redirección
             this.$router.push(this.redirect.path) // Redirigir al usuario a la ruta almacenada
           } else {
             this.$router.push('/') // Redirigir al usuario a la página de inicio

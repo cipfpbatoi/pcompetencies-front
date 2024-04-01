@@ -60,8 +60,10 @@ export default {
       if (response === 'ok') {
         this.$emit('saved')
       } else {
-        if (response.status == 422) {
-          console.log(response)
+        if (response.response?.status == 422) {
+          const serverError = response.response.data.detail.split(': ')
+          this.errors[serverError[0]] = serverError[1]
+          return
         }
       }
     }
@@ -81,7 +83,7 @@ export default {
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
-          <h1 class="modal-title fs-5" id="unit-modal">{{ unit.number }}: {{ unit.title }}</h1>
+          <h1 class="modal-title fs-5" id="unit-modal">{{ unit.position }}: {{ unit.title }}</h1>
           <button
             type="button"
             class="btn-close"

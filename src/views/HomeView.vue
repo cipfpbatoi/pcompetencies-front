@@ -43,7 +43,7 @@ export default {
       this.moduleSelect = ''
       this.done = false
     },
-    async fetchSyl() {
+    async getSyllabuses() {
       try {
         const response = await api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect)
         this.syllabuses = response.data
@@ -99,7 +99,7 @@ export default {
       <label>Mòdul</label>
       <select
         v-model="moduleSelect"
-        @change="fetchSyl"
+        @change="getSyllabuses"
         class="form-select"
         aria-label="Default select example"
       >

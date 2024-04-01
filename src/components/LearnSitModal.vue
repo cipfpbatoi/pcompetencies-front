@@ -64,6 +64,10 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['saveLearningSituation']),
     addRA() {
+      if (this.newLearningResult.percentageWeight < 1 || this.newLearningResult.percentageWeight > 100) {
+        this.errors.percentageWeight = "El pes de cada RA no pot ser menor que 1 ni major que el 100%"
+        return
+      }
       this.editedUnit.ponderedLearningResults.push(this.newLearningResult)
       this.newLearningResult = {}
     },
@@ -211,6 +215,7 @@ export default {
                 Afegir RA
               </button>
             </div>
+            <p v-if="errors.percentageWeight" class="error">{{ errors.percentageWeight }}</p>
           </form>
         </div>
         <div class="modal-footer">

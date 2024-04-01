@@ -3,7 +3,6 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import * as yup from 'yup'
 import { object } from 'yup'
-import ObjectivesTable from './ObjectivesTable.vue'
 
 const validationSchema = object({
   didacticObjectives: yup
@@ -15,9 +14,6 @@ const validationSchema = object({
 
 export default {
   emits: ['saved'],
-  components: {
-    ObjectivesTable
-  },
   props: {
     unit: Object
   },
@@ -52,7 +48,7 @@ export default {
     async save() {
       try {
         // Valida los datos del formulario con Yup
-        //        await validationSchema.validate(this.editedUnit, { abortEarly: false })
+        await validationSchema.validate({ didacticObjectives: this.didacticObjectives }, { abortEarly: false })
       } catch (error) {
         // Maneja los errores de validación y actualiza el estado de los errores
         const formattedErrors = {}
@@ -71,8 +67,10 @@ export default {
       if (response === 'ok') {
         this.$emit('saved')
       } else {
-        if (response.status == 422) {
-          console.log(response)
+        if (response.response?.status == 422) {
+          const serverError = response.response.data.detail.split(': ')
+          this.errors[serverError[0]] = serverError[1]
+          return
         }
       }
     }
@@ -92,7 +90,7 @@ export default {
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
-          <h1 class="modal-title fs-5" id="unit-modal">{{ unit.number }}: {{ unit.title }}</h1>
+          <h1 class="modal-title fs-5" id="unit-modal">{{ unit.position }}: {{ unit.title }}</h1>
           <button
             type="button"
             class="btn-close"
@@ -128,7 +126,7 @@ export default {
             <div class="cols-6">
               <label class="form-label">Objectius didàctics</label>
               <textarea class="form-control" v-model="didacticObjectives"></textarea>
-              <span v-if="errors.hours" class="error">{{ errors.hours }}</span>
+              <span v-if="errors.didacticObjectives" class="error">{{ errors.didacticObjectives }}</span>
             </div>
           </div>
         </div>

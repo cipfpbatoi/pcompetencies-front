@@ -51,7 +51,8 @@ export default {
   computed: {
     ...mapState(useDataStore, ['syllabus', 'cycle']),
     done() {
-      return !!this.syllabus.learningSituations?.length
+      return !this.syllabus.learningSituations?.some(item =>
+      !item.didacticObjectives)
     }
   },
   data() {

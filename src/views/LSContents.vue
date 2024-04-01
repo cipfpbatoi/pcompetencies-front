@@ -109,10 +109,10 @@ export default {
 
 <template>
   <main>
-    <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <div>
-      <h3>Coneixements previs</h3>
+      <h3>Continguts</h3>
       <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
         <template v-slot="{ item }">
           <button @click="showModal(item)" class="btn btn-secondary" title="Editar">

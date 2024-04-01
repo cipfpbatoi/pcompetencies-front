@@ -10,7 +10,7 @@ export default {
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module']),
     areAllLearningResultsInluded() {
-      return this.lRincluded.size === this.module.learningResults.length
+      return this.lRincluded.size === this.module.learningResults?.length
     }
   },
   mounted() {

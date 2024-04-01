@@ -89,9 +89,6 @@ export const useDataStore = defineStore('data', {
           this.module = respMod.data
           this.syllabus = respSyl.data            
         } catch (error) {
-          this.cycle = {}
-          this.module = {}
-          this.syllabus = {}
           this.addMessage('error', error)            
         }
       }
@@ -132,7 +129,7 @@ export const useDataStore = defineStore('data', {
         this.addMessage('success', 'Contextualització guardada')
         return 'ok'
       } catch (error) {
-        if (error.status != 422) {
+        if (error.response?.status != 422) {
           this.addMessage('error', error)
         }
         return error
@@ -145,7 +142,7 @@ export const useDataStore = defineStore('data', {
         this.addMessage('success', 'Avaluació de propostes guardada')
         return 'ok'
       } catch (error) {
-        if (error.status != 422) {
+        if (error.response?.status != 422) {
           this.addMessage('error', error)
         }
         return error
@@ -161,9 +158,10 @@ export const useDataStore = defineStore('data', {
         )
         ls.position = maxPosition + 1
         try {
-          await api.createLearningSituation(this.syllabus.id, ls)
+          const response = await api.createLearningSituation(this.syllabus.id, ls)
+          this.syllabus.learningSituations.push(response.data)
         } catch (error) {
-          if (error.status != 422) {
+          if (error.response?.status != 422) {
             this.addMessage('error', error)
           }
           return error
@@ -173,16 +171,20 @@ export const useDataStore = defineStore('data', {
         try {
           const id = ls.id
           delete ls.id
-          await api.replaceLearningSituation(id, ls)
-        } catch (error) {
-          if (error.status != 422) {
+          const response = await api.replaceLearningSituation(id, ls)
+          this.syllabus.learningSituations.splice(
+            this.syllabus.learningSituations.findIndex((item) => item.id === id),
+            1,
+            response.data
+          )
+          } catch (error) {
+          if (error.response?.status != 422) {
             this.addMessage('error', error)
           }
           return error
           }
       }
       this.addMessage('success', "Situació d'aprenentatge guardada")
-      this.fetchSyllabus(this.syllabus.id)
       return 'ok'
     },
     async deleteLearningSituation(lsId) {
@@ -208,7 +210,7 @@ export const useDataStore = defineStore('data', {
           response.data
         )
       } catch (error) {
-        if (error.status != 422) {
+        if (error.response?.status != 422) {
           this.addMessage('error', error)
         }
         return error
@@ -226,7 +228,7 @@ export const useDataStore = defineStore('data', {
           response.data
         )
       } catch (error) {
-        if (error.status != 422) {
+        if (error.response?.status != 422) {
           this.addMessage('error', error)
         }
         return error

@@ -1,9 +1,20 @@
 <script>
-import EcTable from '../components/EcTable.vue'
+import ShowTable from './ShowTable.vue'
+
+const evaluationCriteriasColumns = [
+  {
+    title: 'CA',
+    value: 'code'
+  },
+  {
+    title: 'Descripció',
+    value: 'description'
+  }
+]
 
 export default {
   components: {
-    EcTable
+    ShowTable,
   },
   props: {
     learningResults: Array,
@@ -14,7 +25,8 @@ export default {
   },
   data() {
     return {
-      deployedRA: 0
+      deployedRA: 0,
+      evaluationCriteriasColumns,
     }
   },
   methods: {
@@ -54,7 +66,11 @@ export default {
           </tr>
           <tr v-if="deployedRA == result.id">
             <td colspan="3">
-              <EcTable :evaluationCriterias="result.evaluationCriterias"></EcTable>
+              <ShowTable
+              :data="result.evaluationCriterias" 
+              :columns="evaluationCriteriasColumns"
+              :actions="false"
+              ></ShowTable>
             </td>
           </tr>
         </template>

@@ -34,7 +34,7 @@ export default {
         },
         {
           number: 4,
-          title: "Situacions d'aprenentatge",
+          title: "Crear Situacions d'aprenentatge",
           path: 'learningSituations',
           nextPath: 'LSTest'
         },
@@ -42,23 +42,18 @@ export default {
           number: 5,
           title: 'Comprova els RA',
           path: 'LSTest',
-          nextPath: 'LSOjectives'
+          nextPath: 'LSsDevelopment'
         },
         {
           number: 6,
-          title: 'Objectius',
-          path: 'LSOjectives',
-          nextPath: 'LSPriorKnowledge'
+          title: 'Llistat de les S.A.',
+          path: 'LSsDevelopment',
+          nextPath: 'LSDevelopment'
         },
         {
           number: 7,
-          title: 'Coneixements previs',
-          path: 'LSPriorKnowledge',
-          nextPath: 'LSContents'
-        },        {
-          number: 8,
-          title: 'Continguts',
-          path: 'LSContents',
+          title: 'Desenvolupa la S.A.',
+          path: 'LSDevelopment',
           nextPath: 'imprProp'
         },
       ]

@@ -33,7 +33,7 @@ export default {
   watch: {
     unit(newValue) {
       this.didacticObjectives = newValue.didacticObjectives
-      ;(this.generalObjectives = this.cycle.generalObjectives.map((item) => {
+      ;(this.generalObjectives = this.cycle.generalObjectives?.map((item) => {
         return {
           ...item,
           checked: this.unitGeneralObjectivesIds.includes(item.id) || false
@@ -82,7 +82,7 @@ export default {
   <!-- Modal -->
   <div
     class="modal fade"
-    id="unitMmodalComp"
+    id="objectivesModalComp"
     tabindex="-1"
     aria-labelledby="unit-modal"
     aria-hidden="true"

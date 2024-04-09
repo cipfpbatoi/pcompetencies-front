@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LearningSituations from '../views/LearningSituations.vue'
-import LSObjectives from '../views/LSObjectives.vue'
-import LSContents from '../views/LSContents.vue'
-import LSPriorKnowledge from '../views/LSPriorKnowledge.vue'
+import LSDevelopment from '../views/LSDevelopment.vue'
+import LSsDevelopment from '../views/LSsDevelopment.vue'
 import TestWorkUnitLR from '../views/TestWorkUnitLR.vue'
 import LoginView from '../views/LoginView.vue'
 import ImprovementProposal from '../views/ImprovementProposal.vue'
@@ -48,23 +47,17 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/objectives',
-      name: 'LSOjectives',
-      component: LSObjectives,
+      path: '/develop',
+      name: 'LSsDevelopment',
+      component: LSsDevelopment,
+      meta: { requiresAuth: true }
+    },        {
+      path: '/learning-situation/:lsId',
+      name: 'LSDevelopment',
+      component: LSDevelopment,
+      props: true,
       meta: { requiresAuth: true }
     },    
-    {
-      path: '/contents',
-      name: 'LSContents',
-      component: LSContents,
-      meta: { requiresAuth: true }
-    },    
-    {
-      path: '/prior-knowledge',
-      name: 'LSPriorKnowledge',
-      component: LSPriorKnowledge,
-      meta: { requiresAuth: true }
-    },
     {
       path: '/about',
       name: 'about',

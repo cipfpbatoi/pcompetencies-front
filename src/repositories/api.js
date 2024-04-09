@@ -27,13 +27,13 @@ instance.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token caducado
       // Eliminar el token caducado del almacenamiento local
-      localStorage.removeItem('token');
+      localStorage.removeItem('token')
       // Redireccionar al usuario al inicio de sesión
       localStorage.redirect = JSON.stringify({
         path: window.location.pathname,
-        message: 'La sessió ha caducat. Per favor, loguejat de nou',
+        message: 'La sessió ha caducat. Per favor, loguejat de nou'
       })
-      window.location.replace('/login'); // Redirigir a la página de inicio de sesión
+      window.location.replace('/login') // Redirigir a la página de inicio de sesión
       //      router.push('/login')
     }
     return Promise.reject(error)
@@ -62,6 +62,8 @@ export const api = {
     instance.post(`/syllabus/learningSituation/${lsId}/priorKnowledge`, data),
   createLearningSituation: (id, data) => instance.post(`/syllabus/${id}/learningSituation`, data),
   getLearningSituationsBySyllabusId: (id) => instance.get(`/syllabus/${id}/learningSituations`),
+  saveLearningSituationContents: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/didacticContents`, data),
 
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),
@@ -76,7 +78,7 @@ export const api = {
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),
   createSyllabus: (data) => instance.post('/syllabus', data),
-  createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
+  createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data)
 }
 
 export default instance

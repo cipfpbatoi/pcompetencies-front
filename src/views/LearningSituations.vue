@@ -5,7 +5,6 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import LrTable from '../components/LrTable.vue'
 import ShowTable from '../components/ShowTable.vue'
-import ShowBlocks from '../components/ShowBlocks.vue'
 import AppBreadcrumb from '../components/AppBreadcrumb.vue'
 
 const learningSituationsColumns = [
@@ -40,7 +39,6 @@ export default {
   components: {
     AppBreadcrumb,
     LrTable,
-    ShowBlocks,
     ShowTable,
     LearnSitModal
   },
@@ -113,10 +111,6 @@ export default {
       <h3>Resultats d'aprenentatge</h3>
       <Lr-Table :learningResults="module.learningResults"></Lr-Table>
     </div>
-    <br />
-    <div>
-      <h3>Continguts</h3>
-      <ShowBlocks></ShowBlocks>
-    </div>
+
   </main>
 </template>

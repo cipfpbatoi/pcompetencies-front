@@ -77,7 +77,7 @@ export default {
     <app-breadcrumb :actualStep="2" :done="done"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <h3>Contextualització</h3>
-    <p>{{ syllabus.center?.contextualization }}</p>
+    <p v-html="syllabus.center?.contextualization"></p>
     <p v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
       <form @submit.prevent="handleForm">
           <textarea class="form-control" v-model="context" rows="5"

@@ -11,7 +11,8 @@ const validationSchema = object({
     .trim()
     .required('Has de posar el títol')
     .min(5, 'Ha de tenir 5 caracters o més'),
-  hours: yup.number().required("Has d'indicar les hores").min(1, "Al menys l'has de dedicar 1 hora")
+  hours: yup.number().required("Has d'indicar les hores").min(1, "Al menys l'has de dedicar 1 hora"),
+  ponderedLearningResults: yup.array().min(1, 'Has de afegir al menys 1 RA')
 })
 
 export default {
@@ -155,7 +156,7 @@ export default {
                   placeholder="Títol de l'unitat"
                   autofocus
                 />
-                <span v-if="errors.title" class="error">{{ errors.title }}</span>
+                <p v-if="errors.title" class="error">{{ errors.title }}</p>
               </div>
               <div class="input-group cols-4">
                 <label class="form-label">Hores</label>
@@ -166,7 +167,7 @@ export default {
                   v-model="editedUnit.hours"
                   placeholder="Nombre d'hores"
                 />
-                <span v-if="errors.hours" class="error">{{ errors.hours }}</span>
+                <p v-if="errors.hours" class="error">{{ errors.hours }}</p>
               </div>
             </div>
             <div>
@@ -178,6 +179,7 @@ export default {
                   </button>
                 </template>
               </lr-table>
+              <p v-if="errors.ponderedLearningResults" class="error">{{ errors.ponderedLearningResults }}</p>
             </div>
             <div class="input-group">
               <label class="form-label">Afegir RA</label>

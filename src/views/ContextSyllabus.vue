@@ -1,4 +1,6 @@
 <script>
+import { Modal } from 'bootstrap'
+import ModalComponent from '../components/ModalComponent.vue'
 import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
@@ -6,42 +8,52 @@ import * as yup from 'yup'
 import { object } from 'yup'
 
 const validationSchema = object({
-  context: yup
+  groupContext: yup
     .string()
     .trim()
     .required('Has de posar la contextualització de la programació')
-    .min(2,'Al menys han de tindre 20 caracters')
+    .min(2, 'Al menys han de tindre 20 caracters')
 })
 
 export default {
   components: {
     AppBreadcrumb,
+    ModalComponent
   },
   computed: {
-    ...mapState(useDataStore, ['syllabus'])
+    ...mapState(useDataStore, ['syllabus']),
+    done() {
+      return !!this.syllabus.groupContext
+    }
   },
   mounted() {
     if (!this.syllabus.id) {
       this.$router.push('/')
     }
-    if (this.syllabus.groupContext) {
-      this.context = this.syllabus.groupContext
-      this.done = true
+    this.modalFields.groupContext = this.syllabus.groupContext
+    this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
+  },
+  watch: {
+    'syllabus.groupContext'(newValue) {
+      this.modalFields.groupContext = newValue
     }
   },
   data() {
     return {
-      done: false,
-      context: '',
       errors: [],
+      GenericModal: null,
+      modalFields: {},
     }
   },
   methods: {
     ...mapActions(useDataStore, ['saveSyllabusGroupContext']),
-    async handleForm() {
+    showModal() {
+      this.GenericModal.show()
+    },
+    async saveData() {
       try {
         // Valida los datos del formulario con Yup
-        await validationSchema.validate({context: this.context}, { abortEarly: false })
+        await validationSchema.validate(this.modalFields, { abortEarly: false })
       } catch (error) {
         // Maneja los errores de validación y actualiza el estado de los errores
         const formattedErrors = {}
@@ -53,13 +65,12 @@ export default {
         }
         return
       }
-      const response = 
-        await this.saveSyllabusGroupContext(this.syllabus.id, {
-          groupContext: this.context
-        })
-      if (response === 'ok'
-      ) {
-        this.done = true
+      const response = await this.saveSyllabusGroupContext(this.syllabus.id, {
+        groupContext: this.modalFields.groupContext
+      })
+      if (response === 'ok') {
+        this.syllabus.groupContext = this.modalFields.groupContext
+        this.GenericModal.hide()
       } else {
         if (response.response?.status == 422) {
           const serverError = response.response.data.detail.split(': ')
@@ -74,22 +85,40 @@ export default {
 
 <template>
   <main>
+    <ModalComponent @save="saveData" title="Característiques del grup-classe">
+      <div class="row">
+        <textarea
+          class="form-control"
+          v-model="modalFields.groupContext"
+          rows="5"
+          placeholder="Característiques del grup-classe"
+        ></textarea>
+        <p v-if="errors.groupContext" class="error">{{ errors.groupContext }}</p>
+      </div>
+    </ModalComponent>
+
     <app-breadcrumb :actualStep="2" :done="done"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <h3>Contextualització</h3>
-    <p v-html="syllabus.center?.contextualization"></p>
-    <p v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
-      <form @submit.prevent="handleForm">
-          <textarea class="form-control" v-model="context" rows="5"
-          placeholder="Contextualització de la programació"></textarea>
-          <p v-if="errors.context" class="error">{{ errors.context }}</p>
-        <button type="submit" class="btn btn-secondary">Guardar</button>
-      </form>
+    <h4>Característiques del Centre i l'entorn</h4>
+    <p class="bordered" v-html="syllabus.center?.contextualization"></p>
+    <h4>Característiques de l'alumnat</h4>
+    <p class="bordered" v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
+    <h4>Característiques del grup-classe</h4>
+    <p class="bordered" v-html="syllabus.groupContext"></p>
+    <button @click="showModal()" class="btn btn-secondary" title="Establir objectiu">
+      Establir les característiques del grup-classe
+    </button>
   </main>
 </template>
 
 <style scoped>
 .error {
   color: red;
+}
+.bordered {
+  border: 1px solid black;
+  padding: 5px;
+  margin: 5px auto;
 }
 </style>

@@ -27,6 +27,7 @@ export const useDataStore = defineStore('data', {
         const response = await api.loginCheck(credentials)
         localStorage.token = response.data.token
         this.addMessage('success', 'Usuario logueado')
+        await this.reloadData()
         return true
       } catch (error) {
         this.addMessage('error', error)

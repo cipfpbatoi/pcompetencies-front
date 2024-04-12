@@ -25,7 +25,7 @@ const learningSituationsColumns = [
     param: 'didacticContents'
   },
   {
-    title: 'Coneix. previs',
+    title: 'Activitats (num.)',
     value: 'priorKnowledge'
   },
 ]
@@ -66,32 +66,5 @@ export default {
         >Desenvolupar</button>
       </template>
     </show-table>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Unitat de treball</th>
-          <th>Objectius</th>
-          <th>Coneix. previs</th>
-          <th>Total de continguts</th>
-          <th>Total de activ. qualificables</th>
-          <th>Total de activ. NO qualificables</th>
-          <th>Total de activ. de reforç/ampliació</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Iterar sobre cada contenido para crear una fila en la tabla -->
-        <tr v-for="unit in syllabus.learningSituations" :key="unit.id">
-          <td>
-            {{ unit.title }}
-          </td>
-          <td>{{ unit.didacticObjectives?.substr(0, 10) }}...</td>
-          <td>
-            <button class="btn btn-link">
-              {{ unit.priorKnowledge?.substr(0, 10) }}...
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </main>
 </template>

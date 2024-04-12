@@ -40,4 +40,12 @@ export default {
 
 <style scoped>
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+.bordered {
+  border: 1px solid black;
+  padding: 5px;
+  margin: 5px auto;
+}
+.error {
+  color: red;
+}
 </style>

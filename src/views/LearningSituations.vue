@@ -80,6 +80,32 @@ export default {
       ) {
         this.deleteLearningSituation(unit.id)
       }
+    },
+    simplifyPonderedLearningResults(pLRs) {
+      return pLRs.map((item) => {
+        return {
+          learningResultId: item.learningResult.id,
+          percentageWeight: item.percentageWeight,
+        }
+      })
+    },
+    changeLSPosition(learningSituation, positionStep) {
+      const learningSituationToSwap = this.syllabus.learningSituations
+      .find((item) => item.position === learningSituation.position + positionStep)
+      if (learningSituationToSwap) {
+        this.saveLearningSituation({
+          ...learningSituationToSwap,
+          position: learningSituation.position,
+          ponderedLearningResults: this.simplifyPonderedLearningResults(learningSituationToSwap.ponderedLearningResults)
+        })
+        learningSituationToSwap.position = learningSituation.position
+      }
+      this.saveLearningSituation({
+        ...learningSituation,
+        position: learningSituation.position + positionStep,
+        ponderedLearningResults: this.simplifyPonderedLearningResults(learningSituation.ponderedLearningResults)
+      })
+      learningSituation.position = learningSituation.position + positionStep
     }
   }
 }
@@ -93,6 +119,22 @@ export default {
       <h3>Situacions d'aprenentatge</h3>
       <show-table :data="this.syllabus.learningSituations" :columns="this.learningSituationsColumns">
         <template v-slot="{ item }">
+          <button
+            @click="changeLSPosition(item, -1)"
+            class="btn btn-secondary"
+            title="Pujar"
+            :disabled="item.position <= 1"
+          >
+            <i class="bi bi-arrow-up"></i>
+          </button>
+          <button
+            :disabled="item.position >= syllabus.learningSituations.length"
+            @click="changeLSPosition(item, 1)"
+            class="btn btn-secondary"
+            title="Baixar"
+          >
+            <i class="bi bi-arrow-down"></i>
+          </button>
           <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
             <i class="bi bi-pencil"></i>
           </button>

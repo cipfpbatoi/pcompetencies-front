@@ -3,7 +3,7 @@ export default {
   props: {
     data: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     columns: {
       type: Array,
@@ -12,20 +12,6 @@ export default {
     actions: {
       type: Boolean,
       default: true
-    },
-    checkeable: {
-      type: Boolean,
-      default: false
-    },
-  },
-  methods: {
-    fieldContent(item, col) {
-      if (!col) return '???'
-      return col?.value
-        ? item[col.value] 
-        : col.func ?
-        col.func(item[col.param])
-        : item
     }
   }
 }
@@ -35,17 +21,13 @@ export default {
   <div>
     <table v-if="data.length" class="table table-striped">
       <thead>
-        <th v-if="checkeable">Sel.</th>
         <th v-for="(col, index) in columns" :key="index">{{ col.title }}</th>
         <th v-if="actions">Accions</th>
       </thead>
       <tbody>
         <tr v-for="(item, index) in data" :key="index">
-          <td v-if="checkeable">
-            <input type="checkbox" v-model="item.checked" />
-          </td>
           <td v-for="(col, tdIndex) in columns" :key="tdIndex">
-            {{ fieldContent(item, col) }}
+            {{ col.value ? item[col.value] : col.func(item[col.param]) }}
           </td>
           <td v-if="actions">
             <slot :item="item" :index="index"></slot>

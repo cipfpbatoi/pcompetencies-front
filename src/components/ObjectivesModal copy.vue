@@ -3,18 +3,6 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import * as yup from 'yup'
 import { object } from 'yup'
-import ShowTable from './ShowTable.vue'
-
-const generalObjectivesColumns = [
-{
-    title: 'Codi',
-    value: 'code'
-  },
-  {
-    title: 'Descripció',
-    value: 'description'
-  }
-]
 
 const validationSchema = object({
   didacticObjectives: yup
@@ -26,34 +14,33 @@ const validationSchema = object({
 
 export default {
   emits: ['saved'],
-  components: {
-    ShowTable,
-  },
   props: {
     unit: Object
   },
-  mounted() {
-    this.didacticObjectives = this.unit?.didacticObjectives || ''
-  },
   computed: {
-    ...mapState(useDataStore, ['syllabus']),
-    generalObjectives() {
-      return this.syllabus.moduleCycleObjectives?.map((item) => {
-        return {
-          ...item,
-          checked: this.unitGeneralObjectivesIds?.includes(item.id) || false
-        }
-      }) || []
-    },
+    ...mapState(useDataStore, ['cycle']),
     unitGeneralObjectivesIds() {
-      return this.unit.generalObjectives?.map((item) => item.id)
+      return this.unit.generalObjectives.map((item) => item.id)
     }
   },
   data() {
     return {
-      didacticObjectives: this.unit?.didacticObjectives || 'sdf',
-      errors: [],
-      generalObjectivesColumns,
+      didacticObjectives: '',
+      generalObjectives: [],
+      errors: []
+    }
+  },
+  watch: {
+    unit(newValue) {
+      this.didacticObjectives = newValue.didacticObjectives
+      this.generalObjectives = this.cycle.generalObjectives?.map((item) => {
+        return {
+          ...item,
+          checked: this.unitGeneralObjectivesIds.includes(item.id) || false
+        }
+      })
+      this.$forceUpdate()
+      //      this.$nextTick(() => {});
     }
   },
   methods: {
@@ -122,10 +109,7 @@ export default {
               <label class="form-label">Objectius generals</label>
               <!-- Tabla de objetivos generales-->
               <div>
-                <ShowTable :checkeable="true" :actions="false" :data="generalObjectives" :columns="generalObjectivesColumns">
-
-                </ShowTable>
-<!--                 <table class="table table-striped">
+                <table class="table table-striped">
                   <thead>
                     <th>Sel.</th>
                     <th>Codi</th>
@@ -140,7 +124,7 @@ export default {
                       <td>{{ objective.description }}</td>
                     </tr>
                   </tbody>
-                </table> -->
+                </table>
               </div>
               <!-- Fin tabla -->
             </div>

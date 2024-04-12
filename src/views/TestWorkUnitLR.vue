@@ -11,7 +11,18 @@ export default {
     ...mapState(useDataStore, ['syllabus', 'module']),
     areAllLearningResultsInluded() {
       return this.lRincluded.size === this.module.learningResults?.length
+    },
+    totalSum() {
+      return this.syllabus.learningSituations?.reduce(
+        (total, lS) =>
+          total +
+          lS.ponderedLearningResults.reduce((total, lR) =>
+            total + lR.percentageWeight
+          , 0),
+        0
+      ) || 0
     }
+
   },
   mounted() {
     if (!this.syllabus.id) {
@@ -25,13 +36,27 @@ export default {
   },
   methods: {
     includesLearningResult(ponderedLearningReslts, lRid) {
-      const isIncluded = ponderedLearningReslts.some((item) => 
-      item.learningResult.id == lRid)
+      const isIncluded = ponderedLearningReslts?.some((item) => item.learningResult.id == lRid)
       if (isIncluded) {
         this.lRincluded.add(lRid)
       }
       return isIncluded
-    }
+    },
+    ponderedSumOfRA(ra) {
+      return this.syllabus.learningSituations?.reduce(
+        (total, lS) =>
+          total +
+          lS.ponderedLearningResults.reduce((total, lR) =>
+            lR.learningResult.id === ra.id ? total + lR.percentageWeight : total
+          , 0),
+        0
+      ) || 0
+    },
+    sumOfLS(ls) {
+      return (
+        ls.ponderedLearningResults?.reduce((total, item) => total + item.percentageWeight, 0) || 0
+      )
+    },
   }
 }
 </script>
@@ -41,13 +66,15 @@ export default {
     <app-breadcrumb :actualStep="5" :done="areAllLearningResultsInluded"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <p v-if="areAllLearningResultsInluded">
-      La programació inclou tots els resultats d'aprenentatge. Pots continuar al següent pas. 
+      La programació inclou tots els resultats d'aprenentatge. Pots continuar al següent pas.
     </p>
     <template v-else>
       <h4>
-      La programació NO inclou tots els resultats d'aprenentatge
-      <button @click="$router.push({name: 'learningSituations'})" class="button btn-sm">Tornar</button>
-    </h4>
+        La programació NO inclou tots els resultats d'aprenentatge
+        <button @click="$router.push({ name: 'learningSituations' })" class="button btn-sm">
+          Tornar
+        </button>
+      </h4>
     </template>
 
     <table class="table table-striped">
@@ -58,6 +85,7 @@ export default {
           <th v-for="result in module.learningResults" :key="result.id">
             R.A. {{ result.number }}
           </th>
+          <th>Pes</th>
         </tr>
       </thead>
       <tbody>
@@ -69,8 +97,18 @@ export default {
             <!-- Colocar una 'X' si el result está presente en el unit -->
             <span v-if="includesLearningResult(unit.ponderedLearningResults, result.id)">X</span>
           </td>
+          <th>{{ sumOfLS(unit) }}%</th>
+        </tr>
+        <tr>
+          <td><strong>Pes de cada R.A.</strong></td>
+          <td v-for="result in module.learningResults" :key="result.id">
+            <!-- Colocar una 'X' si el result está presente en el unit -->
+            <span>{{ ponderedSumOfRA(result) }}%</span>
+          </td>
+          <th>{{ totalSum }}%</th>
         </tr>
       </tbody>
     </table>
+    <p v-if="totalSum !== 100" class="bordered">ATENCIÓ: la suma dels percentatges NO és el 100%. Has d'arreglar-lo</p>
   </main>
 </template>

@@ -61,35 +61,36 @@ export default {
 <template>
   <div>
     <p class="info" v-html="$route.query.message"></p>
-    <h2>Inicia sessió</h2>
-    <form @submit.prevent="handleForm">
-      <div class="mb-3">
-        <label class="form-label">Email para loguearse</label>
-        <input
-          type="email"
-          class="form-control"
-          v-model="user.email"
-          placeholder="email de l'usuari que gestionarà el compte"
-        />
-        <p v-if="errors.email" class="error">{{ errors.email }}</p>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Contrasenya</label>
-        <input
-          type="password"
-          class="form-control"
-          v-model="user.password"
-          placeholder="Mínim 7 caracters"
-        />
-        <p v-if="errors.password" class="error">{{ errors.password }}</p>
-
-        <div class="mt-2">
-          <a href="https://backend.projecteg3.ddaw.es/forgot-password">He oblidat la contrasenya</a>
+    <div class="col-md-5 mx-auto border p-3">
+      <h2>Inicia sessió</h2>
+      <form @submit.prevent="handleForm">
+        <div class="mb-3">
+          <label class="form-label">Email per a loguejarse</label>
+          <input
+            type="email"
+            class="form-control"
+            v-model="user.email"
+            placeholder="email de l'usuari que gestionarà el compte"
+          />
+          <p v-if="errors.email" class="error">{{ errors.email }}</p>
         </div>
+        <div class="mb-3">
+          <label class="form-label">Contrasenya</label>
+          <input
+            type="password"
+            class="form-control"
+            v-model="user.password"
+            placeholder="Mínim 7 caracters"
+          />
+          <p v-if="errors.password" class="error">{{ errors.password }}</p>
+          <div class="mt-2">
+            <a href="https://backend.projecteg3.ddaw.es/forgot-password">He oblidat la contrasenya</a>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
       </div>
-      <button type="submit" class="btn btn-primary">Enviar</button>
-    </form>
-  </div>
+    </div>
 </template>
 
 <style scoped>

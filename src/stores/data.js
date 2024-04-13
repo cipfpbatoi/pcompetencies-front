@@ -7,19 +7,19 @@ let id = 1
 export const useDataStore = defineStore('data', {
   state() {
     return {
-      currentStep: 0,
+      user: {},
       messages: [],
       syllabus: {},
       module: {},
-      cycle: {},
+      cycle: {}
     }
   },
   getters: {
     getLearningResultById: (state) => (learningResultId) =>
-    state.module.learningResults.find((item) => item.id == learningResultId) || {},
+      state.module.learningResults.find((item) => item.id == learningResultId) || {},
 
     getEvalCriteriaByLearningResult: (state) => (learningResultId) =>
-      state.evaluationCriteria.filter((item) => item.learning_result_id == learningResultId),
+      state.evaluationCriteria.filter((item) => item.learning_result_id == learningResultId)
   },
   actions: {
     async loginUser(credentials) {
@@ -33,6 +33,13 @@ export const useDataStore = defineStore('data', {
         this.addMessage('error', error)
         return false
       }
+    },
+    logoutUser() {
+      localStorage.removeItem('token')
+      localStorage.removeItem('data')
+      localStorage.removeItem('redirect')
+      this.user = {}
+      this.syllabus = {}
     },
     addMessage(type, message) {
       let text = ''
@@ -77,20 +84,23 @@ export const useDataStore = defineStore('data', {
       this.messages.splice(index, 1)
     },
     async reloadData() {
-      if (localStorage.data) {
-        const data = JSON.parse(localStorage.data)
-        this.syllabus = { id: data.syllabusId }
-        try {
-          const [respCycle, respMod, respSyl] = await Promise.all([
-            api.getCycleById(data.cycleId),
-            api.getModuleByCode(data.moduleCode),
-            api.getSyllabusById(data.syllabusId),
-          ])
-          this.cycle = respCycle.data
-          this.module = respMod.data
-          this.syllabus = respSyl.data            
-        } catch (error) {
-          this.addMessage('error', error)            
+      if (localStorage.token) {
+        this.user.token = localStorage.token
+        if (localStorage.data) {
+          const data = JSON.parse(localStorage.data)
+          this.syllabus = { id: data.syllabusId }
+          try {
+            const [respCycle, respMod, respSyl] = await Promise.all([
+              api.getCycleById(data.cycleId),
+              api.getModuleByCode(data.moduleCode),
+              api.getSyllabusById(data.syllabusId)
+            ])
+            this.cycle = respCycle.data
+            this.module = respMod.data
+            this.syllabus = respSyl.data
+          } catch (error) {
+            this.addMessage('error', error)
+          }
         }
       }
     },
@@ -107,8 +117,8 @@ export const useDataStore = defineStore('data', {
       try {
         const [respMod, respSyl] = await Promise.all([
           api.getModuleByCode(moduleCode),
-          api.getSyllabusById(syllabusId),
-        ]) 
+          api.getSyllabusById(syllabusId)
+        ])
         this.module = respMod.data
         this.syllabus = respSyl.data
         localStorage.data = JSON.stringify({
@@ -148,7 +158,6 @@ export const useDataStore = defineStore('data', {
         }
         return error
       }
-
     },
     async saveLearningSituation(ls) {
       if (!ls.id) {
@@ -166,7 +175,7 @@ export const useDataStore = defineStore('data', {
             this.addMessage('error', error)
           }
           return error
-          }
+        }
       } else {
         // Estamos modificando una existente
         try {
@@ -178,12 +187,12 @@ export const useDataStore = defineStore('data', {
             1,
             response.data
           )
-          } catch (error) {
+        } catch (error) {
           if (error.response?.status != 422) {
             this.addMessage('error', error)
           }
           return error
-          }
+        }
       }
       this.addMessage('success', "Situació d'aprenentatge guardada")
       return 'ok'
@@ -204,8 +213,7 @@ export const useDataStore = defineStore('data', {
     async saveLearningSituationObjectives(lsId, data) {
       try {
         const response = await api.createLearningSituationObjectives(lsId, data)
-        this.syllabus.learningSituations
-        .splice(
+        this.syllabus.learningSituations.splice(
           this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
           1,
           response.data
@@ -222,8 +230,7 @@ export const useDataStore = defineStore('data', {
     async saveLearningSituationPriorKnowledge(lsId, data) {
       try {
         const response = await api.createLearningSituationPriorKnowledge(lsId, data)
-        this.syllabus.learningSituations
-        .splice(
+        this.syllabus.learningSituations.splice(
           this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
           1,
           response.data
@@ -236,6 +243,6 @@ export const useDataStore = defineStore('data', {
       }
       this.addMessage('success', 'Coneixements previs guardats')
       return 'ok'
-    },
+    }
   }
 })

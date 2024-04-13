@@ -1,14 +1,19 @@
 <script>
+import { useDataStore } from '@/stores/data'
+import { mapState, mapActions } from 'pinia'
+
 export default {
   computed: {
+    ...mapState(useDataStore, ['user']),
     isLogged() {
-      return !!localStorage.token
+      return !!this.user.token
     }
   },
   methods: {
+    ...mapActions(useDataStore, ['logoutUser']),
     logout(ev) {
       if (confirm('Vas a tancar la teua sessió')) {
-        localStorage.removeItem('token')
+        this.logoutUser()
         this.$router.push('/login')
       } else {
         ev.preventDefault()

@@ -9,17 +9,24 @@ export default {
     AppBreadcrumb,
   },
   async mounted() {
+    this.syllabuses = []
     try {
       const response = await api.getCycles()
       this.cycles = response.data
+      if (this.cycle.id) {
+        this.cycleSelect = this.cycle.id
+        await this.getModules()
+        if (this.module.code) {
+          this.moduleSelect = this.module.code
+          this.getSyllabuses()
+        }
+      }
     } catch (error) {
       this.addMessage('error', error)
-    } finally {
-      this.syllabuses = []
     }
   },
   computed: {
-    ...mapState(useDataStore, ['cycle']),
+    ...mapState(useDataStore, ['cycle', 'module']),
     selectedModule() {
       return this.cycle.modules.find((item) => item.code == this.moduleSelect) || {}
     }

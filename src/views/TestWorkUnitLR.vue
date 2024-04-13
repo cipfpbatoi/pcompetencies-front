@@ -16,7 +16,7 @@ export default {
       return this.syllabus.learningSituations?.reduce(
         (total, lS) =>
           total +
-          lS.ponderedLearningResults.reduce((total, lR) =>
+          lS.ponderedLearningResults?.reduce((total, lR) =>
             total + lR.percentageWeight
           , 0),
         0
@@ -76,6 +76,7 @@ export default {
         </button>
       </h4>
     </template>
+    <p v-if="totalSum !== 100" class="bordered">ATENCIÓ: la suma dels percentatges NO és el 100%. Has d'arreglar-lo</p>
 
     <table class="table table-striped">
       <thead>
@@ -109,6 +110,5 @@ export default {
         </tr>
       </tbody>
     </table>
-    <p v-if="totalSum !== 100" class="bordered">ATENCIÓ: la suma dels percentatges NO és el 100%. Has d'arreglar-lo</p>
   </main>
 </template>

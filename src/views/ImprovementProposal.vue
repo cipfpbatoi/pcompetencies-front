@@ -127,7 +127,7 @@ export default {
       <p>
         {{
           syllabus.improvementProposal.status == 2
-            ? "S'aplicaran les propostes de millora o part d'elles."
+            ? "SÍ s'aplicaran les propostes de millora o part d'elles."
             : "NO s'aplicaran les propostes de millora."
         }}
       </p>

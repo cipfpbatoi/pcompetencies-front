@@ -20,7 +20,7 @@ export default {
 </script>
 
 <template>
-  <nav>
+  <nav class="navbar navbar-expand-lg">
     <ul class="nav nav-tabs">
       <template v-if="isLogged">
         <li class="nav-item">

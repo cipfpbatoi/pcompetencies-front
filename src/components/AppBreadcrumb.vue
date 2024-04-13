@@ -63,7 +63,7 @@ export default {
 </script>
 
 <template>
-    <div class="bg-secondary text-white">
+    <div class="bg-secondary text-white p-1 px-3 mb-3">
       <template v-for="step in steps" :key="step.number">
         <span v-if="step.number > 1 && step.number <= actualStep"> -> </span>
         <button class="btn btn-light  btn-sm"

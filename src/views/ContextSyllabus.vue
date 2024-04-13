@@ -103,12 +103,17 @@ export default {
     <h4>Característiques del Centre i l'entorn</h4>
     <p class="bordered" v-html="syllabus.center?.contextualization"></p>
     <h4>Característiques de l'alumnat</h4>
-    <p class="bordered" v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
+    <p class="bordered" v-if="syllabus.cycleCenterContext?.studentsProfile" v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
+    <p class="bordered text-danger" v-else>
+      El departament ha d'establir una contextualització per al cicle</p>
     <h4>Característiques del grup-classe</h4>
-    <p class="bordered" v-html="syllabus.groupContext"></p>
-    <button @click="showModal()" class="btn btn-secondary" title="Establir objectiu">
-      Establir les característiques del grup-classe
-    </button>
+    <p class="bordered" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
+    <p class="bordered text-secondary fst-italic" v-else >Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles dificultats amb l'idioma,...)</p>
+    <div class="p-3 text-center">
+        <button @click="showModal()" class="btn btn-secondary" title="Establir objectiu">
+          Afegir/Modificar característiques del grup-classe
+        </button>
+    </div>
   </main>
 </template>
 

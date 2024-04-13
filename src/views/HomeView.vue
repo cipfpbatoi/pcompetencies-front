@@ -81,7 +81,7 @@ export default {
 <template>
   <main>
     <app-breadcrumb :actualStep="1" :done="done"></app-breadcrumb>
-    <div>
+    <div class="p-2">
       <label>Ciclo</label>
       <select
         v-model="cycleSelect"
@@ -114,8 +114,8 @@ export default {
       <h3>Torns</h3>
       <ul>
         <li v-for="(turn, index) in cycle.availableTurns" :key="index">
-          {{ turn.toUpperCase() }}:
-          <button @click="getSyl(turn)" type="button btn-sm">
+          {{ (turn == 'presential') ? 'Presencial' : 'Semi-presencial' }}:
+          <button @click="getSyl(turn)" class="btn btn-primary">
             {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}
           </button>
         </li>

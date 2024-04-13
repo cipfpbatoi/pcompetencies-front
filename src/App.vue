@@ -23,7 +23,7 @@ export default {
 <template>
   <div class="container">
     <header class="input-group mt-3">
-      <img alt="CIP FP Batoi logo" class="logo" src="/batoi_logo.png" height="100px" />
+      <img alt="CIP FP Batoi logo" class="logo m-lg-2 mx-auto" src="/batoi_logo.png" height="100px" />
       <div class="m-2">
         <h1>Programacions per competències</h1>
         <div class="wrapper">

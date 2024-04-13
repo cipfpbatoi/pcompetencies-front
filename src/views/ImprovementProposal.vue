@@ -137,7 +137,7 @@ export default {
           <p>{{ syllabus.improvementProposal.comments }}</p>
         </div>
         <button @click="showModal()" class="btn btn-secondary mt-2" title="Establir objectiu">
-          Establir l'aplicació de les propostes de millora
+          Modificar l'aplicació de les propostes de millora
         </button>
       </div>
       <div v-else>

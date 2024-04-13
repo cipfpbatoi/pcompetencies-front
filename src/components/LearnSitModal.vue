@@ -135,7 +135,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
           <h1 class="modal-title fs-5" id="unit-modal">
-            {{ editing ? 'Editar' : 'Afegir' }} unitat de treball
+            {{ editing ? 'Editar' : 'Afegir' }} Situació d'Aprenentatge
           </h1>
           <button
             type="button"
@@ -146,32 +146,32 @@ export default {
         </div>
         <div class="modal-body">
           <form>
-            <div class="row">
-              <div class="input-group cols-8">
-                <label class="form-label">Títol</label>
+            <div class="row p-2">
+              <div class="input-group cols-8 p-2">
+                <label class="form-label p-2 fw-bold">Títol</label>
                 <input
                   type="text"
-                  class="form-control"
+                  class="form-control p-2"
                   v-model="editedUnit.title"
                   placeholder="Títol de l'unitat"
                   autofocus
                 />
-                <p v-if="errors.title" class="error">{{ errors.title }}</p>
+                <p v-if="errors.title" class="error p-2">{{ errors.title }}</p>
               </div>
               <div class="input-group cols-4">
-                <label class="form-label">Hores</label>
+                <label class="form-label p-2 fw-bold">Hores</label>
                 <input
                   size="2"
                   type="number"
-                  class="form-control"
+                  class="form-control p-2"
                   v-model="editedUnit.hours"
                   placeholder="Nombre d'hores"
                 />
-                <p v-if="errors.hours" class="error">{{ errors.hours }}</p>
+                <p v-if="errors.hours" class="error text-danger">{{ errors.hours }}</p>
               </div>
             </div>
             <div>
-              <label class="form-label">Resultats d'aprenentatge</label>
+              <label class="form-label p-2 fw-bold">Resultats d'Aprenentatge</label>
               <lr-table :learningResults="formattedLearningResults" :percentageWeight="true">
                 <template v-slot="{ index }">
                   <button @click="delRA(index)" class="btn btn-link" title="Eliminar">
@@ -182,38 +182,33 @@ export default {
               <p v-if="errors.ponderedLearningResults" class="error">{{ errors.ponderedLearningResults }}</p>
             </div>
             <div class="input-group">
-              <label class="form-label">Afegir RA</label>
+              <label class="form-label p-2 fw-bold">Afegir RA</label>
               <select
                 class="form-select"
                 v-model="newLearningResult.learningResultId"
-                aria-label="Default select example"
-              >
+                aria-label="Default select example">
                 <option :value="0">-- Tria resultat d'aprenentatge --</option>
-                <option
+                <option class="p-2"
                   v-for="lr in module.learningResults"
                   :key="lr.id"
                   :value="lr.id"
-                  :disabled="addedLearningResultsIds.includes(lr.id)"
-                >
+                  :disabled="addedLearningResultsIds.includes(lr.id)">
                   {{ lr.descriptor }}
                 </option>
               </select>
-              <label class="form-label">Pes: </label>
-              <input
+              <label class="form-label p-2">Pes: </label>
+              <input class="p-2"
                 size="3"
                 type="number"
                 v-model="newLearningResult.percentageWeight"
                 min="1"
                 max="100"
-              />%
+              /> <span class="p-2">%</span>
               <button
                 type="button"
-                class="btn btn-sm btn-secondary"
+                class="btn btn-sm btn-secondary p-2"
                 @click="addRA"
-                :disabled="
-                  !(newLearningResult.learningResultId && newLearningResult.percentageWeight)
-                "
-              >
+                :disabled="!(newLearningResult.learningResultId && newLearningResult.percentageWeight)">
                 Afegir RA
               </button>
             </div>
@@ -221,8 +216,8 @@ export default {
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tanca</button>
-          <button @click="saveLS" type="button" class="btn btn-secondary">Guarda</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tanca</button>
+          <button @click="saveLS" type="button" class="btn btn-success">Guarda</button>
           <slot></slot>
         </div>
       </div>

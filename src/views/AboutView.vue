@@ -1,7 +1,8 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+<div class="text-center mt-5">
+    <h2 class="text-center">Aplicació PCompetències del CIP FP Batoi</h2>
+    <h3 class="text-secondary m-5">Aquesta aplicació et permetrà crear les propostes didàctiques del departament fàcilment</h3>
+</div>
 </template>
 
 <style>
@@ -13,3 +14,5 @@
   }
 }
 </style>
+<script setup>
+</script>

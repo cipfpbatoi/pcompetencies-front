@@ -64,20 +64,21 @@ export default {
 <template>
   <main>
     <app-breadcrumb :actualStep="5" :done="areAllLearningResultsInluded"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
-    <p v-if="areAllLearningResultsInluded">
-      La programació inclou tots els resultats d'aprenentatge. Pots continuar al següent pas.
-    </p>
-    <template v-else>
-      <h4>
-        La programació NO inclou tots els resultats d'aprenentatge
-        <button @click="$router.push({ name: 'learningSituations' })" class="button btn-sm">
-          Tornar
-        </button>
-      </h4>
-    </template>
-    <p v-if="totalSum !== 100" class="bordered">ATENCIÓ: la suma dels percentatges NO és el 100%. Has d'arreglar-lo</p>
-
+    <h2 class="text-center m-3">{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
+    <div class="bg-success m-1">
+      <p class="text-light p-2 text-justify" v-if="areAllLearningResultsInluded">
+        <strong>OK!</strong> La programació inclou tots els resultats d'aprenentatge. Pots continuar al següent pas.
+      </p>
+      <template v-else>
+        <h4>
+          <span class="text-danger">La programació NO inclou tots els resultats d' aprenentatge</span>
+          <button @click="$router.push({ name: 'learningSituations' })" class="button btn-sm">Tornar</button>
+        </h4>
+      </template>
+    </div>
+    <div class="bg-danger m-1">
+      <p v-if="totalSum !== 100" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma dels percentatges NO és el 100%. Has d'arreglar-lo</p>
+    </div>
     <table class="table table-striped">
       <thead>
         <tr>

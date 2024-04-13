@@ -29,19 +29,19 @@ export default {
     <ul class="nav nav-tabs">
       <template v-if="isLogged">
         <li class="nav-item">
-          <RouterLink class="nav-link" to="/">Home</RouterLink>
+          <RouterLink class="nav-link" to="/">Inici</RouterLink>
         </li>
         <li class="nav-item">
-          <RouterLink @click.prevent="logout" class="nav-link" to="/login">Logout</RouterLink>
+          <RouterLink @click.prevent="logout" class="nav-link" to="/login">Eixir</RouterLink>
         </li>
       </template>
       <template v-else>
         <li class="nav-item">
-          <RouterLink class="nav-link" to="/login">Login</RouterLink>
+          <RouterLink class="nav-link" to="/login">Entrar</RouterLink>
         </li>
       </template>
       <li class="nav-item">
-        <RouterLink class="nav-link" to="/about">About</RouterLink>
+        <RouterLink class="nav-link" to="/about">Sobre Nosaltres</RouterLink>
       </li>
     </ul>
   </nav>

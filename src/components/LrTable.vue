@@ -39,10 +39,10 @@ export default {
 
 <template>
   <div>
-    <table class="table table-striped">
+    <table class="table table-striped text-center">
       <thead>
-        <th>RA</th>
-        <th>Descrip.</th>
+        <th>Codi</th>
+        <th>Descripció</th>
         <th v-if="percentageWeight">Pes</th>
         <th>Accions</th>
       </thead>

@@ -143,13 +143,15 @@ export default {
           </button>
         </template>
       </show-table>
-      <button class="btn btn-sm btn-secondary" @click="showModal({ ponderedLearningResults: [] })">
-        Afegir unitat
-      </button>
+      <div class="text-center">
+        <button class="btn btn-success" @click="showModal({ ponderedLearningResults: [] })">
+          Afegir Unitat
+        </button>
+      </div>
       <LearnSitModal @saved="hideModal" :unit="modalData"></LearnSitModal>
     </div>
     <br />
-    <div>
+    <div class="border bg-light p-2">
       <h3>Resultats d'aprenentatge</h3>
       <Lr-Table :learningResults="module.learningResults"></Lr-Table>
     </div>

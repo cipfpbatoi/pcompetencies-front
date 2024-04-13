@@ -110,7 +110,7 @@ export default {
     <p class="bordered" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
     <p class="bordered text-secondary fst-italic" v-else >Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles dificultats amb l'idioma,...)</p>
     <div class="p-3 text-center">
-        <button @click="showModal()" class="btn btn-secondary" title="Establir objectiu">
+        <button @click="showModal()" class="btn btn-success" title="Establir objectiu">
           Afegir/Modificar característiques del grup-classe
         </button>
     </div>

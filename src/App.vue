@@ -24,7 +24,7 @@ export default {
   <div class="container">
     <header class="input-group">
       <img alt="CIP FP Batoi logo" class="logo" src="/batoi_logo.png" width="125" />
-      <div>
+      <div class="menu">
         <h1>Programacions per competències</h1>
         <div class="wrapper">
           <AppNav />
@@ -47,5 +47,12 @@ export default {
 }
 .error {
   color: red;
+}
+
+header {
+  text-align: center;
+}
+.input-group {
+  padding: 10px 10px;
 }
 </style>

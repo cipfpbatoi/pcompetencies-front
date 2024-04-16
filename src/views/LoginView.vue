@@ -45,14 +45,8 @@ export default {
         return
       }
       if (await this.loginUser(this.user)) {
-          if (this.redirect) {
-            localStorage.removeItem('redirect') // Limpiar la ruta de redirección
-            this.$router.push(this.redirect.path) // Redirigir al usuario a la ruta almacenada
-          } else {
-            this.$router.push('/') // Redirigir al usuario a la página de inicio
-          }
-        }
-
+         this.$router.push('/')
+      }
     }
   }
 }
@@ -84,7 +78,7 @@ export default {
           />
           <p v-if="errors.password" class="error">{{ errors.password }}</p>
           <div class="mt-2">
-            <a href="https://backend.projecteg3.ddaw.es/forgot-password">He oblidat la contrasenya</a>
+            <a href="#">He oblidat la contrasenya</a>
           </div>
         </div>
         <button type="submit" class="btn btn-primary">Enviar</button>

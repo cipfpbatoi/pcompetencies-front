@@ -100,10 +100,10 @@ export default {
 <template>
   <main>
     <ModalComponent @save="saveData" title="Aplicació de les propostes de millora">
-      <div class="row">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" v-model="modalFields.accepted" />
-          <label class="form-check-label"> Vaig a aplicar aquestes propostes p part d'elles </label>
+      <div class="row m-2  m-md-4 bg-light border">
+        <div class="form-check m-1 p-2 bg-info-subtle h5">
+          <input class="form-check-input mx-3 " type="checkbox" v-model="modalFields.accepted" />
+          <label class="form-check-label"> Vaig a aplicar aquestes propostes o part d'elles </label>
         </div>
         <div class="mb-3">
           <label class="form-label"><strong>Justificació</strong></label>
@@ -130,15 +130,15 @@ export default {
           <p>
             {{
               syllabus.improvementProposal.status == 2
-                ? "S'aplicaran les propostes de millora o part d'elles."
-                : "NO s'aplicaran les propostes de millora."
+                ? "S'aplicaran les propostes de millora o part d'elles:"
+                : "NO s'aplicaran les propostes de millora: "
             }}
           </p>
-          <p>{{ syllabus.improvementProposal.comments }}</p>
+          <p class="bg-light-subtle fw-bold">{{ syllabus.improvementProposal.comments }}</p>
         </div>
         <div class="text-center">
         <button @click="showModal()" class="btn btn-success mt-2 mx-auto" title="Establir objectiu">
-          Modificar l'aplicació de les propostes de millora
+          Modificar/Donar Resposta a les propostes de millora
         </button>
         </div>
       </div>

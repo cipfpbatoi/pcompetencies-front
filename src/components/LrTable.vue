@@ -21,8 +21,12 @@ export default {
     percentageWeight: {
       type: Boolean,
       default: false
-    }
-  },
+    },
+    checkeable: {
+      type: Boolean,
+      default: true
+    },
+    },
   data() {
     return {
       deployedRA: 0,
@@ -70,6 +74,7 @@ export default {
               :data="result.evaluationCriterias" 
               :columns="evaluationCriteriasColumns"
               :actions="false"
+              :checkeable="checkeable"
               ></ShowTable>
             </td>
           </tr>

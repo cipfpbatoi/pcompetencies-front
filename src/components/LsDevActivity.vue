@@ -5,6 +5,7 @@ import { mapState, mapActions } from 'pinia'
 import { api } from '../repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
+import LrTable from './LrTable.vue'
 
 const activityBaseColumns = [
   {
@@ -52,6 +53,7 @@ export default {
   },
   components: {
     ShowTable,
+    LrTable,
     ModalComponent
   },
   computed: {
@@ -67,6 +69,21 @@ export default {
       }
       return columns
     },
+    learningResultsCheckeables() {
+      return this.learningSituation.ponderedLearningResults?.map(item => {
+        return {
+          id: item.learningResult.id,
+          number: item.learningResult.number,
+          descriptor: item.learningResult.descriptor,
+          evaluationCriterias: this.makeCheckeableArray(item.learningResult.evaluationCriterias, this.modalFields.evaluationCriterias)
+        }
+      })
+    },
+    evaluationCriteriasIdsSelected() {
+      return this.learningResultsCheckeables
+      .reduce((ecIds, lr) => ecIds.concat(this.getIDs(lr.evaluationCriterias
+        .filter(item => item.checked))), [])
+    },
     getActivityTitle() {
       return this.activityTypes.find((item) => item.type === this.type)?.title
     },
@@ -81,14 +98,7 @@ export default {
         })
     },
     didacticContents() {
-      return (
-        this.learningSituation.didacticContents?.map((item) => {
-          return {
-            ...item,
-            checked: this.getIDs(this.modalFields.didacticContents).includes(item.id) || false
-          }
-        }) || []
-      )
+      return this.makeCheckeableArray(this.learningSituation.didacticContents, this.modalFields.didacticContents)
     }
   },
   data() {
@@ -131,6 +141,17 @@ export default {
     getIDs(array) {
       return array?.map((item) => item.id) || []
     },
+    makeCheckeableArray(array, selected) {
+      if (!array || !array.length) return []
+      return array.map(item => {
+        return {
+          ...item,
+          checked: (typeof selected[0] === 'object') 
+            ? this.getIDs(selected).includes(item.id) || false
+            : this.selected?.includes(item.id) || false
+        }
+      })
+    },
     showModal(activity) {
       if (activity.id) {
         this.editing = true
@@ -169,7 +190,9 @@ export default {
       if (this.type === 'marking') {
         activity.assessmentToolId = this.modalFields.assessmentTool.id
         activity.markingToolId = this.modalFields.markingTool.id
-        activity.evaluationCriteriaIds = this.getIDs(this.modalFields.evaluationCriterias)
+        activity.evaluationCriteriaIds = this.evaluationCriteriasIdsSelected
+
+        this.showActivityDetails = false
       }
       try {
         await api.saveActivity(this.learningSituation.id, this.type, activity)
@@ -288,10 +311,19 @@ export default {
                 {{ markingTool.name }}
               </option>
             </select>
+
           </div>
           <div class="col-auto">
             <span v-if="errors.description" class="error">{{ errors.description }}</span>
           </div>
+        </div>
+        <div class="row align-items-center">
+          <label class="form-label">Resultats d'Aprenentatge amb Criteris d'avaluació:</label>
+            <lr-table
+            :checkeable="true"
+  :actions="false"
+  :learningResults="learningResultsCheckeables"
+            ></lr-table>
         </div>
       </div>
     </ModalComponent>

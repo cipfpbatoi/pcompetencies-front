@@ -64,7 +64,11 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['saveLearningSituation', 'deleteLearningSituation']),
     showModal(unit) {
-      this.modalData = unit
+      if (unit) {
+        this.modalData = unit
+      } else {
+        this.modalData = unit
+      }
       this.LearnSitModal.show()
     },
     hideModal() {
@@ -144,7 +148,7 @@ export default {
         </template>
       </show-table>
       <div class="text-center">
-        <button class="btn btn-success" @click="showModal({ ponderedLearningResults: [] })">
+        <button class="btn btn-success" @click="showModal()">
           Afegir Unitat
         </button>
       </div>

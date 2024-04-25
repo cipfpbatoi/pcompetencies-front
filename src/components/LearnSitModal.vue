@@ -29,7 +29,7 @@ export default {
       return !!this.unit?.id
     },
     formattedLearningResults() {
-      return this.editedUnit.ponderedLearningResults.map((item) => {
+      return this.editedUnit.ponderedLearningResults?.map((item) => {
         const lRid = item.learningResultId || item.learningResult.id
         const lR = this.getLearningResultById(lRid)
         return {
@@ -39,7 +39,7 @@ export default {
           descriptor: lR.descriptor,
           evaluationCriterias: lR.evaluationCriterias
         }
-      })
+      }) || []
     },
     addedLearningResultsIds() {
       return this.editedUnit.ponderedLearningResults.map(
@@ -76,7 +76,7 @@ export default {
       this.editedUnit.ponderedLearningResults.splice(index, 1)
     },
     simplifyPLR() {
-      this.editedUnit.ponderedLearningResults = this.editedUnit.ponderedLearningResults.map(
+      this.editedUnit.ponderedLearningResults = this.editedUnit.ponderedLearningResults?.map(
         (item) => {
           if (item.learningResultId) {
             return item
@@ -87,7 +87,7 @@ export default {
             learningResultId: item.learningResult.id
           }
         }
-      )
+      ) || []
     },
     async saveLS() {
       this.newLearningResult = {}

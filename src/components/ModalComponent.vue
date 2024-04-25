@@ -40,8 +40,8 @@ export default {
           <slot></slot>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tanca</button>
-          <button @click="save" type="button" class="btn btn-secondary">Guarda</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tanca</button>
+          <button @click="save" type="button" class="btn btn-success">Guarda</button>
         </div>
       </div>
     </div>

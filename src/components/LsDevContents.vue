@@ -5,8 +5,8 @@ import { mapState } from 'pinia'
 
 const didacticContentsColumns = [
   {
-    title: 'Num.',
-    value: 'position'
+    title: 'Cod.',
+    value: 'code'
   },
   {
     title: 'Contingut',

@@ -24,6 +24,11 @@ export default {
     ...mapState(useDataStore, ['syllabus']),
     done() {
       return !!this.syllabus.groupContext
+    },
+    centerContextualization() {
+      return this.showAll
+        ? this.syllabus.center?.contextualization
+        : this.syllabus.center?.contextualization.substr(0,200) + '...'
     }
   },
   mounted() {
@@ -43,12 +48,16 @@ export default {
       errors: [],
       GenericModal: null,
       modalFields: {},
+      showAll: false,
     }
   },
   methods: {
     ...mapActions(useDataStore, ['saveSyllabusGroupContext']),
     showModal() {
       this.GenericModal.show()
+    },
+    toogleShowAll() {
+      this.showAll = !this.showAll
     },
     async saveData() {
       try {
@@ -101,7 +110,8 @@ export default {
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <h3>Contextualització</h3>
     <h4>Característiques del Centre i l'entorn</h4>
-    <p class="bordered" v-html="syllabus.center?.contextualization"></p>
+    <p class="bordered" v-html="centerContextualization"></p>
+    <span><button @click="toogleShowAll()" class="btn btn-link">Mostrar {{ showAll ? 'menys' : 'tot' }}</button></span>
     <h4>Característiques de l'alumnat</h4>
     <p class="bordered" v-if="syllabus.cycleCenterContext?.studentsProfile" v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
     <p class="bordered text-danger" v-else>

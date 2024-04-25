@@ -3,7 +3,8 @@ import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import ObjectivesModal from '../components/ObjectivesModal.vue'
 import ShowTable from '@/components/ShowTable.vue'
-import LSContentsComponent from '@/components/LSContentsComponent.vue'
+import LsDevContents from '@/components/LsDevContents.vue'
+import LsDevActivity from '@/components/LsDevActivity.vue'
 import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '../components/AppBreadcrumb.vue'
@@ -25,7 +26,8 @@ export default {
   components: {
     AppBreadcrumb,
     ShowTable,
-    LSContentsComponent,
+    LsDevContents,
+    LsDevActivity,
     ModalComponent,
     ObjectivesModal
   },
@@ -46,6 +48,7 @@ export default {
       modal: '',
       // Modal generic
       GenericModal: null,
+      modalId: '',
       modalFields: {},
       modalTitle: '',
       // Modal Objectius
@@ -73,21 +76,22 @@ export default {
 
     showModal(modal) {
       this.modal = modal
+      this.modalId = modal + 'Modal'
       switch (modal) {
         case 'objectives':
           this.ObjectivesModal = new Modal(document.getElementById('objectivesModalComp'))
           this.ObjectivesModal.show()
           break
-        case 'priorKnowledges':
+        case 'priorKnowledge':
           this.modalTitle = `${this.learningSituation.position}: ${this.learningSituation.title}`
           this.modalFields = { priorKnowledge: this.learningSituation.priorKnowledge }
-          this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
+          this.GenericModal = new Modal(document.getElementById(this.modalId))
           this.GenericModal.show()
       }
     },
     async saveData() {
       switch (this.modal) {
-        case 'priorKnowledges': {
+        case 'priorKnowledge': {
           if (!this.modalFields.priorKnowledge) {
             if (
               !confirm("Vas a eliminar els coneixements previs d'aquesta situació d'aprenentatge")
@@ -137,14 +141,6 @@ export default {
 
 <template>
   <main>
-    <ModalComponent v-if="lsLoaded" @save="saveData" :title="modalTitle">
-      <div class="row">
-        <label class="form-label">Coneixements previs</label>
-        <textarea class="form-control" v-model="modalFields.priorKnowledge"></textarea>
-        <span v-if="errors.priorKnowledge" class="error">{{ errors.priorKnowledge }}</span>
-      </div>
-    </ModalComponent>
-
     <app-breadcrumb :actualStep="7" :done="false" :params="{ lsId }"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
     <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }}</h3>
@@ -173,12 +169,21 @@ export default {
       @saved="savedObjectives"
       :unit="learningSituation"
     ></ObjectivesModal>
+
     <h4>Coneixements previs</h4>
+    <ModalComponent v-if="lsLoaded" @save="saveData" modalId="priorKnowledgeModal" :title="modalTitle">
+      <div class="row">
+        <label class="form-label">Coneixements previs</label>
+        <textarea class="form-control" v-model="modalFields.priorKnowledge"></textarea>
+        <span v-if="errors.priorKnowledge" class="error">{{ errors.priorKnowledge }}</span>
+      </div>
+    </ModalComponent>
+
     <div class="bordered">
       <p>{{ learningSituation.priorKnowledge || 'No hi ha dades que mostrar' }}</p>
     </div>
     <button
-      @click="showModal('priorKnowledges')"
+      @click="showModal('priorKnowledge')"
       class="btn btn-secondary"
       title="Establir objectiu"
     >
@@ -188,12 +193,26 @@ export default {
     <br />
 
     <h4>Continguts</h4>
-    <LSContentsComponent 
+    <LsDevContents 
       :learningSituation="learningSituation"
       @save="saveContents"
-    ></LSContentsComponent>
+    ></LsDevContents>
     <br /><br />
-    <h4>Activitats</h4>
+
+    <h4>Activitats Qualificables</h4>
+    <LsDevActivity type="marking" :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevActivity>
+    <br /><br />
+
+    <h4>Activitats Formatives (NO qualificables)</h4>
+    <LsDevActivity type="formative" :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevActivity>
+    <br /><br />
+
+    <h4>Activitats de Repas</h4>
+    <LsDevActivity type="reinforcement" :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevActivity>
+    <br /><br />
+
+    <h4>Activitats d'Aprofundiment</h4>
+    <LsDevActivity type="deepening" :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevActivity>
   </main>
 </template>
 

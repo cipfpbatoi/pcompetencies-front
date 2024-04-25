@@ -45,7 +45,11 @@ export default {
         return
       }
       if (await this.loginUser(this.user)) {
-         this.$router.push('/')
+        if (this.redirect) {
+          this.$router.push(this.redirect.path)
+        } else {
+          this.$router.push('/')          
+        }
       }
     }
   }

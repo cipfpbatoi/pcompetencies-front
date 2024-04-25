@@ -2,6 +2,10 @@
 export default {
   emits: ['save'],
   props: {
+    modalId: {
+      type: String,
+      default: 'unitMmodalComp'
+    },
     title: String
   },
   methods: {
@@ -16,15 +20,15 @@ export default {
   <!-- Modal -->
   <div
     class="modal fade"
-    id="unitMmodalComp"
+    :id="modalId"
     tabindex="-1"
-    aria-labelledby="unit-modal"
+    aria-labelledby="modalTitle"
     aria-hidden="true"
   >
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
-          <h1 class="modal-title fs-5" id="unit-modal">{{ title }}</h1>
+          <h1 class="modal-title fs-5" id="modalTitle">{{ title }}</h1>
           <button
             type="button"
             class="btn-close"

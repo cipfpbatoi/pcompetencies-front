@@ -123,24 +123,7 @@ export default {
               <!-- Tabla de objetivos generales-->
               <div>
                 <ShowTable :checkeable="true" :actions="false" :data="generalObjectives" :columns="generalObjectivesColumns">
-
                 </ShowTable>
-<!--                 <table class="table table-striped">
-                  <thead>
-                    <th>Sel.</th>
-                    <th>Codi</th>
-                    <th>Descripció</th>
-                  </thead>
-                  <tbody>
-                    <tr v-for="objective in generalObjectives" :key="objective.id">
-                      <td>
-                        <input type="checkbox" v-model="objective.checked" />
-                      </td>
-                      <td>{{ objective.code }}</td>
-                      <td>{{ objective.description }}</td>
-                    </tr>
-                  </tbody>
-                </table> -->
               </div>
               <!-- Fin tabla -->
             </div>

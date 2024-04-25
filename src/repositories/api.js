@@ -42,6 +42,10 @@ instance.interceptors.response.use(
 
 // Métodos para acceder a las rutas de la API
 export const api = {
+  // Center
+  getAsessmentTool: () => instance.get('/assessmentTool'),
+  getMarkingTool: () => instance.get('/markingTool'),
+
   // Cycles
   getCycles: () => instance.get('/cycles'),
   getCycleById: (id) => instance.get(`/cycles/${id}`),
@@ -78,7 +82,15 @@ export const api = {
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),
   createSyllabus: (data) => instance.post('/syllabus', data),
-  createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data)
+  createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
+
+  // Activities
+  saveActivity: (lsId, type, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/${type}`, data),
+  saveDeepingActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/deepening`, data),
+  saveReinforcementActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/reinforcement`, data),
+  saveFormativeActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/formative`, data),
+  saveMarkingActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/marking`, data),
+  deleteActivity: (lsId, activityId) => instance.delete(`/syllabus/learningSituation/${lsId}/activity/${activityId}`),
 }
 
 export default instance

@@ -11,7 +11,11 @@ export const useDataStore = defineStore('data', {
       messages: [],
       syllabus: {},
       module: {},
-      cycle: {}
+      cycle: {},
+      activitiesData: {
+        assessmentTool: [],
+        markingTool: [],
+      }
     }
   },
   getters: {
@@ -90,14 +94,20 @@ export const useDataStore = defineStore('data', {
           const data = JSON.parse(localStorage.data)
           this.syllabus = { id: data.syllabusId }
           try {
-            const [respCycle, respMod, respSyl] = await Promise.all([
+            const [respCycle, respMod, respSyl, respActAsmt, respActMark] = await Promise.all([
               api.getCycleById(data.cycleId),
               api.getModuleByCode(data.moduleCode),
-              api.getSyllabusById(data.syllabusId)
+              api.getSyllabusById(data.syllabusId),
+              api.getAsessmentTool(),
+              api.getMarkingTool(),
             ])
             this.cycle = respCycle.data
             this.module = respMod.data
             this.syllabus = respSyl.data
+            this.activitiesData = {
+              assessmentTool: respActAsmt.data,
+              markingTool: respActMark.data,
+            }
           } catch (error) {
             this.addMessage('error', error)
           }

@@ -21,6 +21,7 @@ export default {
 </script>
 
 <template>
+
   <div class="container">
     <header class="input-group mt-3">
       <img alt="CIP FP Batoi logo" class="logo m-lg-2 mx-auto" src="/batoi_logo.png" height="100px" />

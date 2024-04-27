@@ -227,48 +227,40 @@ export default {
 <template>
   <div class="bordered">
     <ModalComponent @save="saveActivity" :title="modalTitle" :modalId="type + 'Activities'">
-      <div v-if="editing" class="row g-3 align-items-center">
-        <div class="col-auto">
-          <label class="form-label">Codi</label>
-        </div>
-        <div class="col-auto">
-          <input type="text" v-model="modalFields.code" disabled />
+      <div v-if="editing" class="row p-1 align-items-center">
+        <label class="col-sm-2 col-form-label fw-bold">Codi</label>
+        <div class="col-sm-4">
+          <input type="text" class="form-control" v-model="modalFields.code" disabled />
         </div>
       </div>
-      <div v-if="editing" class="row g-3 align-items-center">
-        <div class="col-auto">
-          <label class="form-label">Posició</label>
-        </div>
-        <div class="col-auto">
-          <input type="number" v-model.number="modalFields.position" />
+      <div v-if="editing" class="row p-1 align-items-center">
+        <label class="col-sm-2 col-form-label fw-bold">Posició</label>
+        <div class="col-sm-4">
+          <input class="form-control" type="number" v-model.number="modalFields.position" />
         </div>
       </div>
-      <div class="row g-3 align-items-center">
-        <div class="col-auto">
-          <label class="form-label">Descripció</label>
-        </div>
-        <div class="col-auto">
-          <input type="text" v-model="modalFields.description" />
+      <div class="row p-1 align-items-center form-group">
+        <label class="col-sm-2 col-form-label fw-bold">Descripció</label>
+        <div class="col-sm-10">
+          <textarea rows="4" class="form-control" type="text" v-model="modalFields.description"
+                    placeholder="Introdueix la descripció de l'activitat..." />
         </div>
         <div class="col-auto">
           <span v-if="errors.description" class="error">{{ errors.description }}</span>
         </div>
       </div>
-      <div class="row g-3 align-items-center">
-        <div class="col-auto">
-          <label class="form-label">Hores</label>
-        </div>
-        <div class="col-auto">
-          <input type="text" v-model.number="modalFields.hours" />
+      <div class="row p-1 align-items-center form-group">
+        <label class="col-sm-2 col-form-label fw-bold">Hores</label>
+        <div class="col-sm-4">
+          <input type="number" v-model.number="modalFields.hours" />
         </div>
         <div class="col-auto">
           <span v-if="errors.hours" class="error">{{ errors.hours }}</span>
         </div>
       </div>
       <div v-if="type === 'formative'" class="row align-items-center">
-        <label class="form-label">Continguts didàctics:</label>
-
-        <ShowTable
+        <h2 class="form-label m-2">Continguts didàctics:</h2>
+        <ShowTable class="p-4 bg-info-subtle"
           :checkeable="true"
           :actions="false"
           :data="didacticContents"
@@ -276,18 +268,15 @@ export default {
         ></ShowTable>
       </div>
       <div v-if="type === 'marking'">
-        <div class="row g-3 align-items-center">
-          <div class="col-auto">
-            <label class="form-label">Tècnica</label>
-          </div>
-          <div class="col-auto">
-            <select v-model="modalFields.assessmentTool.id">
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label fw-bold">Tècnica</label>
+          <div class="col-4">
+            <select class="form-control custom-select p-1" v-model="modalFields.assessmentTool.id">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="assessmentTool in activitiesData.assessmentTool"
                 :key="assessmentTool.id"
-                :value="assessmentTool.id"
-              >
+                :value="assessmentTool.id">
                 {{ assessmentTool.name }}
               </option>
             </select>
@@ -296,12 +285,10 @@ export default {
             <span v-if="errors.description" class="error">{{ errors.description }}</span>
           </div>
         </div>
-        <div class="row g-3 align-items-center">
-          <div class="col-auto">
-            <label class="form-label">Instrument</label>
-          </div>
-          <div class="col-auto">
-            <select v-model="modalFields.markingTool.id">
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label fw-bold">Instrument</label>
+          <div class="col-auto col-4 p-1">
+            <select class="form-control custom-select" v-model="modalFields.markingTool.id">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="markingTool in activitiesData.markingTool"
@@ -311,19 +298,16 @@ export default {
                 {{ markingTool.name }}
               </option>
             </select>
-
           </div>
           <div class="col-auto">
             <span v-if="errors.description" class="error">{{ errors.description }}</span>
           </div>
         </div>
         <div class="row align-items-center">
-          <label class="form-label">Resultats d'Aprenentatge amb Criteris d'avaluació:</label>
-            <lr-table
-            :checkeable="true"
-  :actions="false"
-  :learningResults="learningResultsCheckeables"
-            ></lr-table>
+          <p class="form-label m-1 mt-3 fw-bold">Sel·lecciona Resultats d'Aprenentatge i Criteris d'avaluació:</p>
+            <lr-table class="p-4 bg-info-subtle"
+                      :checkeable="true" :actions="false" :learningResults="learningResultsCheckeables">
+            </lr-table>
         </div>
       </div>
     </ModalComponent>

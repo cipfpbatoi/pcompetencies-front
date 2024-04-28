@@ -24,7 +24,7 @@ export default {
     },
     checkeable: {
       type: Boolean,
-      default: true
+      default: false
     },
     },
   data() {
@@ -53,7 +53,7 @@ export default {
       <tbody>
         <template v-for="(result, index) in learningResults" :key="result.id">
           <tr>
-            <td>{{ result.number }}</td>
+            <td>RA {{ result.number }}</td>
             <td>{{ result.descriptor }}</td>
             <td v-if="percentageWeight">{{ result.percentageWeight }} %</td>
             <td>

@@ -4,9 +4,12 @@ import { useDataStore } from '../stores/data'
 import * as yup from 'yup'
 import { object } from 'yup'
 import ShowTable from './ShowTable.vue'
+import LrTable from './LrTable.vue'
+import { makeCheckeableArray, getObjectsIds, validateFormErrors } from '../utils/utils.js'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const generalObjectivesColumns = [
-{
+  {
     title: 'Codi',
     value: 'code'
   },
@@ -28,6 +31,7 @@ export default {
   emits: ['saved'],
   components: {
     ShowTable,
+    LrTable
   },
   props: {
     unit: Object
@@ -38,49 +42,48 @@ export default {
   computed: {
     ...mapState(useDataStore, ['syllabus']),
     generalObjectives() {
-      return this.syllabus.moduleCycleObjectives?.map((item) => {
-        return {
-          ...item,
-          checked: this.unitGeneralObjectivesIds?.includes(item.id) || false
-        }
-      }) || []
+      return makeCheckeableArray(this.syllabus.moduleCycleObjectives, this.unitGeneralObjectivesIds)
     },
     unitGeneralObjectivesIds() {
       return this.unit.generalObjectives?.map((item) => item.id)
+    },
+    formattedLearningResults() {
+      return (
+        this.unit.ponderedLearningResults?.map((item) => {
+          return {
+            id: item.id,
+            percentageWeight: item.percentageWeight,
+            number: item.learningResult.number,
+            descriptor: item.learningResult.descriptor,
+            evaluationCriterias: item.learningResult.evaluationCriterias
+          }
+        }) || []
+      )
     }
   },
   data() {
     return {
       didacticObjectives: this.unit?.didacticObjectives || 'sdf',
-      errors: [],
+      errors: {},
       generalObjectivesColumns,
+      // CKEditor
+      editor: ClassicEditor,
+      editorConfig: {
+        // The configuration of the editor.
+      }
     }
   },
   methods: {
     ...mapActions(useDataStore, ['saveLearningSituationObjectives']),
     async save() {
-      try {
-        // Valida los datos del formulario con Yup
-        await validationSchema.validate(
-          { didacticObjectives: this.didacticObjectives },
-          { abortEarly: false }
-        )
-      } catch (error) {
-        // Maneja los errores de validación y actualiza el estado de los errores
-        const formattedErrors = {}
-        if (error.inner) {
-          error.inner.forEach((validationError) => {
-            formattedErrors[validationError.path] = validationError.message
-          })
-          this.errors = formattedErrors
-        }
-        return
-      }
+      this.errors = await validateFormErrors(validationSchema, {
+        didacticObjectives: this.didacticObjectives
+      })
+      if (Object.keys(this.errors).length) return
+
       const response = await this.saveLearningSituationObjectives(this.unit.id, {
         didacticObjectives: this.didacticObjectives,
-        generalObjectivesIds: this.generalObjectives
-          .filter((item) => item.checked)
-          .map((item) => item.id)
+        generalObjectivesIds: getObjectsIds(this.generalObjectives.filter((item) => item.checked))
       })
       if (response === 'ok') {
         this.$emit('saved')
@@ -119,20 +122,36 @@ export default {
         <div class="modal-body">
           <div class="row">
             <div class="cols-6">
-              <label class="form-label">Objectius generals</label>
+              <h5 class="form-label">Objectius generals</h5>
               <!-- Tabla de objetivos generales-->
               <div>
-                <ShowTable :checkeable="true" :actions="false" :data="generalObjectives" :columns="generalObjectivesColumns">
+                <ShowTable
+                  :checkeable="true"
+                  :actions="false"
+                  :data="generalObjectives"
+                  :columns="generalObjectivesColumns"
+                >
                 </ShowTable>
               </div>
               <!-- Fin tabla -->
             </div>
             <div class="cols-6">
-              <label class="form-label">Objectius didàctics</label>
+              <h5 class="form-label">Objectius didàctics</h5>
+              <ckeditor
+                :editor="editor"
+                v-model="didacticObjectives"
+                :config="editorConfig"
+              ></ckeditor>
               <textarea class="form-control" v-model="didacticObjectives"></textarea>
               <span v-if="errors.didacticObjectives" class="error">{{
                 errors.didacticObjectives
               }}</span>
+            </div>
+            <div>
+              <br />
+              <h6>Resultats d'Aprenentatge i Criteris d'Avaluació</h6>
+              <lr-table :learningResults="formattedLearningResults" :percentageWeight="true">
+              </lr-table>
             </div>
           </div>
         </div>

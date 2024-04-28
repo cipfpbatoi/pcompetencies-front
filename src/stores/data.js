@@ -222,7 +222,7 @@ export const useDataStore = defineStore('data', {
     },
     async saveLearningSituationObjectives(lsId, data) {
       try {
-        const response = await api.createLearningSituationObjectives(lsId, data)
+        const response = await api.saveLearningSituationObjectives(lsId, data)
         this.syllabus.learningSituations.splice(
           this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
           1,
@@ -239,7 +239,7 @@ export const useDataStore = defineStore('data', {
     },
     async saveLearningSituationPriorKnowledge(lsId, data) {
       try {
-        const response = await api.createLearningSituationPriorKnowledge(lsId, data)
+        const response = await api.saveLearningSituationPriorKnowledge(lsId, data)
         this.syllabus.learningSituations.splice(
           this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
           1,
@@ -253,6 +253,24 @@ export const useDataStore = defineStore('data', {
       }
       this.addMessage('success', 'Coneixements previs guardats')
       return 'ok'
+    },
+    async saveLearningSituationCompetences(lsId, data) {
+      try {
+        const response = await api.saveLearningSituationCompetences(lsId, data)
+        this.syllabus.learningSituations.splice(
+          this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
+          1,
+          response.data
+        )
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+      this.addMessage('success', 'Competències guardades')
+      return 'ok'
     }
+
   }
 })

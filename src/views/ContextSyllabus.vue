@@ -6,13 +6,15 @@ import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import * as yup from 'yup'
 import { object } from 'yup'
+import { validateFormErrors } from '../utils/utils.js'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const validationSchema = object({
   groupContext: yup
     .string()
     .trim()
     .required('Has de posar la contextualització de la programació')
-    .min(2, 'Al menys han de tindre 20 caracters')
+    .min(20, 'Al menys han de tindre 20 caracters')
 })
 
 export default {
@@ -26,9 +28,14 @@ export default {
       return !!this.syllabus.groupContext
     },
     centerContextualization() {
-      return this.showAll
+      return this.showAll.center
         ? this.syllabus.center?.contextualization
-        : this.syllabus.center?.contextualization.substr(0,200) + '...'
+        : this.syllabus.center?.contextualization.substr(0, 200) + '...'
+    },
+    cycleContextualization() {
+      return this.showAll.cycle
+        ? this.syllabus.cycleCenterContext?.studentsProfile
+        : this.syllabus.cycleCenterContext?.studentsProfile.substr(0, 200) + '...'
     }
   },
   mounted() {
@@ -45,10 +52,18 @@ export default {
   },
   data() {
     return {
-      errors: [],
+      errors: {},
       GenericModal: null,
       modalFields: {},
-      showAll: false,
+      showAll: {
+        center: false,
+        cycle: false
+      },
+      // CKEditor
+      editor: ClassicEditor,
+      editorConfig: {
+        // The configuration of the editor.
+      }
     }
   },
   methods: {
@@ -56,24 +71,13 @@ export default {
     showModal() {
       this.GenericModal.show()
     },
-    toogleShowAll() {
-      this.showAll = !this.showAll
+    toogleShowAll(type) {
+      this.showAll[type] = !this.showAll[type]
     },
     async saveData() {
-      try {
-        // Valida los datos del formulario con Yup
-        await validationSchema.validate(this.modalFields, { abortEarly: false })
-      } catch (error) {
-        // Maneja los errores de validación y actualiza el estado de los errores
-        const formattedErrors = {}
-        if (error.inner) {
-          error.inner.forEach((validationError) => {
-            formattedErrors[validationError.path] = validationError.message
-          })
-          this.errors = formattedErrors
-        }
-        return
-      }
+      this.errors = await validateFormErrors(validationSchema, this.modalFields)
+      if (Object.keys(this.errors).length) return
+
       const response = await this.saveSyllabusGroupContext(this.syllabus.id, {
         groupContext: this.modalFields.groupContext
       })
@@ -96,12 +100,11 @@ export default {
   <main>
     <ModalComponent @save="saveData" title="Característiques del grup-classe">
       <div class="row">
-        <textarea
-          class="form-control"
+        <ckeditor
+          :editor="editor"
           v-model="modalFields.groupContext"
-          rows="5"
-          placeholder="Característiques del grup-classe"
-        ></textarea>
+          :config="editorConfig"
+        ></ckeditor>
         <p v-if="errors.groupContext" class="error">{{ errors.groupContext }}</p>
       </div>
     </ModalComponent>
@@ -111,18 +114,35 @@ export default {
     <h3>Contextualització</h3>
     <h4>Característiques del Centre i l'entorn</h4>
     <p class="bordered" v-html="centerContextualization"></p>
-    <span><button @click="toogleShowAll()" class="btn btn-link">Mostrar {{ showAll ? 'menys' : 'tot' }}</button></span>
+    <span
+      ><button @click="toogleShowAll('center')" class="btn btn-link">
+        Mostrar {{ showAll.center ? 'menys' : 'tot' }}
+      </button></span
+    >
     <h4>Característiques de l'alumnat</h4>
-    <p class="bordered" v-if="syllabus.cycleCenterContext?.studentsProfile" v-html="syllabus.cycleCenterContext?.studentsProfile"></p>
+    <p
+      class="bordered"
+      v-if="syllabus.cycleCenterContext?.studentsProfile"
+      v-html="cycleContextualization"
+    ></p>
     <p class="bordered text-danger" v-else>
-      El departament ha d'establir una contextualització per al cicle</p>
+      El departament ha d'establir una contextualització per al cicle
+    </p>
+    <span
+      ><button @click="toogleShowAll('cycle')" class="btn btn-link">
+        Mostrar {{ showAll.cycle ? 'menys' : 'tot' }}
+      </button></span
+    >
     <h4>Característiques del grup-classe</h4>
     <p class="bordered" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
-    <p class="bordered text-secondary fst-italic" v-else >Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles dificultats amb l'idioma,...)</p>
+    <p class="bordered text-secondary fst-italic" v-else>
+      Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles
+      dificultats amb l'idioma,...)
+    </p>
     <div class="p-3 text-center">
-        <button @click="showModal()" class="btn btn-success" title="Establir objectiu">
-          Afegir/Modificar característiques del grup-classe
-        </button>
+      <button @click="showModal()" class="btn btn-success" title="Establir objectiu">
+        Afegir/Modificar característiques del grup-classe
+      </button>
     </div>
   </main>
 </template>

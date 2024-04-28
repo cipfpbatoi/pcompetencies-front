@@ -60,9 +60,11 @@ export const api = {
   deleteLearningSituation: (id) => instance.delete(`/learningSituation/${id}`),
   replaceLearningSituation: (lsId, data) =>
     instance.put(`/syllabus/learningSituation/${lsId}`, data),
-  createLearningSituationObjectives: (lsId, data) =>
+  saveLearningSituationObjectives: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/objectives`, data),
-  createLearningSituationPriorKnowledge: (lsId, data) =>
+  saveLearningSituationCompetences: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/competences`, data),
+  saveLearningSituationPriorKnowledge: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/priorKnowledge`, data),
   createLearningSituation: (id, data) => instance.post(`/syllabus/${id}/learningSituation`, data),
   getLearningSituationsBySyllabusId: (id) => instance.get(`/syllabus/${id}/learningSituations`),
@@ -85,12 +87,18 @@ export const api = {
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
 
   // Activities
-  saveActivity: (lsId, type, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/${type}`, data),
-  saveDeepingActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/deepening`, data),
-  saveReinforcementActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/reinforcement`, data),
-  saveFormativeActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/formative`, data),
-  saveMarkingActivity: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/activity/marking`, data),
-  deleteActivity: (lsId, activityId) => instance.delete(`/syllabus/learningSituation/${lsId}/activity/${activityId}`),
+  saveActivity: (lsId, type, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/activity/${type}`, data),
+  saveDeepingActivity: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/activity/deepening`, data),
+  saveReinforcementActivity: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/activity/reinforcement`, data),
+  saveFormativeActivity: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/activity/formative`, data),
+  saveMarkingActivity: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/activity/marking`, data),
+  deleteActivity: (lsId, activityId) =>
+    instance.delete(`/syllabus/learningSituation/${lsId}/activity/${activityId}`)
 }
 
 export default instance

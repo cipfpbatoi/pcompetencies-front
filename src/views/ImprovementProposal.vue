@@ -6,6 +6,7 @@ import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import * as yup from 'yup'
 import { object } from 'yup'
+import { validateFormErrors } from '../utils/utils.js'
 
 const validationSchema = object({
   comments: yup
@@ -42,7 +43,7 @@ export default {
   data() {
     return {
       done: false,
-      errors: [],
+      errors: {},
       GenericModal: null,
       modalFields: {
         accepted: false,
@@ -65,20 +66,9 @@ export default {
           return
         }
       }
-      try {
-        // Valida los datos del formulario con Yup
-        await validationSchema.validate(this.modalFields, { abortEarly: false })
-      } catch (error) {
-        // Maneja los errores de validación y actualiza el estado de los errores
-        const formattedErrors = {}
-        if (error.inner) {
-          error.inner.forEach((validationError) => {
-            formattedErrors[validationError.path] = validationError.message
-          })
-          this.errors = formattedErrors
-        }
-        return
-      }
+      this.errors = await validateFormErrors(validationSchema, this.modalFields)
+      if (Object.keys(this.errors).length) return
+
       const response = await this.evaluateImprovement(this.syllabus.id, this.modalFields)
       if (response === 'ok') {
         this.done = true
@@ -100,9 +90,9 @@ export default {
 <template>
   <main>
     <ModalComponent @save="saveData" title="Aplicació de les propostes de millora">
-      <div class="row m-2  m-md-4 bg-light border">
+      <div class="row m-2 m-md-4 bg-light border">
         <div class="form-check m-1 p-2 bg-info-subtle h5">
-          <input class="form-check-input mx-3 " type="checkbox" v-model="modalFields.accepted" />
+          <input class="form-check-input mx-3" type="checkbox" v-model="modalFields.accepted" />
           <label class="form-check-label"> Vaig a aplicar aquestes propostes o part d'elles </label>
         </div>
         <div class="mb-3">
@@ -137,9 +127,13 @@ export default {
           <p class="bg-light-subtle fw-bold">{{ syllabus.improvementProposal.comments }}</p>
         </div>
         <div class="text-center">
-        <button @click="showModal()" class="btn btn-success mt-2 mx-auto" title="Establir objectiu">
-          Modificar/Donar Resposta a les propostes de millora
-        </button>
+          <button
+            @click="showModal()"
+            class="btn btn-success mt-2 mx-auto"
+            title="Establir objectiu"
+          >
+            Modificar/Donar Resposta a les propostes de millora
+          </button>
         </div>
       </div>
       <div v-else>

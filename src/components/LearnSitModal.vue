@@ -4,6 +4,7 @@ import LrTable from '../components/LrTable.vue'
 import { useDataStore } from '../stores/data'
 import * as yup from 'yup'
 import { object } from 'yup'
+import { validateFormErrors } from '../utils/utils.js'
 
 const validationSchema = object({
   title: yup
@@ -11,7 +12,10 @@ const validationSchema = object({
     .trim()
     .required('Has de posar el títol')
     .min(5, 'Ha de tenir 5 caracters o més'),
-  hours: yup.number().required("Has d'indicar les hores").min(1, "Al menys l'has de dedicar 1 hora"),
+  hours: yup
+    .number()
+    .required("Has d'indicar les hores")
+    .min(1, "Al menys l'has de dedicar 1 hora"),
   ponderedLearningResults: yup.array().min(1, 'Has de afegir al menys 1 RA')
 })
 
@@ -29,17 +33,19 @@ export default {
       return !!this.unit?.id
     },
     formattedLearningResults() {
-      return this.editedUnit.ponderedLearningResults?.map((item) => {
-        const lRid = item.learningResultId || item.learningResult.id
-        const lR = this.getLearningResultById(lRid)
-        return {
-          id: item.id,
-          percentageWeight: item.percentageWeight,
-          number: lR.number,
-          descriptor: lR.descriptor,
-          evaluationCriterias: lR.evaluationCriterias
-        }
-      }) || []
+      return (
+        this.editedUnit.ponderedLearningResults?.map((item) => {
+          const lRid = item.learningResultId || item.learningResult.id
+          const lR = this.getLearningResultById(lRid)
+          return {
+            id: item.id,
+            percentageWeight: item.percentageWeight,
+            number: lR.number,
+            descriptor: lR.descriptor,
+            evaluationCriterias: lR.evaluationCriterias
+          }
+        }) || []
+      )
     },
     addedLearningResultsIds() {
       return this.editedUnit.ponderedLearningResults.map(
@@ -51,13 +57,17 @@ export default {
     return {
       editedUnit: { ponderedLearningResults: [] }, // { ...this.unit },
       newLearningResult: {},
-      errors: []
+      errors: {},
     }
   },
   watch: {
     unit(newValue) {
-      this.editedUnit = JSON.parse(JSON.stringify(newValue))
-      this.simplifyPLR(newValue)
+      if (newValue) {
+        this.editedUnit = JSON.parse(JSON.stringify(newValue))
+        this.simplifyPLR(newValue)
+      } else {
+        this.editedUnit = { ponderedLearningResults: [] }
+      }
       this.$forceUpdate()
       //      this.$nextTick(() => {});
     }
@@ -65,19 +75,23 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['saveLearningSituation']),
     addRA() {
-      if (this.newLearningResult.percentageWeight < 1 || this.newLearningResult.percentageWeight > 100) {
-        this.errors.percentageWeight = "El pes de cada RA no pot ser menor que 1 ni major que el 100%"
+      if (
+        this.newLearningResult.percentageWeight < 1 ||
+        this.newLearningResult.percentageWeight > 100
+      ) {
+        this.errors.percentageWeight =
+          'El pes de cada RA no pot ser menor que 1 ni major que el 100%'
         return
       }
       this.editedUnit.ponderedLearningResults.push(this.newLearningResult)
       this.newLearningResult = {}
     },
     delRA(index) {
-      this.editedUnit.ponderedLearningResults.splice(index, 1)
+        this.editedUnit.ponderedLearningResults.splice(index, 1)
     },
     simplifyPLR() {
-      this.editedUnit.ponderedLearningResults = this.editedUnit.ponderedLearningResults?.map(
-        (item) => {
+      this.editedUnit.ponderedLearningResults =
+        this.editedUnit.ponderedLearningResults?.map((item) => {
           if (item.learningResultId) {
             return item
           }
@@ -86,25 +100,13 @@ export default {
             percentageWeight: item.percentageWeight,
             learningResultId: item.learningResult.id
           }
-        }
-      ) || []
+        }) || []
     },
     async saveLS() {
       this.newLearningResult = {}
-      try {
-        // Valida los datos del formulario con Yup
-        await validationSchema.validate(this.editedUnit, { abortEarly: false })
-      } catch (error) {
-        // Maneja los errores de validación y actualiza el estado de los errores
-        const formattedErrors = {}
-        if (error.inner) {
-          error.inner.forEach((validationError) => {
-            formattedErrors[validationError.path] = validationError.message
-          })
-          this.errors = formattedErrors
-        }
-        return
-      }
+      this.errors = await validateFormErrors(validationSchema, this.editedUnit)
+      if (Object.keys(this.errors).length) return
+
       if (
         await this.saveLearningSituation({
           id: this.editedUnit.id,
@@ -177,38 +179,51 @@ export default {
                   <button @click="delRA(index)" class="btn btn-link" title="Eliminar">
                     <i class="bi bi-trash"></i>
                   </button>
+                  <button class="btn btn-link" title="Eliminar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
                 </template>
               </lr-table>
-              <p v-if="errors.ponderedLearningResults" class="error">{{ errors.ponderedLearningResults }}</p>
+              <p v-if="errors.ponderedLearningResults" class="error">
+                {{ errors.ponderedLearningResults }}
+              </p>
             </div>
             <div class="input-group">
               <label class="form-label p-2 fw-bold">Afegir RA</label>
               <select
                 class="form-select"
                 v-model="newLearningResult.learningResultId"
-                aria-label="Default select example">
+                aria-label="Default select example"
+              >
                 <option :value="0">-- Tria resultat d'aprenentatge --</option>
-                <option class="p-2"
+                <option
+                  class="p-2"
                   v-for="lr in module.learningResults"
                   :key="lr.id"
                   :value="lr.id"
-                  :disabled="addedLearningResultsIds.includes(lr.id)">
-                  {{ lr.descriptor }}
+                  :disabled="addedLearningResultsIds.includes(lr.id)"
+                >
+                  RA{{ lr.number }} {{ lr.descriptor }}
                 </option>
               </select>
               <label class="form-label p-2">Pes: </label>
-              <input class="p-2"
+              <input
+                class="p-2"
                 size="3"
                 type="number"
                 v-model="newLearningResult.percentageWeight"
                 min="1"
                 max="100"
-              /> <span class="p-2">%</span>
+              />
+              <span class="p-2">%</span>
               <button
                 type="button"
                 class="btn btn-sm btn-secondary p-2"
                 @click="addRA"
-                :disabled="!(newLearningResult.learningResultId && newLearningResult.percentageWeight)">
+                :disabled="
+                  !(newLearningResult.learningResultId && newLearningResult.percentageWeight)
+                "
+              >
                 Afegir RA
               </button>
             </div>

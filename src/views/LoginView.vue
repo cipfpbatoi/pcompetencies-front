@@ -3,6 +3,7 @@ import { useDataStore } from '@/stores/data'
 import { mapActions } from 'pinia'
 import * as yup from 'yup'
 import { object } from 'yup'
+import { validateFormErrors } from '../utils/utils.js'
 
 const validationSchema = object({
   email: yup
@@ -16,7 +17,7 @@ const validationSchema = object({
 export default {
   data() {
     return {
-      errors: [],
+      errors: {},
       user: {},
       redirect: false,
     }
@@ -30,20 +31,9 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['loginUser', 'addMessage']),
     async handleForm() {
-      try {
-        // Valida los datos del formulario con Yup
-        await validationSchema.validate(this.user, { abortEarly: false })
-      } catch (error) {
-        // Maneja los errores de validación y actualiza el estado de los errores
-        const formattedErrors = {}
-        if (error.inner) {
-          error.inner.forEach((validationError) => {
-            formattedErrors[validationError.path] = validationError.message
-          })
-          this.errors = formattedErrors
-        }
-        return
-      }
+      this.errors = await validateFormErrors(validationSchema, this.user)
+      if (this.errors.length) return
+
       if (await this.loginUser(this.user)) {
         if (this.redirect) {
           this.$router.push(this.redirect.path)

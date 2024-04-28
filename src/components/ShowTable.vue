@@ -35,8 +35,8 @@ export default {
   <div>
     <table v-if="data.length" class="table table-striped">
       <thead>
-        <th v-if="checkeable">Sel.</th>
-        <th v-for="(col, index) in columns" :key="index">{{ col.title }}</th>
+        <th v-if="checkeable" title="Selecciona">Sel.</th>
+        <th v-for="(col, index) in columns" :key="index" :title="col.hint">{{ col.title }}</th>
         <th v-if="actions">Accions</th>
       </thead>
       <tbody>
@@ -45,7 +45,8 @@ export default {
             <input type="checkbox" v-model="item.checked" />
           </td>
           <td v-for="(col, tdIndex) in columns" :key="tdIndex">
-            {{ fieldContent(item, col) }}
+            <span v-if="col.html" v-html="item[col.value]"></span>
+            <span v-else>{{ fieldContent(item, col) }}</span>
           </td>
           <td v-if="actions">
             <slot :item="item" :index="index"></slot>

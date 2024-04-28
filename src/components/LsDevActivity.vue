@@ -6,6 +6,11 @@ import { api } from '../repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import LrTable from './LrTable.vue'
+import { makeCheckeableArray, getObjectsIds } from '../utils/utils.js'
+import * as yup from 'yup'
+import { object } from 'yup'
+import { validateFormErrors } from '../utils/utils.js'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const activityBaseColumns = [
   {
@@ -22,7 +27,8 @@ const activityBaseColumns = [
   },
   {
     title: 'Descripció',
-    value: 'description'
+    value: 'description',
+    html: true
   },
   {
     title: 'Hores',
@@ -63,26 +69,32 @@ export default {
       if (this.type === 'formative') {
         columns.push({
           title: 'Continguts',
-          func: (x) => (x ? x?.map((item) => item.code).join(', ') : ''),
+          func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
           param: 'didacticContents'
+        })
+      }
+      if (this.type === 'marking') {
+        columns.push({
+          title: 'C.A.',
+          hint: "Criteris d'avaluació associats",
+          func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
+          param: 'evaluationCriterias'
         })
       }
       return columns
     },
     learningResultsCheckeables() {
-      return this.learningSituation.ponderedLearningResults?.map(item => {
+      return this.learningSituation.ponderedLearningResults?.map((item) => {
         return {
           id: item.learningResult.id,
           number: item.learningResult.number,
           descriptor: item.learningResult.descriptor,
-          evaluationCriterias: this.makeCheckeableArray(item.learningResult.evaluationCriterias, this.modalFields.evaluationCriterias)
+          evaluationCriterias: makeCheckeableArray(
+            item.learningResult.evaluationCriterias,
+            this.modalFields.evaluationCriterias
+          )
         }
       })
-    },
-    evaluationCriteriasIdsSelected() {
-      return this.learningResultsCheckeables
-      .reduce((ecIds, lr) => ecIds.concat(this.getIDs(lr.evaluationCriterias
-        .filter(item => item.checked))), [])
     },
     getActivityTitle() {
       return this.activityTypes.find((item) => item.type === this.type)?.title
@@ -98,7 +110,10 @@ export default {
         })
     },
     didacticContents() {
-      return this.makeCheckeableArray(this.learningSituation.didacticContents, this.modalFields.didacticContents)
+      return makeCheckeableArray(
+        this.learningSituation.didacticContents,
+        this.modalFields.didacticContents
+      )
     }
   },
   data() {
@@ -106,7 +121,7 @@ export default {
       editing: false,
       showActivityDetails: false,
       didacticContentsColumns,
-      errors: [],
+      errors: {},
       activityTypes: [
         {
           type: 'deepening',
@@ -128,54 +143,118 @@ export default {
       // Modal generic
       GenericModal: null,
       modalFields: {
-          didacticContents: [],
-          evaluationCriterias: [],
-          assessmentTool: {},
-          markingTool: {}
-        },
-      modalTitle: ''
+        didacticContents: [],
+        evaluationCriterias: [],
+        assessmentTool: {},
+        markingTool: {}
+      },
+      modalTitle: '',
+            // CKEditor
+            editor: ClassicEditor,
+      editorConfig: {
+        // The configuration of the editor.
+      }
     }
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
-    getIDs(array) {
-      return array?.map((item) => item.id) || []
-    },
-    makeCheckeableArray(array, selected) {
-      if (!array || !array.length) return []
-      return array.map(item => {
-        return {
-          ...item,
-          checked: (typeof selected[0] === 'object') 
-            ? this.getIDs(selected).includes(item.id) || false
-            : this.selected?.includes(item.id) || false
+    createValidationSchema() {
+      let validationSchema = object({
+        contents: yup.array().min(1, "Has d'incloure al menys 1 contingut"),
+        description: yup
+          .string()
+          .trim()
+          .required('Has de posar una descripció de al menys 10 caracters')
+          .min(10, 'Has de posar una descripció de al menys 10 caracters')
+      }).when((values, schema) => {
+        if (this.editing) {
+          return schema.shape({
+            position: yup
+              .number('La posició ha de ser un número positiu')
+              .required('La posició ha de ser un número positiu')
+              .min(1, 'La posició ha de ser un número positiu')
+          })
+        }
+      }).when((values, schema) => {
+        if (this.type === 'formative') {
+          return schema.shape({
+            hours: yup.number().required("Has d'indicar les hores de la activitat"),
+          })
+        }
+      }).when((values, schema) => {
+        if (this.type === 'marking') {
+          return schema.shape({
+            hours: yup.number().required("Has d'indicar les hores de la activitat"),
+            assessmentToolId: yup.number().required("Has d'indicar la tàcnica d'avaluació"),
+            markingToolId: yup.number().required("Has d'indicar l'instrument de qualificació"),
+          })
         }
       })
+
+      return validationSchema
     },
     showModal(activity) {
+      this.errors = []
       if (activity.id) {
         this.editing = true
         this.modalTitle = 'Editar activitat - ' + this.getActivityTitle
-        this.modalFields = { ...activity }
+        this.modalFields = { 
+          ...activity,
+          assessmentToolId: activity.assessmentTool?.id,
+          markingToolId: activity.markingTool?.id
+        }
       } else {
         this.editing = false
         this.modalTitle = 'Nova activitat - ' + this.getActivityTitle
         this.modalFields = {
           didacticContents: [],
           evaluationCriterias: [],
-          assessmentTool: {},
-          markingTool: {}
         }
       }
       this.GenericModal = new Modal(document.getElementById(`${this.type}Activities`))
       this.GenericModal.show()
     },
     async saveActivity() {
+      this.errors = await validateFormErrors(this.createValidationSchema(), this.modalFields)
+      // Extra validations
+      let didacticContentsIdsSelected = []
+      if (this.type === 'formative') {
+        didacticContentsIdsSelected = getObjectsIds(
+          this.didacticContents.filter((item) => item.checked))
+        if (!didacticContentsIdsSelected.length) {
+          this.errors.didacticContents = "Has de marcar al menys 1 contingut"
+        }
+      }
+      let evaluationCriteriasIdsSelected = []
+      if (this.type === 'marking') {
+      evaluationCriteriasIdsSelected = this.learningResultsCheckeables
+      .reduce((ecIds, lr) => ecIds
+      .concat(getObjectsIds(lr.evaluationCriterias.filter((item) => item.checked))),
+        []
+      )
+        if (!evaluationCriteriasIdsSelected.length) {
+          this.errors.evaluationCriterias = "Has de marcar al menys 1 criteri d'avaluació"
+        }
+      }
+      if (['formative', 'marking'].includes(this.type)) {
+        const totActivHours = this.learningSituation.activities
+        .filter(item => item.id != this.modalFields.id)
+        .reduce((total, item) => total + (item.hours || 0), 0)
+        if ((totActivHours + this.modalFields.hours) > this.learningSituation.hours) {
+          this.errors.hours = "La suma d'hores de les activitats és major que les hores de la situació d'aprenentatge (" + this.learningSituation.hours + " h.)"
+        }
+      }
+      if (Object.keys(this.errors).length) return
+
       const activity = {
-        hours: this.modalFields.hours,
         description: this.modalFields.description
       }
       if (this.editing) {
+        const position = this.modalFields.position
+        if (!position || isNaN(position) || position < 1) {
+          this.errors.position = 'La posició ha de ser un número positiu'
+          return
+        }
         activity.activityId = this.modalFields.id
         activity.position = this.modalFields.position
       } else {
@@ -183,14 +262,14 @@ export default {
           this.activitiesOfType.reduce((max, item) => Math.max(max, item.position), 0) + 1
       }
       if (this.type === 'formative') {
-        activity.didacticContentsIds = this.getIDs(
-          this.didacticContents.filter((item) => item.checked)
-        )
+        activity.hours = this.modalFields.hours
+        activity.didacticContentsIds = didacticContentsIdsSelected
       }
       if (this.type === 'marking') {
-        activity.assessmentToolId = this.modalFields.assessmentTool.id
-        activity.markingToolId = this.modalFields.markingTool.id
-        activity.evaluationCriteriaIds = this.evaluationCriteriasIdsSelected
+        activity.hours = this.modalFields.hours
+        activity.assessmentToolId = this.modalFields.assessmentToolId
+        activity.markingToolId = this.modalFields.markingToolId
+        activity.evaluationCriteriaIds = evaluationCriteriasIdsSelected
 
         this.showActivityDetails = false
       }
@@ -219,7 +298,7 @@ export default {
           this.addMessage('error', error)
         }
       }
-    },
+    }
   }
 }
 </script>
@@ -238,20 +317,26 @@ export default {
         <div class="col-sm-4">
           <input class="form-control" type="number" v-model.number="modalFields.position" />
         </div>
+
+        <div class="col-auto">
+          <span v-if="errors.position" class="error">{{ errors.position }}</span>
+        </div>
       </div>
       <div class="row p-1 align-items-center form-group">
         <label class="col-sm-2 col-form-label fw-bold">Descripció</label>
-        <div class="col-sm-10">
-          <textarea rows="4" class="form-control" type="text" v-model="modalFields.description"
-                    placeholder="Introdueix la descripció de l'activitat..." />
+          <ckeditor
+                :editor="editor"
+                v-model="modalFields.description"
+                :config="editorConfig"
+              ></ckeditor>
+
+          <p v-if="errors.description" class="error">{{ errors.description }}</p>
+      </div>
+      <div v-if="['formative', 'marking'].includes(type)" class="row g-3 align-items-center">
+        <div class="col-auto">
+          <label class="form-label">Hores</label>
         </div>
         <div class="col-auto">
-          <span v-if="errors.description" class="error">{{ errors.description }}</span>
-        </div>
-      </div>
-      <div class="row p-1 align-items-center form-group">
-        <label class="col-sm-2 col-form-label fw-bold">Hores</label>
-        <div class="col-sm-4">
           <input type="number" v-model.number="modalFields.hours" />
         </div>
         <div class="col-auto">
@@ -266,12 +351,15 @@ export default {
           :data="didacticContents"
           :columns="didacticContentsColumns"
         ></ShowTable>
+        <div class="col-auto">
+            <span v-if="errors.didacticContents" class="error">{{ errors.didacticContents }}</span>
+          </div>
       </div>
       <div v-if="type === 'marking'">
         <div class="form-group row">
           <label class="col-sm-2 col-form-label fw-bold">Tècnica</label>
           <div class="col-4">
-            <select class="form-control custom-select p-1" v-model="modalFields.assessmentTool.id">
+            <select class="form-control custom-select p-1" v-model="modalFields.assessmentToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="assessmentTool in activitiesData.assessmentTool"
@@ -282,13 +370,13 @@ export default {
             </select>
           </div>
           <div class="col-auto">
-            <span v-if="errors.description" class="error">{{ errors.description }}</span>
+            <span v-if="errors.assessmentToolId" class="error">{{ errors.assessmentToolId }}</span>
           </div>
         </div>
         <div class="form-group row">
           <label class="col-sm-2 col-form-label fw-bold">Instrument</label>
           <div class="col-auto col-4 p-1">
-            <select class="form-control custom-select" v-model="modalFields.markingTool.id">
+            <select class="form-control custom-select" v-model="modalFields.markingToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="markingTool in activitiesData.markingTool"
@@ -300,20 +388,22 @@ export default {
             </select>
           </div>
           <div class="col-auto">
-            <span v-if="errors.description" class="error">{{ errors.description }}</span>
+            <span v-if="errors.markingToolId" class="error">{{ errors.markingToolId }}</span>
           </div>
         </div>
         <div class="row align-items-center">
-          <p class="form-label m-1 mt-3 fw-bold">Sel·lecciona Resultats d'Aprenentatge i Criteris d'avaluació:</p>
-            <lr-table class="p-4 bg-info-subtle"
-                      :checkeable="true" :actions="false" :learningResults="learningResultsCheckeables">
-            </lr-table>
+          <p class="form-label m-1 mt-3 fw-bold">Resultats d'Aprenentatge amb Criteris d'avaluació:</p>
+          <lr-table class="p-4 bg-info-subtle"
+            :checkeable="true"
+            :actions="false"
+            :learningResults="learningResultsCheckeables"
+          ></lr-table>
         </div>
       </div>
     </ModalComponent>
     <show-table :data="activitiesOfType" :columns="activityColumns">
       <template v-slot="{ item, index }">
-        <button @click="showActivityDetails = item" class="btn btn-secondary" title="Veure">
+        <button v-if="type === 'marking'" @click="showActivityDetails = item" class="btn btn-secondary" title="Veure">
           <i class="bi bi-eye"></i>
         </button>
         <button @click="showModal(item)" class="btn btn-secondary" title="Editar">

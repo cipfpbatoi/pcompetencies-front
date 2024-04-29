@@ -142,7 +142,6 @@ export default {
                 v-model="didacticObjectives"
                 :config="editorConfig"
               ></ckeditor>
-              <textarea class="form-control" v-model="didacticObjectives"></textarea>
               <span v-if="errors.didacticObjectives" class="error">{{
                 errors.didacticObjectives
               }}</span>

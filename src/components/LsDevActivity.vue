@@ -317,29 +317,24 @@ export default {
         <div class="col-sm-4">
           <input class="form-control" type="number" v-model.number="modalFields.position" />
         </div>
-
         <div class="col-auto">
           <span v-if="errors.position" class="error">{{ errors.position }}</span>
         </div>
       </div>
-      <div class="row p-1 align-items-center form-group">
-        <label class="col-sm-2 col-form-label fw-bold">Descripció</label>
-          <ckeditor
-                :editor="editor"
-                v-model="modalFields.description"
-                :config="editorConfig"
-              ></ckeditor>
-
+      <div class="row p-1 align-items-center form-group mb-3">
+        <label class="col-sm-12 col-form-label fw-bold">Descripció de l'Activitat</label>
+        <div class="col-sm-12">
+          <ckeditor :editor="editor" v-model="modalFields.description"
+                :config="editorConfig"></ckeditor>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
+        </div>
       </div>
       <div v-if="['formative', 'marking'].includes(type)" class="row g-3 align-items-center">
-        <div class="col-auto">
-          <label class="form-label">Hores</label>
+        <div class="col-sm-2">
+          <label class="form-label fw-bold">Hores</label>
         </div>
-        <div class="col-auto">
+        <div class="col-sm-10">
           <input type="number" v-model.number="modalFields.hours" />
-        </div>
-        <div class="col-auto">
           <span v-if="errors.hours" class="error">{{ errors.hours }}</span>
         </div>
       </div>
@@ -356,10 +351,10 @@ export default {
           </div>
       </div>
       <div v-if="type === 'marking'">
-        <div class="form-group row">
+        <div class="form-group row p-1">
           <label class="col-sm-2 col-form-label fw-bold">Tècnica</label>
           <div class="col-4">
-            <select class="form-control custom-select p-1" v-model="modalFields.assessmentToolId">
+            <select class="form-control custom-select" v-model="modalFields.assessmentToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="assessmentTool in activitiesData.assessmentTool"
@@ -373,16 +368,15 @@ export default {
             <span v-if="errors.assessmentToolId" class="error">{{ errors.assessmentToolId }}</span>
           </div>
         </div>
-        <div class="form-group row">
+        <div class="form-group row p-1">
           <label class="col-sm-2 col-form-label fw-bold">Instrument</label>
-          <div class="col-auto col-4 p-1">
+          <div class="col-auto col-4">
             <select class="form-control custom-select" v-model="modalFields.markingToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="markingTool in activitiesData.markingTool"
                 :key="markingTool.id"
-                :value="markingTool.id"
-              >
+                :value="markingTool.id">
                 {{ markingTool.name }}
               </option>
             </select>
@@ -455,5 +449,10 @@ export default {
 }
 .error {
   color: red;
+}
+</style>
+<style>
+.ck-editor__editable {
+  min-height: 150px !important;
 }
 </style>

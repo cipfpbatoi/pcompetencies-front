@@ -42,10 +42,7 @@ export default {
   computed: {
     ...mapState(useDataStore, ['syllabus']),
     generalObjectives() {
-      return makeCheckeableArray(this.syllabus.moduleCycleObjectives, this.unitGeneralObjectivesIds)
-    },
-    unitGeneralObjectivesIds() {
-      return this.unit.generalObjectives?.map((item) => item.id)
+      return makeCheckeableArray(this.syllabus.moduleCycleObjectives, getObjectsIds(this.unit.generalObjectives))
     },
     formattedLearningResults() {
       return (
@@ -142,7 +139,6 @@ export default {
                 v-model="didacticObjectives"
                 :config="editorConfig"
               ></ckeditor>
-              <textarea class="form-control" v-model="didacticObjectives"></textarea>
               <span v-if="errors.didacticObjectives" class="error">{{
                 errors.didacticObjectives
               }}</span>
@@ -150,7 +146,7 @@ export default {
             <div>
               <br />
               <h6>Resultats d'Aprenentatge i Criteris d'Avaluació</h6>
-              <lr-table :learningResults="formattedLearningResults" :percentageWeight="true">
+              <lr-table :learningResults="formattedLearningResults" percentageWeight="show">
               </lr-table>
             </div>
           </div>

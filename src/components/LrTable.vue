@@ -13,20 +13,21 @@ const evaluationCriteriasColumns = [
 ]
 
 export default {
+  emits: ['changeWeigth'],
   components: {
-    ShowTable,
+    ShowTable
   },
   props: {
     learningResults: Array,
     percentageWeight: {
-      type: Boolean,
-      default: false
+      type: [String],
+      default: ''
     },
     checkeable: {
       type: Boolean,
       default: false
     },
-    },
+  },
   data() {
     return {
       deployedRA: 0,
@@ -36,6 +37,10 @@ export default {
   methods: {
     toogleDeployedRa(lrId) {
       this.deployedRA = this.deployedRA == lrId ? 0 : lrId
+    },
+    changeWeight(result, newWeight) {
+      result.percentageWeight = Number(newWeight)
+      this.$emit('changeWeigth', result)
     }
   }
 }
@@ -55,7 +60,11 @@ export default {
           <tr>
             <td>RA {{ result.number }}</td>
             <td>{{ result.descriptor }}</td>
-            <td v-if="percentageWeight">{{ result.percentageWeight }} %</td>
+            <td v-if="percentageWeight">
+              <input v-if="percentageWeight=='edit'" size="3" type="number" min="1" max="100" 
+              :value="result.percentageWeight" 
+              @change="changeWeight(result, $event.target.value)" />
+              <span v-else>{{ result.percentageWeight }}</span> %</td>
             <td>
               <button
                 @click="toogleDeployedRa(result.id)"
@@ -71,10 +80,10 @@ export default {
           <tr v-if="deployedRA == result.id">
             <td colspan="3">
               <ShowTable
-              :data="result.evaluationCriterias" 
-              :columns="evaluationCriteriasColumns"
-              :actions="false"
-              :checkeable="checkeable"
+                :data="result.evaluationCriterias"
+                :columns="evaluationCriteriasColumns"
+                :actions="false"
+                :checkeable="checkeable"
               ></ShowTable>
             </td>
           </tr>

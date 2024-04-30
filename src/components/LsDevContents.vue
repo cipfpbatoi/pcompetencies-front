@@ -83,6 +83,10 @@ export default {
         newContent = this.newContent
       }
       const newContents = this.learningSituation.didacticContents.map((item) => item.descriptor)
+      if (newContents.includes(newContent)) {
+        this.addMessage('error', "Eixe contingut ja està afegit")
+          return
+      }
       newContents.push(newContent)
       this.newContent = ''
       this.saveContents(newContents)

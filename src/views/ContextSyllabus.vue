@@ -110,7 +110,7 @@ export default {
     </ModalComponent>
 
     <app-breadcrumb :actualStep="2" :done="done"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
+    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <h3>Contextualització</h3>
     <h4>Característiques del Centre i l'entorn</h4>
     <p class="bordered" v-html="centerContextualization"></p>

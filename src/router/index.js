@@ -7,6 +7,7 @@ import TestWorkUnitLR from '../views/TestWorkUnitLR.vue'
 import LoginView from '../views/LoginView.vue'
 import ImprovementProposal from '../views/ImprovementProposal.vue'
 import ContextSyllabus from '../views/ContextSyllabus.vue'
+import SyllabusSchedule from '../views/SyllabusSchedule.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,13 +52,20 @@ const router = createRouter({
       name: 'LSsDevelopment',
       component: LSsDevelopment,
       meta: { requiresAuth: true }
-    },        {
+    },        
+    {
       path: '/learning-situation/:lsId',
       name: 'LSDevelopment',
       component: LSDevelopment,
       props: true,
       meta: { requiresAuth: true }
     },    
+    {
+      path: '/schedule',
+      name: 'SyllabusSchedule',
+      component: SyllabusSchedule,
+      meta: { requiresAuth: true }
+    },   
     {
       path: '/about',
       name: 'about',

@@ -118,7 +118,7 @@ export default {
 <template>
   <main>
     <app-breadcrumb :actualStep="4" :done="done"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
+    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <div>
       <h3>Situacions d'aprenentatge</h3>
       <show-table :data="this.syllabus.learningSituations" :columns="this.learningSituationsColumns">

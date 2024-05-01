@@ -185,9 +185,6 @@ export default {
                   <button @click="delRA(index)" class="btn btn-link" title="Eliminar">
                     <i class="bi bi-trash"></i>
                   </button>
-                  <button class="btn btn-link" title="Eliminar">
-                    <i class="bi bi-pencil"></i>
-                  </button>
                 </template>
               </lr-table>
               <p v-if="errors.ponderedLearningResults" class="error">

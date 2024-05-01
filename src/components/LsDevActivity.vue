@@ -258,9 +258,8 @@ export default {
           .reduce((total, item) => total + (item.hours || 0), 0)
         if (totActivHours + this.modalFields.hours > this.learningSituation.hours) {
           this.errors.hours =
-            "La suma d'hores de les activitats és major que les hores de la situació d'aprenentatge (" +
-            this.learningSituation.hours +
-            ' h.)'
+            "Te'n pases d'hores. La resta d'activitats ja sumen " + totActivHours + " de les " 
+            + this.learningSituation.hours + " hores de la situació d'aprenentatge"
         }
       }
       if (Object.keys(this.errors).length) return

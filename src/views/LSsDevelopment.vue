@@ -55,8 +55,8 @@ export default {
 
 <template>
   <main>
-    <app-breadcrumb :actualStep="6" :done="false"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
+    <app-breadcrumb :actualStep="6" :done="true"></app-breadcrumb>
+    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <p>Des d'ací pots desenvolupar cada situació d'aprenentatge.</p>
     <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
       <template v-slot="{ item }">

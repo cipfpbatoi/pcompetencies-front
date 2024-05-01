@@ -70,6 +70,10 @@ export const api = {
   getLearningSituationsBySyllabusId: (id) => instance.get(`/syllabus/${id}/learningSituations`),
   saveLearningSituationContents: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/didacticContents`, data),
+    saveSchedule: (id, data) =>
+    instance.post(`/syllabus/${id}/schedule`, data),
+  deleteSchedule: (id, shId) =>
+    instance.delete(`/syllabus/${id}/schedule/${shId}`),
 
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),

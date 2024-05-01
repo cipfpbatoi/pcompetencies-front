@@ -46,17 +46,23 @@ export default {
         },
         {
           number: 6,
-          title: 'Llistat de les S.A.',
+          title: 'Desenvolupar les S.A.',
           path: 'LSsDevelopment',
-          nextPath: 'LSDevelopment'
+          nextPath: 'SyllabusSchedule'
+        },
+        {
+          number: 6,
+          title: 'Desenvolupa la S.A.',
+          path: 'LSDevelopment',
+          nextPath: 'LSsDevelopment'
         },
         {
           number: 7,
-          title: 'Desenvolupa la S.A.',
-          path: 'LSDevelopment',
+          title: 'Temporalització',
+          path: 'SyllabusSchedule',
           nextPath: 'imprProp'
         },
-      ]
+            ]
     }
   }
 }

@@ -48,7 +48,7 @@ export default {
 
 <template>
   <div>
-    <p class="info" v-html="$route.query.message"></p>
+    <p class="mt-lg-5" v-html="$route.query.message"></p>
     <div class="col-md-5 mx-auto border p-3">
       <h2>Inicia sessió</h2>
       <form @submit.prevent="handleForm">

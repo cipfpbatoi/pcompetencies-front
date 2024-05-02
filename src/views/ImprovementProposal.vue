@@ -110,7 +110,7 @@ export default {
 
     <app-breadcrumb :actualStep="3" :done="done"></app-breadcrumb>
 
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
+    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <h3>Propostes de millora</h3>
     <div class="p-2">
       <div v-if="syllabus.improvementProposal">

@@ -64,7 +64,7 @@ export default {
 <template>
   <main>
     <app-breadcrumb :actualStep="5" :done="areAllLearningResultsInluded"></app-breadcrumb>
-    <h2 class="text-center m-3">{{ syllabus.module?.name }} ({{ syllabus.turn }})</h2>
+    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <div class="bg-success m-1">
       <p class="text-light p-2 text-justify" v-if="areAllLearningResultsInluded">
         <strong>OK!</strong> La programació inclou tots els resultats d'aprenentatge. Pots continuar al següent pas.

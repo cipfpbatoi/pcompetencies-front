@@ -6,6 +6,10 @@ export default {
       default: 0
     },
     done: Boolean,
+    back: {
+      type: Boolean,
+      default: false
+    },
     params: {
       type: Object,
       default: () => {}
@@ -51,18 +55,19 @@ export default {
           nextPath: 'SyllabusSchedule'
         },
         {
-          number: 6,
-          title: 'Desenvolupa la S.A.',
-          path: 'LSDevelopment',
-          nextPath: 'LSsDevelopment'
-        },
-        {
           number: 7,
           title: 'Temporalització',
           path: 'SyllabusSchedule',
+          nextPath: 'SyllabusQualify'
+        },
+        {
+          number: 8,
+          title: 'Qualificació',
+          path: 'SyllabusQualify',
           nextPath: 'imprProp'
         },
-            ]
+
+      ]
     }
   }
 }
@@ -81,7 +86,10 @@ export default {
       </template>
       <template v-if="actualStep < steps.length">
         <span> -> </span>
-        <button class="btn btn-light  btn-sm"
+        <button v-if="back" class="btn btn-light  btn-sm"
+        @click="$router.push({ name: steps[actualStep-1].path, params })" 
+        :disabled="!done">Tornar</button>
+        <button v-else class="btn btn-light  btn-sm"
         @click="$router.push({ name: steps[actualStep-1].nextPath, params })" 
         :disabled="!done">Següent</button>
       </template>

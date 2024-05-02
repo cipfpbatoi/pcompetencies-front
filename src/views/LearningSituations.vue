@@ -46,7 +46,14 @@ export default {
     ...mapState(useDataStore, ['syllabus', 'module', 'getLearningResultById']),
     done() {
       return !!this.syllabus.learningSituations?.length
-    }
+    },
+    totalHours() {
+      return this.syllabus.learningSituations.reduce((total, ls) => total + ls.hours,0)
+    },
+    totalRAWeight() {
+      return this.syllabus.learningSituations.reduce((total, ls) => total + ls.ponderedLearningResults
+      .reduce((sum,lr) => sum + lr.percentageWeight, 0) ,0)
+    },
   },
   data() {
     return {
@@ -122,7 +129,7 @@ export default {
     <div>
       <h3>Situacions d'aprenentatge</h3>
       <show-table :data="this.syllabus.learningSituations" :columns="this.learningSituationsColumns">
-        <template v-slot="{ item }">
+        <template #default="{ item }">
           <button
             @click="changeLSPosition(item, -1)"
             class="btn btn-secondary"
@@ -145,6 +152,11 @@ export default {
           <button @click="delUnit(item)" class="btn btn-secondary" title="Eliminar">
             <i class="bi bi-trash"></i>
           </button>
+        </template>
+        <template #footer>
+          <th colspan="2">TOTAL</th>
+          <th>{{ totalHours }}</th>
+          <th>{{ totalRAWeight }} %</th>
         </template>
       </show-table>
       <div class="text-center">

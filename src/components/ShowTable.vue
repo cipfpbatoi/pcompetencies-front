@@ -53,6 +53,7 @@ export default {
           </td>
         </tr>
       </tbody>
+      <tfoot><slot name="footer"></slot></tfoot>
     </table>
     <p v-else>No hi ha dades que mostrar</p>
   </div>

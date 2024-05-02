@@ -89,6 +89,7 @@ export const api = {
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),
   createSyllabus: (data) => instance.post('/syllabus', data),
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
+  getSyllabusMarlingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
 
   // Activities
   saveActivity: (lsId, type, data) =>

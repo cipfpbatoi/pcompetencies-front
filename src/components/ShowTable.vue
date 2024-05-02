@@ -44,7 +44,7 @@ export default {
           <td v-if="checkeable">
             <input type="checkbox" v-model="item.checked" />
           </td>
-          <td v-for="(col, tdIndex) in columns" :key="tdIndex">
+          <td v-for="(col, tdIndex) in columns" :key="tdIndex" :class="{ 'text-success': item.success }">
             <span v-if="col.html" v-html="item[col.value]"></span>
             <span v-else>{{ fieldContent(item, col) }}</span>
           </td>

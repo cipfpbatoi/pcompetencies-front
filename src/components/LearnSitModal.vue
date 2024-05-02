@@ -89,6 +89,10 @@ export default {
     delRA(index) {
         this.editedUnit.ponderedLearningResults.splice(index, 1)
     },
+    changeRAWeight(ra) {
+      const result = this.editedUnit.ponderedLearningResults.find(item => item.id === ra.id)
+      result.percentageWeight = ra.percentageWeight
+    },
     simplifyPLR() {
       this.editedUnit.ponderedLearningResults =
         this.editedUnit.ponderedLearningResults?.map((item) => {
@@ -174,7 +178,9 @@ export default {
             </div>
             <div>
               <label class="form-label p-2 fw-bold">Resultats d'Aprenentatge</label>
-              <lr-table :learningResults="formattedLearningResults" :percentageWeight="true">
+              <lr-table :learningResults="formattedLearningResults" 
+                percentageWeight="edit"
+                @changeWeigth="changeRAWeight">
                 <template v-slot="{ index }">
                   <button @click="delRA(index)" class="btn btn-link" title="Eliminar">
                     <i class="bi bi-trash"></i>

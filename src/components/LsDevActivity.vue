@@ -83,19 +83,6 @@ export default {
       }
       return columns
     },
-    learningResultsCheckeables() {
-      return this.learningSituation.ponderedLearningResults?.map((item) => {
-        return {
-          id: item.learningResult.id,
-          number: item.learningResult.number,
-          descriptor: item.learningResult.descriptor,
-          evaluationCriterias: makeCheckeableArray(
-            item.learningResult.evaluationCriterias,
-            this.modalFields.evaluationCriterias
-          )
-        }
-      })
-    },
     getActivityTitle() {
       return this.activityTypes.find((item) => item.type === this.type)?.title
     },
@@ -121,6 +108,7 @@ export default {
       editing: false,
       showActivityDetails: false,
       didacticContentsColumns,
+      learningResultsCheckeables: [],
       errors: {},
       activityTypes: [
         {
@@ -149,8 +137,8 @@ export default {
         markingTool: {}
       },
       modalTitle: '',
-            // CKEditor
-            editor: ClassicEditor,
+      // CKEditor
+      editor: ClassicEditor,
       editorConfig: {
         // The configuration of the editor.
       }
@@ -166,30 +154,33 @@ export default {
           .trim()
           .required('Has de posar una descripció de al menys 10 caracters')
           .min(10, 'Has de posar una descripció de al menys 10 caracters')
-      }).when((values, schema) => {
-        if (this.editing) {
-          return schema.shape({
-            position: yup
-              .number('La posició ha de ser un número positiu')
-              .required('La posició ha de ser un número positiu')
-              .min(1, 'La posició ha de ser un número positiu')
-          })
-        }
-      }).when((values, schema) => {
-        if (this.type === 'formative') {
-          return schema.shape({
-            hours: yup.number().required("Has d'indicar les hores de la activitat"),
-          })
-        }
-      }).when((values, schema) => {
-        if (this.type === 'marking') {
-          return schema.shape({
-            hours: yup.number().required("Has d'indicar les hores de la activitat"),
-            assessmentToolId: yup.number().required("Has d'indicar la tàcnica d'avaluació"),
-            markingToolId: yup.number().required("Has d'indicar l'instrument de qualificació"),
-          })
-        }
       })
+        .when((values, schema) => {
+          if (this.editing) {
+            return schema.shape({
+              position: yup
+                .number('La posició ha de ser un número positiu')
+                .required('La posició ha de ser un número positiu')
+                .min(1, 'La posició ha de ser un número positiu')
+            })
+          }
+        })
+        .when((values, schema) => {
+          if (this.type === 'formative') {
+            return schema.shape({
+              hours: yup.number().required("Has d'indicar les hores de la activitat")
+            })
+          }
+        })
+        .when((values, schema) => {
+          if (this.type === 'marking') {
+            return schema.shape({
+              hours: yup.number().required("Has d'indicar les hores de la activitat"),
+              assessmentToolId: yup.number().required("Has d'indicar la tàcnica d'avaluació"),
+              markingToolId: yup.number().required("Has d'indicar l'instrument de qualificació")
+            })
+          }
+        })
 
       return validationSchema
     },
@@ -198,18 +189,42 @@ export default {
       if (activity.id) {
         this.editing = true
         this.modalTitle = 'Editar activitat - ' + this.getActivityTitle
-        this.modalFields = { 
-          ...activity,
-          assessmentToolId: activity.assessmentTool?.id,
-          markingToolId: activity.markingTool?.id
+        this.modalFields = {
+          ...activity
+        }
+        if (this.type === 'marking') {
+          this.modalFields.assessmentToolId = activity.assessmentTool?.id
+          this.modalFields.markingToolId = activity.markingTool?.id
         }
       } else {
         this.editing = false
         this.modalTitle = 'Nova activitat - ' + this.getActivityTitle
-        this.modalFields = {
-          didacticContents: [],
-          evaluationCriterias: [],
+        this.modalFields = {}
+        if (this.type === 'marking') {
+          this.modalFields.didacticContents = []
+          this.modalFields.evaluationCriterias = []
         }
+      }
+      if (this.type === 'marking') {
+        const evaluationCriteriasUsed = this.learningSituation.activities
+        .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
+        .map((item) => item.evaluationCriterias.reduce((ecs, ec) => ecs.concat(ec.id),[]))[0] || []
+        this.learningResultsCheckeables =
+          this.learningSituation.ponderedLearningResults?.map((item) => {
+            return {
+              id: item.learningResult.id,
+              number: item.learningResult.number,
+              descriptor: item.learningResult.descriptor,
+              evaluationCriterias: makeCheckeableArray(
+                item.learningResult.evaluationCriterias
+                .map((item) => {
+                  return {
+                    ...item,
+                    success: evaluationCriteriasUsed.includes(item.id)
+                  }
+                }), this.modalFields.evaluationCriterias)
+            }
+          }) || []
       }
       this.GenericModal = new Modal(document.getElementById(`${this.type}Activities`))
       this.GenericModal.show()
@@ -220,28 +235,32 @@ export default {
       let didacticContentsIdsSelected = []
       if (this.type === 'formative') {
         didacticContentsIdsSelected = getObjectsIds(
-          this.didacticContents.filter((item) => item.checked))
+          this.didacticContents.filter((item) => item.checked)
+        )
         if (!didacticContentsIdsSelected.length) {
-          this.errors.didacticContents = "Has de marcar al menys 1 contingut"
+          this.errors.didacticContents = 'Has de marcar al menys 1 contingut'
         }
       }
       let evaluationCriteriasIdsSelected = []
       if (this.type === 'marking') {
-      evaluationCriteriasIdsSelected = this.learningResultsCheckeables
-      .reduce((ecIds, lr) => ecIds
-      .concat(getObjectsIds(lr.evaluationCriterias.filter((item) => item.checked))),
-        []
-      )
+        evaluationCriteriasIdsSelected = this.learningResultsCheckeables.reduce(
+          (ecIds, lr) =>
+            ecIds.concat(getObjectsIds(lr.evaluationCriterias.filter((item) => item.checked))),
+          []
+        )
         if (!evaluationCriteriasIdsSelected.length) {
           this.errors.evaluationCriterias = "Has de marcar al menys 1 criteri d'avaluació"
         }
       }
       if (['formative', 'marking'].includes(this.type)) {
         const totActivHours = this.learningSituation.activities
-        .filter(item => item.id != this.modalFields.id)
-        .reduce((total, item) => total + (item.hours || 0), 0)
-        if ((totActivHours + this.modalFields.hours) > this.learningSituation.hours) {
-          this.errors.hours = "La suma d'hores de les activitats és major que les hores de la situació d'aprenentatge (" + this.learningSituation.hours + " h.)"
+          .filter((item) => item.id != this.modalFields.id)
+          .reduce((total, item) => total + (item.hours || 0), 0)
+        if (totActivHours + this.modalFields.hours > this.learningSituation.hours) {
+          this.errors.hours =
+            "La suma d'hores de les activitats és major que les hores de la situació d'aprenentatge (" +
+            this.learningSituation.hours +
+            ' h.)'
         }
       }
       if (Object.keys(this.errors).length) return
@@ -347,8 +366,8 @@ export default {
           :columns="didacticContentsColumns"
         ></ShowTable>
         <div class="col-auto">
-            <span v-if="errors.didacticContents" class="error">{{ errors.didacticContents }}</span>
-          </div>
+          <span v-if="errors.didacticContents" class="error">{{ errors.didacticContents }}</span>
+        </div>
       </div>
       <div v-if="type === 'marking'">
         <div class="form-group row p-1">
@@ -397,7 +416,12 @@ export default {
     </ModalComponent>
     <show-table :data="activitiesOfType" :columns="activityColumns">
       <template v-slot="{ item, index }">
-        <button v-if="type === 'marking'" @click="showActivityDetails = item" class="btn btn-secondary" title="Veure">
+        <button
+          v-if="type === 'marking'"
+          @click="showActivityDetails = item"
+          class="btn btn-secondary"
+          title="Veure"
+        >
           <i class="bi bi-eye"></i>
         </button>
         <button @click="showModal(item)" class="btn btn-secondary" title="Editar">

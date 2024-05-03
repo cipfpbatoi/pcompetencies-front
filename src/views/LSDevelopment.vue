@@ -165,7 +165,7 @@ export default {
 
 <template>
   <main>
-    <app-breadcrumb :actualStep="6" :done="false" :params="{ lsId }"></app-breadcrumb>
+    <app-breadcrumb :actualStep="6" :done="true" :back="true"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }}</h3>
 

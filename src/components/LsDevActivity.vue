@@ -62,8 +62,19 @@ export default {
     LrTable,
     ModalComponent
   },
+  async mounted() {
+    if (this.type === 'marking') {
+      try {
+        const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
+        this.syllabusMarkingActivities = response.data
+        .filter((item) => item.learningSituation.id != this.learningSituation.id)
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    }
+  },
   computed: {
-    ...mapState(useDataStore, ['module', 'activitiesData']),
+    ...mapState(useDataStore, ['syllabus', 'module', 'activitiesData']),
     activityColumns() {
       const columns = [...activityBaseColumns]
       if (this.type === 'formative') {
@@ -101,6 +112,14 @@ export default {
         this.learningSituation.didacticContents,
         this.modalFields.didacticContents
       )
+    },
+    evaluationCriteriasUsedInOtherLS() {
+      if (this.type !== 'marking') return
+      return this.syllabusMarkingActivities
+      .filter((item) => item.id != this.learningSituation.id)
+      .reduce((totEcs, activity) => totEcs
+      .concat(activity.evaluationCriterias
+      .reduce((ecs, ec) => ecs.concat(ec.id),[])), [])
     }
   },
   data() {
@@ -109,6 +128,7 @@ export default {
       showActivityDetails: false,
       didacticContentsColumns,
       learningResultsCheckeables: [],
+      syllabusMarkingActivities: [],
       errors: {},
       activityTypes: [
         {
@@ -206,9 +226,12 @@ export default {
         }
       }
       if (this.type === 'marking') {
-        const evaluationCriteriasUsed = this.learningSituation.activities
+        const evaluationCriteriasUsedInThisLS = this.learningSituation.activities
         .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
         .map((item) => item.evaluationCriterias.reduce((ecs, ec) => ecs.concat(ec.id),[]))[0] || []
+        const evaluationCriteriasUsed = Array.from(new Set(
+          evaluationCriteriasUsedInThisLS.concat(this.evaluationCriteriasUsedInOtherLS)
+        ))
         this.learningResultsCheckeables =
           this.learningSituation.ponderedLearningResults?.map((item) => {
             return {

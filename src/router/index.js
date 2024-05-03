@@ -8,6 +8,7 @@ import LoginView from '../views/LoginView.vue'
 import ImprovementProposal from '../views/ImprovementProposal.vue'
 import ContextSyllabus from '../views/ContextSyllabus.vue'
 import SyllabusSchedule from '../views/SyllabusSchedule.vue'
+import SyllabusQualify from '../views/SyllabusQualify.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -64,6 +65,12 @@ const router = createRouter({
       path: '/schedule',
       name: 'SyllabusSchedule',
       component: SyllabusSchedule,
+      meta: { requiresAuth: true }
+    },   
+    {
+      path: '/qualify',
+      name: 'SyllabusQualify',
+      component: SyllabusQualify,
       meta: { requiresAuth: true }
     },   
     {

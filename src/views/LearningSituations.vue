@@ -1,11 +1,26 @@
 <script>
 import { Modal } from 'bootstrap'
+import ModalComponent from '../components/ModalComponent.vue'
 import LearnSitModal from '../components/LearnSitModal.vue'
 import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import LrTable from '../components/LrTable.vue'
 import ShowTable from '../components/ShowTable.vue'
 import AppBreadcrumb from '../components/AppBreadcrumb.vue'
+import { api } from '@/repositories/api'
+import * as yup from 'yup'
+import { object } from 'yup'
+import { validateFormErrors } from '../utils/utils.js'
+
+const validationSchema = object({
+  name: yup.string().trim().required('Has de posar el nom'),
+  description: yup.string().trim().required('Has de posar una descripció del bloc'),
+  position: yup
+    .number()
+    .required("Has d'indicar la posició")
+    .min(1, 'La posició no pot ser menor que 1'),
+  learningResults: yup.array()
+})
 
 const learningSituationsColumns = [
   {
@@ -34,18 +49,47 @@ const learningSituationsColumns = [
     param: 'ponderedLearningResults'
   }
 ]
-
+const instructionalUnitsColumns = [
+  {
+    title: 'Bloc',
+    value: 'position'
+  },
+  {
+    title: 'Nom',
+    value: 'name'
+  },
+  {
+    title: 'Descripció',
+    value: 'description'
+  },
+  {
+    title: 'S.A.',
+    func: (x) => x ? x.join(', ') : 'Cap',
+    param: 'learningSituations'
+  }
+]
 export default {
   components: {
     AppBreadcrumb,
     LrTable,
     ShowTable,
-    LearnSitModal
+    LearnSitModal,
+    ModalComponent
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module', 'getLearningResultById']),
     done() {
       return !!this.syllabus.learningSituations?.length
+    },
+    totalHours() {
+      return this.syllabus.learningSituations.reduce((total, ls) => total + ls.hours, 0)
+    },
+    totalRAWeight() {
+      return this.syllabus.learningSituations.reduce(
+        (total, ls) =>
+          total + ls.ponderedLearningResults.reduce((sum, lr) => sum + lr.percentageWeight, 0),
+        0
+      )
     }
   },
   data() {
@@ -53,17 +97,75 @@ export default {
       LearnSitModal: null,
       modalData: { ponderedLearningResults: [] },
       learningSituationsColumns,
+      instructionalUnitsColumns,
+      // Modal generic
+      GenericModal: null,
+      modalId: '',
+      modalFields: {},
+      modalTitle: '',
+      errors: {},
+      validationSchema
     }
   },
   mounted() {
     if (!this.syllabus.id) {
       this.$router.push('/')
     }
+    this.GenericModal = new Modal(document.getElementById('iUnitModal'))
     this.LearnSitModal = new Modal(document.getElementById('unitMmodalComp'))
   },
   methods: {
-    ...mapActions(useDataStore, ['saveLearningSituation', 'deleteLearningSituation']),
-    showModal(unit) {
+    ...mapActions(useDataStore, ['addMessage', 'saveLearningSituation', 'deleteLearningSituation']),
+    showModal(iUnit) {
+      this.errors = {}
+      if (iUnit) {
+        this.modalFields = {
+          ...iUnit,
+          iUnitId: iUnit.id
+        }
+        this.modalTitle = 'Editar el bloc ' + iUnit.name
+      } else {
+        this.modalTitle = 'Nou bloc'
+        this.modalFields = {
+          position:
+            this.syllabus.instructionalUnits.reduce((max, iu) => Math.max(max, iu.position), 0) + 1,
+          learningSituations: []
+        }
+      }
+      this.GenericModal.show()
+    },
+    async saveIUnit() {
+      this.errors = await validateFormErrors(validationSchema, this.modalFields)
+      if (Object.keys(this.errors).length) return
+
+      try {
+        const response = await api.saveSyllabusInstructionalUnit(this.syllabus.id, this.modalFields)
+        if (this.modalFields.iUnitId) {
+          const index = this.syllabus.instructionalUnits.findIndex(
+            (item) => item.id === response.id
+          )
+          this.syllabus.instructionalUnits.splice(index, 1, response.data)
+        } else {
+          this.syllabus.instructionalUnits.push(response.data)
+        }
+        this.modalFields = {}
+        this.GenericModal.hide()
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    async deleteIUnit(iUnit) {
+      if (confirm('Vas a esborrar el bloc ' + iUnit.name)) {
+        try {
+          await api.deleteSyllabusInstructionalUnit(this.syllabus.id, iUnit.id)
+          const index = this.syllabus.instructionalUnits.findIndex((item) => item.id === iUnit.id)
+          this.syllabus.instructionalUnits.splice(index, 1)
+        } catch (error) {
+          this.addMessage('error', error)
+        }
+      }
+    },
+    showLSModal(unit) {
       if (unit) {
         this.modalData = unit
       } else {
@@ -71,7 +173,7 @@ export default {
       }
       this.LearnSitModal.show()
     },
-    hideModal() {
+    hideLSModal() {
       this.LearnSitModal.hide()
     },
     delUnit(unit) {
@@ -89,25 +191,30 @@ export default {
       return pLRs.map((item) => {
         return {
           learningResultId: item.learningResult.id,
-          percentageWeight: item.percentageWeight,
+          percentageWeight: item.percentageWeight
         }
       })
     },
     changeLSPosition(learningSituation, positionStep) {
-      const learningSituationToSwap = this.syllabus.learningSituations
-      .find((item) => item.position === learningSituation.position + positionStep)
+      const learningSituationToSwap = this.syllabus.learningSituations.find(
+        (item) => item.position === learningSituation.position + positionStep
+      )
       if (learningSituationToSwap) {
         this.saveLearningSituation({
           ...learningSituationToSwap,
           position: learningSituation.position,
-          ponderedLearningResults: this.simplifyPonderedLearningResults(learningSituationToSwap.ponderedLearningResults)
+          ponderedLearningResults: this.simplifyPonderedLearningResults(
+            learningSituationToSwap.ponderedLearningResults
+          )
         })
         learningSituationToSwap.position = learningSituation.position
       }
       this.saveLearningSituation({
         ...learningSituation,
         position: learningSituation.position + positionStep,
-        ponderedLearningResults: this.simplifyPonderedLearningResults(learningSituation.ponderedLearningResults)
+        ponderedLearningResults: this.simplifyPonderedLearningResults(
+          learningSituation.ponderedLearningResults
+        )
       })
       learningSituation.position = learningSituation.position + positionStep
     }
@@ -117,12 +224,48 @@ export default {
 
 <template>
   <main>
+    <ModalComponent @save="saveIUnit" :title="modalTitle" id="iUnitModal">
+      <div class="input-group mb-3">
+        <span class="input-group-text">Posició:</span>
+        <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
+        <span v-if="errors.position" class="input-group-text text-danger">{{
+          errors.position
+        }}</span>
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text">Nom:</span>
+        <input type="text" class="form-control" v-model="modalFields.name" />
+        <span v-if="errors.name" class="input-group-text text-danger">{{ errors.name }}</span>
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text">Descripció:</span>
+        <textarea class="form-control" v-model="modalFields.description"></textarea>
+        <span v-if="errors.description" class="input-group-text text-danger">{{
+          errors.description
+        }}</span>
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text">Situacions d'aprenentatge:</span>
+        <select class="form-select" multiple v-model="modalFields.learningSituations">
+          <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
+            {{ ls.title }}
+          </option>
+        </select>
+        <p><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
+        <span v-if="errors.learningSituations" class="input-group-text text-danger">{{
+          errors.learningSituations
+        }}</span>
+      </div>
+    </ModalComponent>
     <app-breadcrumb :actualStep="4" :done="done"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <div>
       <h3>Situacions d'aprenentatge</h3>
-      <show-table :data="this.syllabus.learningSituations" :columns="this.learningSituationsColumns">
-        <template v-slot="{ item }">
+      <show-table
+        :data="this.syllabus.learningSituations"
+        :columns="this.learningSituationsColumns"
+      >
+        <template #default="{ item }">
           <button
             @click="changeLSPosition(item, -1)"
             class="btn btn-secondary"
@@ -139,26 +282,48 @@ export default {
           >
             <i class="bi bi-arrow-down"></i>
           </button>
-          <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+          <button @click="showLSModal(item)" class="btn btn-secondary" title="Editar">
             <i class="bi bi-pencil"></i>
           </button>
           <button @click="delUnit(item)" class="btn btn-secondary" title="Eliminar">
             <i class="bi bi-trash"></i>
           </button>
         </template>
+        <template #footer>
+          <th colspan="2">TOTAL</th>
+          <th>{{ totalHours }}</th>
+          <th>{{ totalRAWeight }} %</th>
+        </template>
       </show-table>
       <div class="text-center">
-        <button class="btn btn-success" @click="showModal()">
-          Afegir Unitat
+        <button class="btn btn-success" @click="showLSModal()">
+          Afegir Situació d'Aprenentatge
         </button>
       </div>
-      <LearnSitModal @saved="hideModal" :unit="modalData"></LearnSitModal>
+
+      <h3>Blocs formatius</h3>
+      <show-table
+        :data="this.syllabus.instructionalUnits"
+        :columns="this.instructionalUnitsColumns"
+      >
+        <template #default="{ item }">
+          <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button @click="deleteIUnit(item)" class="btn btn-secondary" title="Eliminar">
+            <i class="bi bi-trash"></i>
+          </button>
+        </template>
+      </show-table>
+      <div class="text-center">
+        <button class="btn btn-success" @click="showModal()">Afegir Bloc</button>
+      </div>
+      <LearnSitModal @saved="hideLSModal" :unit="modalData"></LearnSitModal>
     </div>
     <br />
     <div class="border bg-light p-2">
       <h3>Resultats d'aprenentatge</h3>
       <Lr-Table :learningResults="module.learningResults"></Lr-Table>
     </div>
-
   </main>
 </template>

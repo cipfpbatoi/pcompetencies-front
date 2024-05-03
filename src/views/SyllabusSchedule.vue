@@ -113,7 +113,7 @@ export default {
         }
         const response = await api.saveSchedule(this.syllabus.id, data)
         this.GenericModal.hide()
-        if (this.modalFields.scheduleId) {
+        if (this.modalFields.id) {
           const index = this.syllabus.schedules.findIndex((item) => item.id === response.data.id)
           this.syllabus.schedules.splice(index, 1, response.data)
         } else {

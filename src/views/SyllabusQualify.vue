@@ -2,7 +2,7 @@
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import ShowTable from '@/components/ShowTable.vue'
-import { mapState } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
@@ -10,9 +10,9 @@ import { api } from '@/repositories/api'
 const activityColumns = [
   {
     title: 'R.A.',
-    func: (x) =>
-      Object.keys(x).reduce((tot, ra) => tot + ra + ' ' + x[ra].percentageWeight + '% - ', ''),
-    param: 'RA'
+    func: (x) => x.map((ra) => `RA${ra.number} (${ra.percentageWeight}%)`).join('<br>'),
+    param: 'ras',
+    html: true
   },
   {
     title: 'Codi',
@@ -20,16 +20,13 @@ const activityColumns = [
   },
   {
     title: "Criteri d'avaluació a utilitzar",
-    func: (x) =>
-      Object.keys(x).reduce(
-        (tot, ra) => tot + ra + ' ' + x[ra].evaluationCriterias.join(', ') + ' - ',
-        ''
-      ),
-    param: 'RA'
+    func: (x) => x.map((ra) => `RA${ra.number} ` + ra.ecs.map(ec => ec.code).join(', ')).join('<br>'),
+    param: 'ras',
+    html: true
   },
   {
     title: 'SA (%)',
-    func: (x) => x.toFixed(2) + '%',
+    func: (x) => x + ' %',
     param: 'percentageWeight'
   },
   {
@@ -49,7 +46,47 @@ export default {
     ModalComponent
   },
   computed: {
-    ...mapState(useDataStore, ['syllabus'])
+    ...mapState(useDataStore, ['syllabus']),
+    learningSituationsToShow() {
+      if (!this.syllabus.learningSituations
+      || !this.sylMarkingActivities.length) return []
+      const learningSituations = []
+      this.syllabus.learningSituations.forEach((ls) => {
+        const learningSituation = {
+          id: ls.id,
+          position: ls.position,
+          hours: ls.hours,
+          title: ls.title
+        }
+        const activities = this.sylMarkingActivities.filter(
+          (item) => item.learningSituation.id === ls.id
+        )
+        learningSituation.activities = activities.map((item) => {
+          return {
+            id: item.id,
+            code: item.code,
+            positiom: item.position,
+            hours: item.hours,
+            percentageWeight: item.percentageWeight,
+            fundamental: item.fundamental,
+            ecs: this.getRAData(item),
+            ras: ls.ponderedLearningResults.map((lr) => {
+              return {
+                id: lr.learningResult.id,
+                percentageWeight: lr.percentageWeight,
+                number: lr.learningResult.number,
+                ecs: item.evaluationCriterias
+                .filter(ec => ec.learningResult.id === lr.learningResult.id)
+              }
+            })
+          }
+        })
+        learningSituation.totalPercentageWeight = learningSituation.activities.reduce(
+          (total, act) => total + act.percentageWeight, 0)
+        learningSituations.push(learningSituation)
+      })
+      return learningSituations
+    }
   },
   async mounted() {
     if (!this.syllabus.id) {
@@ -59,6 +96,7 @@ export default {
     try {
       const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
       this.sylMarkingActivities = response.data
+      // this.generatesylMarkingActivitiesToShow(response.data)
     } catch (error) {
       this.addMessage('error', error)
     }
@@ -68,6 +106,7 @@ export default {
       itemToModify: '',
       activityColumns,
       sylMarkingActivities: [],
+      sylMarkingActivitiesToShow: [],
       errors: {},
       // Modal generic
       GenericModal: null,
@@ -77,8 +116,9 @@ export default {
     }
   },
   methods: {
+    ...mapActions(useDataStore, ['addMessage']),
     showModal(activity) {
-      this.modalFields.activity = {
+      this.modalFields = {
         activityId: activity.id,
         percentageWeight: activity.percentageWeight,
         fundamental: activity.fundamental
@@ -109,8 +149,19 @@ export default {
       })
       return data
     },
-    saveActivity() {
-      this.GenericModal.hide()
+    async saveActivity() {
+      // Comprovacions
+      try {
+        const response = await api.saveSyllabusMarlingActivities(this.syllabus.id, {
+          activities: [this.modalFields]
+        })
+        const index = this.sylMarkingActivities.findIndex((item) => item.id === response.data[0].id)
+        this.sylMarkingActivities.splice(index, 1, response.data[0])
+        this.modalFields = {}
+        this.GenericModal.hide()
+      } catch (error) {
+        this.addMessage('error', error)
+      }
     }
   }
 }
@@ -120,15 +171,19 @@ export default {
   <main>
     <ModalComponent @save="saveActivity" :title="modalTitle" id="activityModal">
       <div class="input-group mb-3">
-  <span class="input-group-text">Pes:</span>
-  <input type="number"
+        <span class="input-group-text">Pes:</span>
+        <input
+          type="number"
           size="3"
           min="0"
           max="100"
           class="form-control"
           v-model="modalFields.percentageWeight"
-        /> %
-        <span v-if="errors.percentageWeight" class="input-group-text text-danger">{{ errors.percentageWeight }}</span>
+        />
+        %
+        <span v-if="errors.percentageWeight" class="input-group-text text-danger">{{
+          errors.percentageWeight
+        }}</span>
       </div>
       <div class="form-check">
         <input class="form-check-input" type="checkbox" v-model="modalFields.fundamental" />
@@ -138,23 +193,28 @@ export default {
         <p v-if="errors.fundamental" class="error">{{ errors.fundamental }}</p>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="6" :done="true"></app-breadcrumb>
+    <app-breadcrumb :actualStep="8" :done="true"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <h3>Qualificació</h3>
     <table>
       <tbody>
-        <template v-for="ls in syllabus.learningSituations" :key="ls.id">
+        <template v-for="ls in learningSituationsToShow" :key="ls.id">
           <tr>
             <th colspan="6">
-              <h4>S.A. {{ ls.position }}: {{ ls.title }}</h4>
+              <h4 class="bg-secondary text-white">S.A. {{ ls.position }}: {{ ls.title }}</h4>
             </th>
           </tr>
           <tr class="border">
-            <show-table :columns="activityColumns" :data="getActivitiesByLs(ls.id)">
-              <template v-slot="{ item }">
+            <show-table :columns="activityColumns" :data="ls?.activities">
+              <template #default="{ item }">
                 <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
                   <i class="bi bi-pencil"></i>
                 </button>
+              </template>
+              <template #footer>
+                <th colspan="3">TOTAL</th>
+                <th>{{ ls.totalPercentageWeight }} %</th>
+                <th> %</th>
               </template>
             </show-table>
           </tr>

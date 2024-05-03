@@ -90,6 +90,9 @@ export const api = {
   createSyllabus: (data) => instance.post('/syllabus', data),
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
   getSyllabusMarlingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
+  saveSyllabusMarlingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
+  saveSyllabusInstructionalUnit: (id, data) => instance.post(`/syllabus/${id}/instructionalUnit`, data),
+  deleteSyllabusInstructionalUnit: (id, iUId) => instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
 
   // Activities
   saveActivity: (lsId, type, data) =>

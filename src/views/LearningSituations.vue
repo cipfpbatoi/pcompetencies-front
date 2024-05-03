@@ -119,9 +119,11 @@ export default {
     showModal(iUnit) {
       this.errors = {}
       if (iUnit) {
+        let iUnitId = iUnit.id;
+        delete iUnit.id;
         this.modalFields = {
           ...iUnit,
-          iUnitId: iUnit.id
+          iUnitId: iUnitId
         }
         this.modalTitle = 'Editar el bloc ' + iUnit.name
       } else {

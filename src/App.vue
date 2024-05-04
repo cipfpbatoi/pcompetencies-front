@@ -22,11 +22,11 @@ export default {
 
 <template>
 
-  <div class="container">
-    <header class="input-group mt-3 justify-content-center container-fluid border-top border-dark">
+  <div class="container-fluid h-100 px-lg-5">
+    <header class="input-group mt-3 justify-content-center container-fluid">
       <img alt="CIP FP Batoi logo" class="logo m-lg-2 mx-auto" src="/batoi_logo.png" height="100px" />
       <div class="m-2 col-10">
-        <h1 class="text-lg-end">Programacions per competències</h1>
+        <h1 class="text-xl-end">Programacions per competències</h1>
         <div class="wrapper navbar-expand">
           <AppNav />
         </div>

@@ -86,47 +86,47 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow" style="min-height: 800px">
     <app-breadcrumb :actualStep="1" :done="done"></app-breadcrumb>
-    <div class="p-2">
-      <label>Ciclo</label>
-      <select
-        v-model="cycleSelect"
-        @change="getModules"
-        class="form-select"
-        aria-label="Selecciona cycleSelect"
-      >
-        <option value="">-- Selecciona ciclo --</option>
-        <option v-for="cycleSelect in cycles" :key="cycleSelect.id" :value="cycleSelect.id">
-          {{ cycleSelect.completeName }}
-        </option>
-      </select>
-    </div>
-    <div v-if="cycleSelect">
-      <label>Mòdul</label>
-      <select
-        v-model="moduleSelect"
-        @change="getSyllabuses"
-        class="form-select"
-        aria-label="Default select example"
-      >
-        <option value="">-- Selecciona mòdul --</option>
-        <option v-for="module in cycle.modules" :key="module.code" :value="module.code">
-          {{ module.name }}
-        </option>
-      </select>
-    </div>
-    <br />
-    <div v-if="moduleSelect">
-      <h3>Torns</h3>
-      <ul>
-        <li v-for="(turn, index) in cycle.availableTurns" :key="index">
-          {{ (turn == 'presential') ? 'Presencial' : 'Semi-presencial' }}:
-          <button @click="getSyl(turn)" class="btn btn-primary">
-            {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}
-          </button>
-        </li>
-      </ul>
+    <div class="container-fluid px-lg-4" >
+      <div class="form-group">
+        <label class="form-label fw-bold">Ciclo</label>
+        <select
+          v-model="cycleSelect"
+          @change="getModules"
+          class="form-select form-control"
+          aria-label="Selecciona cycleSelect">
+          <option value="">-- Selecciona ciclo --</option>
+          <option v-for="cycleSelect in cycles" :key="cycleSelect.id" :value="cycleSelect.id">
+            {{ cycleSelect.completeName }}
+          </option>
+        </select>
+      </div>
+      <div v-if="cycleSelect" class="form-group fw-bold mt-3">
+        <label>Mòdul</label>
+        <select
+          v-model="moduleSelect"
+          @change="getSyllabuses"
+          class="form-select form-control"
+          aria-label="Default select example">
+          <option value="">-- Selecciona mòdul --</option>
+          <option v-for="module in cycle.modules" :key="module.code" :value="module.code">
+            {{ module.name }}
+          </option>
+        </select>
+      </div>
+      <br />
+      <div v-if="moduleSelect" class="form-group">
+        <h3>Torns</h3>
+        <ul>
+          <li v-for="(turn, index) in cycle.availableTurns" :key="index">
+            {{ (turn == 'presential') ? 'Presencial' : 'Semi-presencial' }}:
+            <button @click="getSyl(turn)" class="btn btn-primary">
+              {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </main>
 </template>

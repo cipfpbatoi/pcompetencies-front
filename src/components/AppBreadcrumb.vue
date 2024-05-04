@@ -74,10 +74,10 @@ export default {
 </script>
 
 <template>
-    <div class="bg-info-subtle text-white p-1 px-3 mb-3 border-top border-bottom border-2 border-primary text-dark shadow">
+    <div class="bg-primary-subtle text-white p-1 px-3 mb-3 border-top border-bottom border-2 border-primary text-dark shadow">
       <template v-for="step in steps" :key="step.number">
         <span v-if="step.number > 1 && step.number <= actualStep"> -> </span>
-        <button class="btn btn-secondary"
+        <button class="btn btn-primary"
           v-if="step.number < actualStep"
           :title="step.title"
           @click="$router.push({name: step.path, params})"
@@ -87,7 +87,7 @@ export default {
       <template v-if="actualStep < steps.length">
         <span> -> </span>
         <button v-if="back" class="btn btn-success" @click="$router.push({ name: steps[actualStep-1].path, params })" :disabled="!done">Tornar</button>
-        <button v-else class="btn btn-light  btn-sm" @click="$router.push({ name: steps[actualStep-1].nextPath, params })" :disabled="!done">Següent</button>
+        <button v-else class="btn btn-success" @click="$router.push({ name: steps[actualStep-1].nextPath, params })" :disabled="!done">Següent</button>
       </template>
     </div>
 </template>

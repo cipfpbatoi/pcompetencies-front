@@ -86,7 +86,7 @@ export default {
 </script>
 
 <template>
-  <main class="border shadow" style="min-height: 800px">
+  <main class="border shadow view-main">
     <app-breadcrumb :actualStep="1" :done="done"></app-breadcrumb>
     <div class="container-fluid px-lg-4" >
       <div class="form-group">

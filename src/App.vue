@@ -56,4 +56,8 @@ header {
 .input-group {
   padding: 10px 10px;
 }
+
+.view-main {
+  min-height: 500px;
+}
 </style>

@@ -129,7 +129,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <ModalComponent @save="saveData" :title="modalTitle" modalId="scheduleModal">
       <div class="row g-3 align-items-center">
         <div class="col-auto">
@@ -163,35 +163,36 @@ export default {
     </ModalComponent>
 
     <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
-
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <h3>Temporalització</h3>
-    <div class="row">
-      <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2">
-        <h4>
-          Grup {{ schedule.nameGroup }}
-          <button @click="showModal(schedule)" class="btn btn-secondary" title="Editar">
-            <i class="bi bi-pencil"></i>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <h3>Temporalització</h3>
+      <div class="row">
+        <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2">
+          <h4>
+            Grup {{ schedule.nameGroup }}
+            <button @click="showModal(schedule)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button @click="delSchedule(schedule)" class="btn btn-secondary" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </h4>
+          <table class="table table-striped">
+            <thead>
+            <th v-for="(entry, index) in schedule.entries" :key="index">
+              {{ DAYS_NAME[entry.day - 1] }}
+            </th>
+            </thead>
+            <tbody>
+            <td v-for="(entry, index) in schedule.entries" :key="index">{{ entry.hours }} h.</td>
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center">
+          <button @click="showModal()" class="btn btn-success mt-2 mx-auto" title="Establir objectiu">
+            Afegir temporalització d'un nou grup
           </button>
-          <button @click="delSchedule(schedule)" class="btn btn-secondary" title="Eliminar">
-            <i class="bi bi-trash"></i>
-          </button>
-        </h4>
-        <table class="table table-striped">
-          <thead>
-          <th v-for="(entry, index) in schedule.entries" :key="index">
-            {{ DAYS_NAME[entry.day - 1] }}
-          </th>
-          </thead>
-          <tbody>
-          <td v-for="(entry, index) in schedule.entries" :key="index">{{ entry.hours }} h.</td>
-          </tbody>
-        </table>
-      </div>
-      <div class="text-center">
-        <button @click="showModal()" class="btn btn-success mt-2 mx-auto" title="Establir objectiu">
-          Afegir temporalització d'un nou grup
-        </button>
+        </div>
       </div>
     </div>
   </main>

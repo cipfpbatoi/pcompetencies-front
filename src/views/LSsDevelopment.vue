@@ -54,17 +54,19 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <app-breadcrumb :actualStep="6" :done="true"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <p>Des d'ací pots desenvolupar cada situació d'aprenentatge.</p>
-    <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
-      <template v-slot="{ item }">
-        <button type="button"
-          @click="$router.push({ name: 'LSDevelopment', params: { lsId: item.id } })"
-          class="btn btn-secondary"
-        >Desenvolupar</button>
-      </template>
-    </show-table>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <p>Des d'ací pots desenvolupar cada situació d'aprenentatge.</p>
+      <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
+        <template v-slot="{ item }">
+          <button type="button"
+                  @click="$router.push({ name: 'LSDevelopment', params: { lsId: item.id } })"
+                  class="btn btn-secondary"
+          >Desenvolupar</button>
+        </template>
+      </show-table>
+    </div>
   </main>
 </template>

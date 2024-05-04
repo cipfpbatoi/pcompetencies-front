@@ -97,7 +97,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <ModalComponent @save="saveData" title="Característiques del grup-classe">
       <div class="row">
         <ckeditor
@@ -108,41 +108,42 @@ export default {
         <p v-if="errors.groupContext" class="error">{{ errors.groupContext }}</p>
       </div>
     </ModalComponent>
-
     <app-breadcrumb :actualStep="2" :done="done"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <h3>Contextualització</h3>
-    <h4>Característiques del Centre i l'entorn</h4>
-    <p class="bordered" v-html="centerContextualization"></p>
-    <span
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <h3>Contextualització</h3>
+      <h4>Característiques del Centre i l'entorn</h4>
+      <p class="bordered" v-html="centerContextualization"></p>
+      <span
       ><button @click="toogleShowAll('center')" class="btn btn-link">
         Mostrar {{ showAll.center ? 'menys' : 'tot' }}
       </button></span
-    >
-    <h4>Característiques de l'alumnat</h4>
-    <p
-      class="bordered"
-      v-if="syllabus.cycleCenterContext?.studentsProfile"
-      v-html="cycleContextualization"
-    ></p>
-    <p class="bordered text-danger" v-else>
-      El departament ha d'establir una contextualització per al cicle
-    </p>
-    <span
+      >
+      <h4>Característiques de l'alumnat</h4>
+      <p
+        class="bordered"
+        v-if="syllabus.cycleCenterContext?.studentsProfile"
+        v-html="cycleContextualization"
+      ></p>
+      <p class="bordered text-danger" v-else>
+        El departament ha d'establir una contextualització per al cicle
+      </p>
+      <span
       ><button @click="toogleShowAll('cycle')" class="btn btn-link">
         Mostrar {{ showAll.cycle ? 'menys' : 'tot' }}
       </button></span
-    >
-    <h4>Característiques del grup-classe</h4>
-    <p class="bordered" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
-    <p class="bordered text-secondary fst-italic" v-else>
-      Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles
-      dificultats amb l'idioma,...)
-    </p>
-    <div class="p-3 text-center">
-      <button @click="showModal()" class="btn btn-success" title="Establir objectiu">
-        Afegir/Modificar característiques del grup-classe
-      </button>
+      >
+      <h4>Característiques del grup-classe</h4>
+      <p class="bordered" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
+      <p class="bordered text-secondary fst-italic" v-else>
+        Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles
+        dificultats amb l'idioma,...)
+      </p>
+      <div class="p-3 text-center">
+        <button @click="showModal()" class="btn btn-success" title="Establir objectiu">
+          Afegir/Modificar característiques del grup-classe
+        </button>
+      </div>
     </div>
   </main>
 </template>

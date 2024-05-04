@@ -182,8 +182,8 @@ export default {
       if (
         confirm(
           'ATENCIÓ: Vas a esborrar la unitat "' +
-            unit.title +
-            '". Aquest procés NO es por des-fer !!!'
+          unit.title +
+          '". Aquest procés NO es por des-fer !!!'
         )
       ) {
         this.deleteLearningSituation(unit.id)
@@ -225,14 +225,14 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <ModalComponent @save="saveIUnit" :title="modalTitle" id="iUnitModal">
       <div class="input-group mb-3">
         <span class="input-group-text">Posició:</span>
         <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
         <span v-if="errors.position" class="input-group-text text-danger">{{
-          errors.position
-        }}</span>
+            errors.position
+          }}</span>
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text">Nom:</span>
@@ -243,8 +243,8 @@ export default {
         <span class="input-group-text">Descripció:</span>
         <textarea class="form-control" v-model="modalFields.description"></textarea>
         <span v-if="errors.description" class="input-group-text text-danger">{{
-          errors.description
-        }}</span>
+            errors.description
+          }}</span>
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text">Situacions d'aprenentatge:</span>
@@ -255,77 +255,79 @@ export default {
         </select>
         <p><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
         <span v-if="errors.learningSituations" class="input-group-text text-danger">{{
-          errors.learningSituations
-        }}</span>
+            errors.learningSituations
+          }}</span>
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="4" :done="done"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <div>
-      <h3>Situacions d'aprenentatge</h3>
-      <show-table
-        :data="this.syllabus.learningSituations"
-        :columns="this.learningSituationsColumns"
-      >
-        <template #default="{ item }">
-          <button
-            @click="changeLSPosition(item, -1)"
-            class="btn btn-secondary"
-            title="Pujar"
-            :disabled="item.position <= 1"
-          >
-            <i class="bi bi-arrow-up"></i>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <div>
+        <h3>Situacions d'aprenentatge</h3>
+        <show-table
+          :data="this.syllabus.learningSituations"
+          :columns="this.learningSituationsColumns"
+        >
+          <template #default="{ item }">
+            <button
+              @click="changeLSPosition(item, -1)"
+              class="btn btn-secondary"
+              title="Pujar"
+              :disabled="item.position <= 1"
+            >
+              <i class="bi bi-arrow-up"></i>
+            </button>
+            <button
+              :disabled="item.position >= syllabus.learningSituations.length"
+              @click="changeLSPosition(item, 1)"
+              class="btn btn-secondary"
+              title="Baixar"
+            >
+              <i class="bi bi-arrow-down"></i>
+            </button>
+            <button @click="showLSModal(item)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button @click="delUnit(item)" class="btn btn-secondary" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </template>
+          <template #footer>
+            <th colspan="2">TOTAL</th>
+            <th>{{ totalHours }}</th>
+            <th>{{ totalRAWeight }} %</th>
+          </template>
+        </show-table>
+        <div class="text-center">
+          <button class="btn btn-success" @click="showLSModal()">
+            Afegir Situació d'Aprenentatge
           </button>
-          <button
-            :disabled="item.position >= syllabus.learningSituations.length"
-            @click="changeLSPosition(item, 1)"
-            class="btn btn-secondary"
-            title="Baixar"
-          >
-            <i class="bi bi-arrow-down"></i>
-          </button>
-          <button @click="showLSModal(item)" class="btn btn-secondary" title="Editar">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button @click="delUnit(item)" class="btn btn-secondary" title="Eliminar">
-            <i class="bi bi-trash"></i>
-          </button>
-        </template>
-        <template #footer>
-          <th colspan="2">TOTAL</th>
-          <th>{{ totalHours }}</th>
-          <th>{{ totalRAWeight }} %</th>
-        </template>
-      </show-table>
-      <div class="text-center">
-        <button class="btn btn-success" @click="showLSModal()">
-          Afegir Situació d'Aprenentatge
-        </button>
-      </div>
+        </div>
 
-      <h3>Blocs formatius</h3>
-      <show-table
-        :data="this.syllabus.instructionalUnits"
-        :columns="this.instructionalUnitsColumns"
-      >
-        <template #default="{ item }">
-          <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button @click="deleteIUnit(item)" class="btn btn-secondary" title="Eliminar">
-            <i class="bi bi-trash"></i>
-          </button>
-        </template>
-      </show-table>
-      <div class="text-center">
-        <button class="btn btn-success" @click="showModal()">Afegir Bloc</button>
+        <h3>Blocs formatius</h3>
+        <show-table
+          :data="this.syllabus.instructionalUnits"
+          :columns="this.instructionalUnitsColumns"
+        >
+          <template #default="{ item }">
+            <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button @click="deleteIUnit(item)" class="btn btn-secondary" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </template>
+        </show-table>
+        <div class="text-center">
+          <button class="btn btn-success" @click="showModal()">Afegir Bloc</button>
+        </div>
+        <LearnSitModal @saved="hideLSModal" :unit="modalData"></LearnSitModal>
       </div>
-      <LearnSitModal @saved="hideLSModal" :unit="modalData"></LearnSitModal>
-    </div>
-    <br />
-    <div class="border bg-light p-2">
-      <h3>Resultats d'aprenentatge</h3>
-      <Lr-Table :learningResults="module.learningResults"></Lr-Table>
+      <br />
+      <div class="border bg-light p-2">
+        <h3>Resultats d'aprenentatge</h3>
+        <Lr-Table :learningResults="module.learningResults"></Lr-Table>
+      </div>
     </div>
   </main>
 </template>

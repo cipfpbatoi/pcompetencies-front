@@ -88,7 +88,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <ModalComponent @save="saveData" title="Aplicació de les propostes de millora">
       <div class="row m-2 m-md-4 bg-light border">
         <div class="form-check m-1 p-2 bg-info-subtle h5">
@@ -109,35 +109,36 @@ export default {
     </ModalComponent>
 
     <app-breadcrumb :actualStep="3" :done="done"></app-breadcrumb>
-
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <h3>Propostes de millora</h3>
-    <div class="p-2">
-      <div v-if="syllabus.improvementProposal">
-        <p class="border p-2" v-html="syllabus.improvementProposal.proposals"></p>
-        <h4><i>Feedback</i> de la proposta</h4>
-        <div class="border bg-light p-2">
-          <p>
-            {{
-              syllabus.improvementProposal.status == 2
-                ? "S'aplicaran les propostes de millora o part d'elles:"
-                : "NO s'aplicaran les propostes de millora: "
-            }}
-          </p>
-          <p class="bg-light-subtle fw-bold">{{ syllabus.improvementProposal.comments }}</p>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <h3>Propostes de millora</h3>
+      <div class="p-2">
+        <div v-if="syllabus.improvementProposal">
+          <p class="border p-2" v-html="syllabus.improvementProposal.proposals"></p>
+          <h4><i>Feedback</i> de la proposta</h4>
+          <div class="border bg-light p-2">
+            <p>
+              {{
+                syllabus.improvementProposal.status == 2
+                  ? "S'aplicaran les propostes de millora o part d'elles:"
+                  : "NO s'aplicaran les propostes de millora: "
+              }}
+            </p>
+            <p class="bg-light-subtle fw-bold">{{ syllabus.improvementProposal.comments }}</p>
+          </div>
+          <div class="text-center">
+            <button
+              @click="showModal()"
+              class="btn btn-success mt-2 mx-auto"
+              title="Establir objectiu"
+            >
+              Modificar/Donar Resposta a les propostes de millora
+            </button>
+          </div>
         </div>
-        <div class="text-center">
-          <button
-            @click="showModal()"
-            class="btn btn-success mt-2 mx-auto"
-            title="Establir objectiu"
-          >
-            Modificar/Donar Resposta a les propostes de millora
-          </button>
+        <div v-else>
+          <p>No hi ha propostes de millora</p>
         </div>
-      </div>
-      <div v-else>
-        <p>No hi ha propostes de millora</p>
       </div>
     </div>
   </main>

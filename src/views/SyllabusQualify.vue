@@ -168,7 +168,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <ModalComponent @save="saveActivity" :title="modalTitle" id="activityModal">
       <div class="input-group mb-3">
         <span class="input-group-text">Pes:</span>
@@ -194,34 +194,36 @@ export default {
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="8" :done="true"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <div class="row">
-      <h3>Qualificació</h3>
-      <table>
-        <tbody>
-        <template v-for="ls in learningSituationsToShow" :key="ls.id">
-          <tr>
-            <th colspan="6">
-              <h4 class="bg-secondary text-white">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-            </th>
-          </tr>
-          <tr class="border">
-            <show-table :columns="activityColumns" :data="ls?.activities">
-              <template #default="{ item }">
-                <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </template>
-              <template #footer>
-                <th colspan="3">TOTAL</th>
-                <th>{{ ls.totalPercentageWeight }} %</th>
-                <th> %</th>
-              </template>
-            </show-table>
-          </tr>
-        </template>
-        </tbody>
-      </table>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <div class="row">
+        <h3>Qualificació</h3>
+        <table>
+          <tbody>
+          <template v-for="ls in learningSituationsToShow" :key="ls.id">
+            <tr>
+              <th colspan="6">
+                <h4 class="bg-secondary text-white">S.A. {{ ls.position }}: {{ ls.title }}</h4>
+              </th>
+            </tr>
+            <tr class="border">
+              <show-table :columns="activityColumns" :data="ls?.activities">
+                <template #default="{ item }">
+                  <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </template>
+                <template #footer>
+                  <th colspan="3">TOTAL</th>
+                  <th>{{ ls.totalPercentageWeight }} %</th>
+                  <th> %</th>
+                </template>
+              </show-table>
+            </tr>
+          </template>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 </template>

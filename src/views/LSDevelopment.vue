@@ -164,115 +164,117 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <app-breadcrumb :actualStep="6" :done="true" :back="true"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }}</h3>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }}</h3>
 
-    <h4>Objectius</h4>
-    <div class="bordered">
-      <h5>Objectius generals</h5>
-      <show-table :data="learningSituation.generalObjectives" :columns="generaObjectivesColumns">
-      </show-table>
-      <h5>Objectius didàctics</h5>
-      <p v-html="learningSituation.didacticObjectives"></p>
-    </div>
-    <button @click="showModal('objectives')" class="btn btn-secondary" title="Establir objectiu">
-      Establir els objectius
-    </button>
-    <br />
-    <br />
+      <h4>Objectius</h4>
+      <div class="bordered">
+        <h5>Objectius generals</h5>
+        <show-table :data="learningSituation.generalObjectives" :columns="generaObjectivesColumns">
+        </show-table>
+        <h5>Objectius didàctics</h5>
+        <p v-html="learningSituation.didacticObjectives"></p>
+      </div>
+      <button @click="showModal('objectives')" class="btn btn-secondary" title="Establir objectiu">
+        Establir els objectius
+      </button>
+      <br />
+      <br />
 
-    <h4>Competències</h4>
-    <ModalComponent v-if="lsLoaded" @save="saveData" modalId="competencesModal" :title="modalTitle">
-      <h5>Selecciona les competències</h5>
+      <h4>Competències</h4>
+      <ModalComponent v-if="lsLoaded" @save="saveData" modalId="competencesModal" :title="modalTitle">
+        <h5>Selecciona les competències</h5>
+        <ShowTable
+          :checkeable="true"
+          :actions="false"
+          :data="competencesCheckeables"
+          :columns="moduleCycleCompetencesColumns"
+        >
+        </ShowTable>
+        <p v-if="errors.competences" class="error">{{ errors.competences }}</p>
+      </ModalComponent>
       <ShowTable
-        :checkeable="true"
+        class="bordered"
         :actions="false"
-        :data="competencesCheckeables"
+        :data="learningSituation.competences"
         :columns="moduleCycleCompetencesColumns"
       >
       </ShowTable>
-      <p v-if="errors.competences" class="error">{{ errors.competences }}</p>
-    </ModalComponent>
-    <ShowTable
-      class="bordered"
-      :actions="false"
-      :data="learningSituation.competences"
-      :columns="moduleCycleCompetencesColumns"
-    >
-    </ShowTable>
-    <button @click="showModal('competences')" class="btn btn-secondary" title="Establir objectiu">
-      Establir les competències
-    </button>
-    <br /><br />
+      <button @click="showModal('competences')" class="btn btn-secondary" title="Establir objectiu">
+        Establir les competències
+      </button>
+      <br /><br />
 
-    <ObjectivesModal
-      v-if="lsLoaded"
-      @saved="savedObjectives"
-      :unit="learningSituation"
-    ></ObjectivesModal>
+      <ObjectivesModal
+        v-if="lsLoaded"
+        @saved="savedObjectives"
+        :unit="learningSituation"
+      ></ObjectivesModal>
 
-    <h4>Coneixements previs</h4>
-    <ModalComponent
-      v-if="lsLoaded"
-      @save="saveData"
-      modalId="priorKnowledgeModal"
-      :title="modalTitle"
-    >
-      <div class="row">
-        <label class="form-label">Coneixements previs</label>
-        <textarea class="form-control" v-model="modalFields.priorKnowledge"></textarea>
-        <span v-if="errors.priorKnowledge" class="error">{{ errors.priorKnowledge }}</span>
+      <h4>Coneixements previs</h4>
+      <ModalComponent
+        v-if="lsLoaded"
+        @save="saveData"
+        modalId="priorKnowledgeModal"
+        :title="modalTitle"
+      >
+        <div class="row">
+          <label class="form-label">Coneixements previs</label>
+          <textarea class="form-control" v-model="modalFields.priorKnowledge"></textarea>
+          <span v-if="errors.priorKnowledge" class="error">{{ errors.priorKnowledge }}</span>
+        </div>
+      </ModalComponent>
+      <div class="bordered">
+        <p>{{ learningSituation.priorKnowledge || 'No hi ha dades que mostrar' }}</p>
       </div>
-    </ModalComponent>
-    <div class="bordered">
-      <p>{{ learningSituation.priorKnowledge || 'No hi ha dades que mostrar' }}</p>
+      <button
+        @click="showModal('priorKnowledge')"
+        class="btn btn-secondary"
+        title="Establir objectiu"
+      >
+        Establir els coneixements previs
+      </button>
+      <br />
+      <br />
+
+      <h4>Continguts</h4>
+      <LsDevContents :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevContents>
+      <br /><br />
+
+      <h4>Activitats Qualificables</h4>
+      <LsDevActivity
+        type="marking"
+        :learningSituation="learningSituation"
+        @saved="fetchLearningSituation"
+      ></LsDevActivity>
+      <br /><br />
+
+      <h4>Activitats Formatives (NO qualificables)</h4>
+      <LsDevActivity
+        type="formative"
+        :learningSituation="learningSituation"
+        @saved="fetchLearningSituation"
+      ></LsDevActivity>
+      <br /><br />
+
+      <h4>Activitats de Repas</h4>
+      <LsDevActivity
+        type="reinforcement"
+        :learningSituation="learningSituation"
+        @saved="fetchLearningSituation"
+      ></LsDevActivity>
+      <br /><br />
+
+      <h4>Activitats d'Aprofundiment</h4>
+      <LsDevActivity
+        type="deepening"
+        :learningSituation="learningSituation"
+        @saved="fetchLearningSituation"
+      ></LsDevActivity>
     </div>
-    <button
-      @click="showModal('priorKnowledge')"
-      class="btn btn-secondary"
-      title="Establir objectiu"
-    >
-      Establir els coneixements previs
-    </button>
-    <br />
-    <br />
-
-    <h4>Continguts</h4>
-    <LsDevContents :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevContents>
-    <br /><br />
-
-    <h4>Activitats Qualificables</h4>
-    <LsDevActivity
-      type="marking"
-      :learningSituation="learningSituation"
-      @saved="fetchLearningSituation"
-    ></LsDevActivity>
-    <br /><br />
-
-    <h4>Activitats Formatives (NO qualificables)</h4>
-    <LsDevActivity
-      type="formative"
-      :learningSituation="learningSituation"
-      @saved="fetchLearningSituation"
-    ></LsDevActivity>
-    <br /><br />
-
-    <h4>Activitats de Repas</h4>
-    <LsDevActivity
-      type="reinforcement"
-      :learningSituation="learningSituation"
-      @saved="fetchLearningSituation"
-    ></LsDevActivity>
-    <br /><br />
-
-    <h4>Activitats d'Aprofundiment</h4>
-    <LsDevActivity
-      type="deepening"
-      :learningSituation="learningSituation"
-      @saved="fetchLearningSituation"
-    ></LsDevActivity>
   </main>
 </template>
 

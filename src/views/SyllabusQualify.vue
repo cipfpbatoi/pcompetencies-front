@@ -49,7 +49,7 @@ export default {
     ...mapState(useDataStore, ['syllabus']),
     learningSituationsToShow() {
       if (!this.syllabus.learningSituations
-      || !this.sylMarkingActivities.length) return []
+        || !this.sylMarkingActivities.length) return []
       const learningSituations = []
       this.syllabus.learningSituations.forEach((ls) => {
         const learningSituation = {
@@ -76,7 +76,7 @@ export default {
                 percentageWeight: lr.percentageWeight,
                 number: lr.learningResult.number,
                 ecs: item.evaluationCriterias
-                .filter(ec => ec.learningResult.id === lr.learningResult.id)
+                  .filter(ec => ec.learningResult.id === lr.learningResult.id)
               }
             })
           }
@@ -182,8 +182,8 @@ export default {
         />
         %
         <span v-if="errors.percentageWeight" class="input-group-text text-danger">{{
-          errors.percentageWeight
-        }}</span>
+            errors.percentageWeight
+          }}</span>
       </div>
       <div class="form-check">
         <input class="form-check-input" type="checkbox" v-model="modalFields.fundamental" />
@@ -195,9 +195,10 @@ export default {
     </ModalComponent>
     <app-breadcrumb :actualStep="8" :done="true"></app-breadcrumb>
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <h3>Qualificació</h3>
-    <table>
-      <tbody>
+    <div class="row">
+      <h3>Qualificació</h3>
+      <table>
+        <tbody>
         <template v-for="ls in learningSituationsToShow" :key="ls.id">
           <tr>
             <th colspan="6">
@@ -219,7 +220,8 @@ export default {
             </show-table>
           </tr>
         </template>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </main>
 </template>

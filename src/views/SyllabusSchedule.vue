@@ -69,8 +69,8 @@ export default {
       if (
         confirm(
           "Vas a eliminar la temporalització del grup '" +
-            schedule.nameGroup +
-            "'. Aquesta operació no es pot des-fer"
+          schedule.nameGroup +
+          "'. Aquesta operació no es pot des-fer"
         )
       ) {
         try {
@@ -91,7 +91,7 @@ export default {
       }
       const findScheduleGroup = this.syllabus.schedules.find(item => item.nameGroup === this.modalFields.nameGroup)
       if (findScheduleGroup && findScheduleGroup.id !== this.modalFields.id) {
-          this.errors.nameGroup =
+        this.errors.nameGroup =
           'Ja hi ha una temporalització per a aquest grup'
       }
       if (Object.keys(this.errors).length) return
@@ -100,13 +100,13 @@ export default {
         const data = {
           nameGroup: this.modalFields.nameGroup,
           entries: this.modalFields.entries
-          .filter((item) => item.hours > 0)
-          .map((item) => {
-            return {
-              day: item.day,
-              hours: item.hours
-            }
-          })
+            .filter((item) => item.hours > 0)
+            .map((item) => {
+              return {
+                day: item.day,
+                hours: item.hours
+              }
+            })
         }
         if (this.modalFields.id) {
           data.scheduleId = this.modalFields.id
@@ -145,16 +145,16 @@ export default {
       <p>Indica les hores setmanals en el grup:</p>
       <table class="table table-striped">
         <thead>
-          <th v-for="entry in modalFields.entries" :key="entry.day">
-            {{ entry.name }}
-          </th>
-          <th>Total</th>
+        <th v-for="entry in modalFields.entries" :key="entry.day">
+          {{ entry.name }}
+        </th>
+        <th>Total</th>
         </thead>
         <tbody>
-          <td v-for="entry in modalFields.entries" :key="entry.day">
-            <input type="number" v-model="entry.hours" min="0" size="2" />
-          </td>
-          <td :class="hoursClass">{{ totalHours }} de {{ syllabus.module?.weekHours }}</td>
+        <td v-for="entry in modalFields.entries" :key="entry.day">
+          <input type="number" v-model="entry.hours" min="0" size="2" />
+        </td>
+        <td :class="hoursClass">{{ totalHours }} de {{ syllabus.module?.weekHours }}</td>
         </tbody>
       </table>
       <div class="col-auto">
@@ -166,31 +166,33 @@ export default {
 
     <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
     <h3>Temporalització</h3>
-    <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2">
-      <h4>
-        Grup {{ schedule.nameGroup }}
-        <button @click="showModal(schedule)" class="btn btn-secondary" title="Editar">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button @click="delSchedule(schedule)" class="btn btn-secondary" title="Eliminar">
-          <i class="bi bi-trash"></i>
-        </button>
-      </h4>
-      <table class="table table-striped">
-        <thead>
+    <div class="row">
+      <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2">
+        <h4>
+          Grup {{ schedule.nameGroup }}
+          <button @click="showModal(schedule)" class="btn btn-secondary" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button @click="delSchedule(schedule)" class="btn btn-secondary" title="Eliminar">
+            <i class="bi bi-trash"></i>
+          </button>
+        </h4>
+        <table class="table table-striped">
+          <thead>
           <th v-for="(entry, index) in schedule.entries" :key="index">
             {{ DAYS_NAME[entry.day - 1] }}
           </th>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           <td v-for="(entry, index) in schedule.entries" :key="index">{{ entry.hours }} h.</td>
-        </tbody>
-      </table>
-    </div>
-    <div class="text-center">
-      <button @click="showModal()" class="btn btn-success mt-2 mx-auto" title="Establir objectiu">
-        Afegir temporalització d'un nou grup
-      </button>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-center">
+        <button @click="showModal()" class="btn btn-success mt-2 mx-auto" title="Establir objectiu">
+          Afegir temporalització d'un nou grup
+        </button>
+      </div>
     </div>
   </main>
 </template>

@@ -227,36 +227,38 @@ export default {
 <template>
   <main class="border shadow view-main">
     <ModalComponent @save="saveIUnit" :title="modalTitle" id="iUnitModal">
-      <div class="input-group mb-3">
-        <span class="input-group-text">Posició:</span>
-        <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
-        <span v-if="errors.position" class="input-group-text text-danger">{{
-            errors.position
-          }}</span>
-      </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text">Nom:</span>
-        <input type="text" class="form-control" v-model="modalFields.name" />
-        <span v-if="errors.name" class="input-group-text text-danger">{{ errors.name }}</span>
-      </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text">Descripció:</span>
-        <textarea class="form-control" v-model="modalFields.description"></textarea>
-        <span v-if="errors.description" class="input-group-text text-danger">{{
-            errors.description
-          }}</span>
-      </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text">Situacions d'aprenentatge:</span>
-        <select class="form-select" multiple v-model="modalFields.learningSituations">
-          <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
-            {{ ls.title }}
-          </option>
-        </select>
-        <p><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
-        <span v-if="errors.learningSituations" class="input-group-text text-danger">{{
-            errors.learningSituations
-          }}</span>
+      <div class="container-fluid">
+        <div class="mb-3">
+          <span class="form-labels fw-bold">Posició:</span>
+          <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
+          <span v-if="errors.position" class="input-group-text text-danger">{{
+              errors.position
+            }}</span>
+        </div>
+        <div class="mb-3">
+          <span class="form-label fw-bold">Nom:</span>
+          <input type="text" class="form-control" v-model="modalFields.name" />
+          <span v-if="errors.name" class="input-group-text text-danger">{{ errors.name }}</span>
+        </div>
+        <div class="mb-3">
+          <span class="form-label fw-bold">Descripció:</span>
+          <textarea class="form-control" v-model="modalFields.description"></textarea>
+          <span v-if="errors.description" class="input-group-text text-danger">{{
+              errors.description
+            }}</span>
+        </div>
+        <div class="mb-3">
+          <span class="form-label fw-bold">Situacions d'aprenentatge:</span>
+          <select class="form-select form-control" multiple v-model="modalFields.learningSituations">
+            <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
+              {{ ls.title }}
+            </option>
+          </select>
+          <span v-if="errors.learningSituations" class="input-group-text text-danger">{{
+              errors.learningSituations
+            }}</span>
+        </div>
+        <p class="text-primary">(Pots marcar vàries amb Ctrl polsat)</p>
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="4" :done="done"></app-breadcrumb>

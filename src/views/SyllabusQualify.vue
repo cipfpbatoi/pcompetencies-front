@@ -194,36 +194,24 @@ export default {
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="8" :done="true"></app-breadcrumb>
-    <div class="p-lg-4 p-1">
+    <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <div class="row">
-        <h3>Qualificació</h3>
-        <table>
-          <tbody>
-          <template v-for="ls in learningSituationsToShow" :key="ls.id">
-            <tr>
-              <th colspan="6">
-                <h4 class="bg-secondary text-white">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-              </th>
-            </tr>
-            <tr class="border">
-              <show-table :columns="activityColumns" :data="ls?.activities">
-                <template #default="{ item }">
-                  <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                </template>
-                <template #footer>
-                  <th colspan="3">TOTAL</th>
-                  <th>{{ ls.totalPercentageWeight }} %</th>
-                  <th> %</th>
-                </template>
-              </show-table>
-            </tr>
+      <h2>8. Qualificació</h2>
+      <template v-for="ls in learningSituationsToShow" :key="ls.id">
+        <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
+        <show-table :columns="activityColumns" :data="ls?.activities">
+          <template #default="{ item }">
+            <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
           </template>
-          </tbody>
-        </table>
-      </div>
+          <template #footer>
+            <th colspan="3">TOTAL</th>
+            <th>{{ ls.totalPercentageWeight }} %</th>
+            <th> %</th>
+          </template>
+        </show-table>
+      </template>
     </div>
   </main>
 </template>

@@ -25,7 +25,7 @@ export default {
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-lg justify-content-lg-end">
+  <nav class="navbar navbar-expand-lg justify-content-lg-end justify-content-center">
     <ul class="nav justify-content-end">
       <template v-if="isLogged">
         <li class="nav-item">

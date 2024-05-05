@@ -32,7 +32,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div style="overflow: auto">
     <table v-if="data.length" class="table table-striped">
       <thead>
         <th v-if="checkeable" title="Selecciona">Sel.</th>

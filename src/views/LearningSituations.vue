@@ -243,9 +243,7 @@ export default {
         <div class="mb-3">
           <span class="form-label fw-bold">Descripció:</span>
           <textarea class="form-control" v-model="modalFields.description"></textarea>
-          <span v-if="errors.description" class="input-group-text text-danger">{{
-              errors.description
-            }}</span>
+          <span v-if="errors.description" class="input-group-text text-danger">{{errors.description }}</span>
         </div>
         <div class="mb-3">
           <span class="form-label fw-bold">Situacions d'aprenentatge:</span>

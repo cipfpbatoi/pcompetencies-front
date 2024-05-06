@@ -69,6 +69,7 @@ export default {
             hours: item.hours,
             percentageWeight: item.percentageWeight,
             fundamental: item.fundamental,
+            description: item.description,
             ecs: this.getRAData(item),
             ras: ls.ponderedLearningResults.map((lr) => {
               return {
@@ -121,7 +122,9 @@ export default {
       this.modalFields = {
         activityId: activity.id,
         percentageWeight: activity.percentageWeight,
-        fundamental: activity.fundamental
+        fundamental: activity.fundamental,
+        description: activity.description,
+        code: activity.code,
       }
       this.modalTitle = 'Modificar activitat ' + activity?.code
       this.GenericModal.show()
@@ -170,6 +173,10 @@ export default {
 <template>
   <main class="border shadow view-main">
     <ModalComponent @save="saveActivity" :title="modalTitle" id="activityModal">
+      <p><strong>Descripció Activitats {{modalFields.code}}</strong></p>
+      <p class="text-justify">
+        <span v-html=modalFields.description></span>
+      </p>
       <div class="input-group mb-3">
         <span class="input-group-text">Pes:</span>
         <input
@@ -194,36 +201,24 @@ export default {
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="8" :done="true"></app-breadcrumb>
-    <div class="p-lg-4 p-1">
+    <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <div class="row">
-        <h3>Qualificació</h3>
-        <table>
-          <tbody>
-          <template v-for="ls in learningSituationsToShow" :key="ls.id">
-            <tr>
-              <th colspan="6">
-                <h4 class="bg-secondary text-white">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-              </th>
-            </tr>
-            <tr class="border">
-              <show-table :columns="activityColumns" :data="ls?.activities">
-                <template #default="{ item }">
-                  <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                </template>
-                <template #footer>
-                  <th colspan="3">TOTAL</th>
-                  <th>{{ ls.totalPercentageWeight }} %</th>
-                  <th> %</th>
-                </template>
-              </show-table>
-            </tr>
+      <h2>8. Qualificació</h2>
+      <template v-for="ls in learningSituationsToShow" :key="ls.id">
+        <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
+        <show-table :columns="activityColumns" :data="ls?.activities">
+          <template #default="{ item }">
+            <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
           </template>
-          </tbody>
-        </table>
-      </div>
+          <template #footer>
+            <th colspan="3">TOTAL</th>
+            <th>{{ ls.totalPercentageWeight }} %</th>
+            <th> %</th>
+          </template>
+        </show-table>
+      </template>
     </div>
   </main>
 </template>

@@ -163,28 +163,28 @@ export default {
     </ModalComponent>
 
     <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
-    <div class="p-lg-4 p-1">
+    <div class="p-lg-4 p-1 mt-2">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h3>Temporalització</h3>
-      <div class="row">
-        <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2">
-          <h4>
-            Grup {{ schedule.nameGroup }}
+      <div class="container">
+        <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2 border border-dark">
+          <div class="text-center">
+            <span class="h3 px-2 align-middle">Grup {{ schedule.nameGroup }}</span>
             <button @click="showModal(schedule)" class="btn btn-secondary" title="Editar">
               <i class="bi bi-pencil"></i>
             </button>
             <button @click="delSchedule(schedule)" class="btn btn-secondary" title="Eliminar">
               <i class="bi bi-trash"></i>
             </button>
-          </h4>
-          <table class="table table-striped">
+          </div>
+          <table class="table table-striped text-center">
             <thead>
             <th v-for="(entry, index) in schedule.entries" :key="index">
               {{ DAYS_NAME[entry.day - 1] }}
             </th>
             </thead>
             <tbody>
-            <td v-for="(entry, index) in schedule.entries" :key="index">{{ entry.hours }} h.</td>
+            <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">{{ entry.hours }} h.</td>
             </tbody>
           </table>
         </div>

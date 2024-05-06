@@ -63,9 +63,9 @@ const instructionalUnitsColumns = [
     value: 'description'
   },
   {
-    title: 'S.A.',
+    title: "Situacions d'Aprenentatge",
     func: (x) => x ? x.join(', ') : 'Cap',
-    param: 'learningSituations'
+    param: 'learningSituationId'
   }
 ]
 export default {
@@ -90,7 +90,17 @@ export default {
           total + ls.ponderedLearningResults.reduce((sum, lr) => sum + lr.percentageWeight, 0),
         0
       )
-    }
+    },
+    errorTotalRAWeightClass() {
+      return this.totalRAWeight === 100
+        ? ''
+        : 'bg-danger text-white'
+    },
+    errorTotalHoursClass() {
+      return this.totalHours === this.module.numberOfHours
+        ? ''
+        : 'bg-danger text-white'
+    },
   },
   data() {
     return {
@@ -101,7 +111,7 @@ export default {
       // Modal generic
       GenericModal: null,
       modalId: '',
-      modalFields: {},
+      modalFields: { learningSituationId: [] },
       modalTitle: '',
       errors: {},
       validationSchema
@@ -131,7 +141,7 @@ export default {
         this.modalFields = {
           position:
             this.syllabus.instructionalUnits.reduce((max, iu) => Math.max(max, iu.position), 0) + 1,
-          learningSituations: []
+          learningSituationId: []
         }
       }
       this.GenericModal.show()
@@ -141,10 +151,16 @@ export default {
       if (Object.keys(this.errors).length) return
 
       try {
-        const response = await api.saveSyllabusInstructionalUnit(this.syllabus.id, this.modalFields)
+        const response = await api.saveSyllabusInstructionalUnit(this.syllabus.id, {
+          ...this.modalFields,
+          learningSituations: this.modalFields.learningSituationId,
+        })
+        response.data.learningSituationId = response.data.learningSituations
+          .map(item => item.id)
+          response.data.iUnitId = response.data.id
         if (this.modalFields.iUnitId) {
           const index = this.syllabus.instructionalUnits.findIndex(
-            (item) => item.id === response.id
+            (item) => item.id === response.data.id
           )
           this.syllabus.instructionalUnits.splice(index, 1, response.data)
         } else {
@@ -248,7 +264,7 @@ export default {
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text">Situacions d'aprenentatge:</span>
-        <select class="form-select" multiple v-model="modalFields.learningSituations">
+        <select class="form-select" multiple v-model="modalFields.learningSituationId">
           <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
             {{ ls.title }}
           </option>
@@ -294,8 +310,12 @@ export default {
           </template>
           <template #footer>
             <th colspan="2">TOTAL</th>
-            <th>{{ totalHours }}</th>
-            <th>{{ totalRAWeight }} %</th>
+            <th :class="errorTotalHoursClass"
+              :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`"
+            >{{ totalHours }}</th>
+            <th :class="errorTotalRAWeightClass"
+              title="El total hauria de ser 100 %"
+            >{{ totalRAWeight }} %</th>
           </template>
         </show-table>
         <div class="text-center">

@@ -21,8 +21,11 @@ export default {
           , 0),
         0
       ) || 0
-    }
-
+    },
+    totalHours() {
+      const hoursUsed = this.syllabus.learningSituations.reduce((total, ls) => total + ls.hours, 0)
+      return hoursUsed == this.module.numberOfHours
+    },
   },
   mounted() {
     if (!this.syllabus.id) {
@@ -77,7 +80,8 @@ export default {
       </template>
     </div>
     <div class="bg-danger m-1">
-      <p v-if="totalSum !== 100" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma dels percentatges NO és el 100%. Has d'arreglar-lo</p>
+      <p v-if="totalSum !== 100" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma dels percentatges NO és el 100%. Has d'arreglar-lo en el pas anterior</p>
+      <p v-if="!totalHours" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma de les hores NO suma les totals del mòdul ({{ module.numberOfHours }}). Has d'arreglar-lo en el pas anterior</p>
     </div>
     <table class="table table-striped">
       <thead>

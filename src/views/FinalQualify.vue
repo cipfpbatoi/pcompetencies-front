@@ -1,29 +1,55 @@
 <script>
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
+import ShowTable from '@/components/ShowTable.vue'
 import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
-import CheckIcon from '@/components/icons/CheckIcon.vue'
+
+const activityColumns = [
+  {
+    title: 'R.A.',
+    func: (x) => x.map((ra) => `RA${ra.number} (${ra.percentageWeight}%)`).join('<br>'),
+    param: 'ras',
+    html: true
+  },
+  {
+    title: 'Codi',
+    value: 'code'
+  },
+  {
+    title: "Criteri d'avaluació a utilitzar",
+    func: (x) => x.map((ra) => `RA${ra.number} ` + ra.ecs.map(ec => ec.code).join(', ')).join('<br>'),
+    param: 'ras',
+    html: true
+  },
+  {
+    title: 'SA (%)',
+    func: (x) => x + ' %',
+    param: 'percentageWeight'
+  },
+  {
+    title: 'Curs (%)',
+    value: 'hours'
+  },
+  {
+    title: 'Fonamental',
+    value: 'fundamental'
+  }
+]
 
 export default {
   components: {
     AppBreadcrumb,
-    ModalComponent,
-    CheckIcon,
+    ShowTable,
+    ModalComponent
   },
   computed: {
     ...mapState(useDataStore, ['syllabus']),
-    totalPercentajeWeight() {
-      return this.learningSituationsToShow
-      .reduce((total, ls) => total + ls.totalPercentageWeight, 0)
-    },
-    done() {
-      return this.totalPercentajeWeight === 100
-    },
     learningSituationsToShow() {
-      if (!this.syllabus.learningSituations || !this.sylMarkingActivities.length) return []
+      if (!this.syllabus.learningSituations
+        || !this.sylMarkingActivities.length) return []
       const learningSituations = []
       this.syllabus.learningSituations.forEach((ls) => {
         const learningSituation = {
@@ -50,17 +76,14 @@ export default {
                 id: lr.learningResult.id,
                 percentageWeight: lr.percentageWeight,
                 number: lr.learningResult.number,
-                ecs: item.evaluationCriterias.filter(
-                  (ec) => ec.learningResult.id === lr.learningResult.id
-                )
+                ecs: item.evaluationCriterias
+                  .filter(ec => ec.learningResult.id === lr.learningResult.id)
               }
             })
           }
         })
         learningSituation.totalPercentageWeight = learningSituation.activities.reduce(
-          (total, act) => total + act.percentageWeight,
-          0
-        )
+          (total, act) => total + act.percentageWeight, 0)
         learningSituations.push(learningSituation)
       })
       return learningSituations
@@ -82,6 +105,7 @@ export default {
   data() {
     return {
       itemToModify: '',
+      activityColumns,
       sylMarkingActivities: [],
       sylMarkingActivitiesToShow: [],
       errors: {},
@@ -100,7 +124,7 @@ export default {
         percentageWeight: activity.percentageWeight,
         fundamental: activity.fundamental,
         description: activity.description,
-        code: activity.code
+        code: activity.code,
       }
       this.modalTitle = 'Modificar activitat ' + activity?.code
       this.GenericModal.show()
@@ -141,15 +165,6 @@ export default {
       } catch (error) {
         this.addMessage('error', error)
       }
-    },
-    showRas(activity) {
-      return activity.ras.map((ra) => `RA${ra.number} (${ra.percentageWeight}%)`).join('<br />')
-    },
-    showCes(activity) {
-      return activity.ras
-        .filter((ra) => ra.ecs.length)
-        .map((ra) => `RA${ra.number} ` + ra.ecs.map((ec) => ec.code).join(', '))
-        .join('<br>')
     }
   }
 }
@@ -158,11 +173,9 @@ export default {
 <template>
   <main class="border shadow view-main">
     <ModalComponent @save="saveActivity" :title="modalTitle" id="activityModal">
-      <p>
-        <strong>Descripció Activitats {{ modalFields.code }}</strong>
-      </p>
+      <p><strong>Descripció Activitats {{modalFields.code}}</strong></p>
       <p class="text-justify">
-        <span v-html="modalFields.description"></span>
+        <span v-html=modalFields.description></span>
       </p>
       <div class="input-group mb-3">
         <span class="input-group-text">Pes:</span>
@@ -176,8 +189,8 @@ export default {
         />
         %
         <span v-if="errors.percentageWeight" class="input-group-text text-danger">{{
-          errors.percentageWeight
-        }}</span>
+            errors.percentageWeight
+          }}</span>
       </div>
       <div class="form-check">
         <input class="form-check-input" type="checkbox" v-model="modalFields.fundamental" />
@@ -187,16 +200,13 @@ export default {
         <p v-if="errors.fundamental" class="error">{{ errors.fundamental }}</p>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="9" :done="true"></app-breadcrumb>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>8. Qualificació</h2>
-      <div class="bg-danger m-1">
-      <p v-if="totalPercentajeWeight !== 100" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma dels percentatges de les situacions d'aprenentage és {{ totalPercentajeWeight}}% i NO 100%. Has d'arreglar-lo abans de continuar</p>
-    </div>
+      <h2>9. Qualificació Final</h2>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-        <table class="table table-striped">
+        <table class="table table-stripped">
           <thead>
             <th>R.A.</th>
             <th>Codi</th>
@@ -207,34 +217,32 @@ export default {
             <th>Accions</th>
           </thead>
           <tbody>
-            <tr v-for="(activity, index) in ls?.activities" :key="activity.id" class="align-middle">
-              <td
-                v-if="index === 0"
-                :rowspan="ls.activities.length"
-                v-html="showRas(activity)"
-              ></td>
+            <tr v-for="(activity, index) in ls?.activities" :key="activity.id">
+              <td v-if="index===0" :rowspan="ls.activities.length">
+              {{ activity.ras.map((ra)=>`RA${ra.number} (${ra.percentageWeight}%)`).join('<br>') }} <!--?.map((ra) => `RA${ra.number} (${ra.percentageWeight}%)`).join('<br>'), }} -->
+              </td>
               <td>{{ activity.code }}</td>
-              <td v-html="showCes(activity)"></td>
-              <td>{{ activity.percentageWeight }} %</td>
+              <td>
+                <!-- {{ activity.ecs.map((ra) => `RA${ra.number} ` + ra.ecs.map(ec => ec.code).join(', ')).join('<br>') }} -->
+              </td>
+              <td>{{ activity.percentageWeight }} % </td>
               <td>{{ activity.hours }}</td>
-              <td>
-                <check-icon :checked="activity.fundamental"></check-icon>
-              </td>
-              <td>
-                <button @click="showModal(activity)" class="btn btn-secondary" title="Editar">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </td>
+              <td>{{ activity.fundamental }}</td>
             </tr>
           </tbody>
-          <tfoot>
-            <tr>
-              <th colspan="3">TOTAL</th>
-              <th>{{ ls.totalPercentageWeight }} %</th>
-              <th>%</th>
-            </tr>
-          </tfoot>
         </table>
+        <show-table :columns="activityColumns" :data="ls?.activities">
+          <template #default="{ item }">
+            <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </template>
+          <template #footer>
+            <th colspan="3">TOTAL</th>
+            <th>{{ ls.totalPercentageWeight }} %</th>
+            <th> %</th>
+          </template>
+        </show-table>
       </template>
     </div>
   </main>

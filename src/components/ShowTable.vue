@@ -18,6 +18,9 @@ export default {
       default: false
     },
   },
+  computed: {
+
+  },
   methods: {
     fieldContent(item, col) {
       if (!col) return '???'

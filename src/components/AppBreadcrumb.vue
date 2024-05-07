@@ -64,9 +64,14 @@ export default {
           number: 8,
           title: 'Qualificació',
           path: 'SyllabusQualify',
+          nextPath: 'FinalQualify'
+        },
+        {
+          number: 9,
+          title: 'Qualificació Final',
+          path: 'FinalQualify',
           nextPath: 'imprProp'
         },
-
       ]
     }
   }

@@ -9,6 +9,7 @@ import ImprovementProposal from '../views/ImprovementProposal.vue'
 import ContextSyllabus from '../views/ContextSyllabus.vue'
 import SyllabusSchedule from '../views/SyllabusSchedule.vue'
 import SyllabusQualify from '../views/SyllabusQualify.vue'
+import FinalQualify from '../views/FinalQualify.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -71,6 +72,12 @@ const router = createRouter({
       path: '/qualify',
       name: 'SyllabusQualify',
       component: SyllabusQualify,
+      meta: { requiresAuth: true }
+    },   
+    {
+      path: '/final-qualify',
+      name: 'FinalQualify',
+      component: FinalQualify,
       meta: { requiresAuth: true }
     },   
     {

@@ -6,10 +6,9 @@ import { api } from '../repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import LrTable from './LrTable.vue'
-import { makeCheckeableArray, getObjectsIds } from '../utils/utils.js'
+import { validateFormErrors, makeCheckeableArray, getObjectsIds } from '../utils/utils.js'
 import * as yup from 'yup'
 import { object } from 'yup'
-import { validateFormErrors } from '../utils/utils.js'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const activityBaseColumns = [
@@ -66,8 +65,9 @@ export default {
     if (this.type === 'marking') {
       try {
         const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
-        this.syllabusMarkingActivities = response.data
-        .filter((item) => item.learningSituation.id != this.learningSituation.id)
+        this.syllabusMarkingActivities = response.data.filter(
+          (item) => item.learningSituation.id != this.learningSituation.id
+        )
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -94,6 +94,23 @@ export default {
       }
       return columns
     },
+    moduleEcWithLr() {
+      return this.module?.learningResults.reduce(
+        (lRs, lr) =>
+          lRs.concat(
+            lr.evaluationCriterias.map((ec) => {
+              return {
+                ...ec,
+                lr: {
+                  number: lr.number,
+                  descrip: lr.descriptor
+                }
+              }
+            })
+          ),
+        []
+      )
+    },
     getActivityTitle() {
       return this.activityTypes.find((item) => item.type === this.type)?.title
     },
@@ -116,10 +133,12 @@ export default {
     evaluationCriteriasUsedInOtherLS() {
       if (this.type !== 'marking') return
       return this.syllabusMarkingActivities
-      .filter((item) => item.id != this.learningSituation.id)
-      .reduce((totEcs, activity) => totEcs
-      .concat(activity.evaluationCriterias
-      .reduce((ecs, ec) => ecs.concat(ec.id),[])), [])
+        .filter((item) => item.id != this.learningSituation.id)
+        .reduce(
+          (totEcs, activity) =>
+            totEcs.concat(activity.evaluationCriterias.reduce((ecs, ec) => ecs.concat(ec.id), [])),
+          []
+        )
     }
   },
   data() {
@@ -204,6 +223,37 @@ export default {
 
       return validationSchema
     },
+    generateActivityDetails(activity) {
+      const details = {
+        ...activity,
+        learningResults: []
+      }
+      const ecWithLr = activity.evaluationCriterias.map((ec) => {
+        return {
+          ...ec,
+          lr: this.moduleEcWithLr.find((item) => item.id === ec.id)?.lr
+        }
+      })
+      ecWithLr.forEach((ec) => {
+        if (details.learningResults['RA' + ec.lr.number]) {
+          details.learningResults['RA' + ec.lr.number].evaluationCriterias.push({
+            code: ec.code,
+            description: ec.description
+          })
+        } else {
+          details.learningResults['RA' + ec.lr.number] = {
+            descrip: ec.lr.descrip,
+            evaluationCriterias: [
+              {
+                code: ec.code,
+                description: ec.description
+              }
+            ]
+          }
+        }
+      })
+      this.showActivityDetails = details
+    },
     showModal(activity) {
       this.errors = []
       if (activity.id) {
@@ -226,12 +276,15 @@ export default {
         }
       }
       if (this.type === 'marking') {
-        const evaluationCriteriasUsedInThisLS = this.learningSituation.activities
-        .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
-        .map((item) => item.evaluationCriterias.reduce((ecs, ec) => ecs.concat(ec.id),[]))[0] || []
-        const evaluationCriteriasUsed = Array.from(new Set(
-          evaluationCriteriasUsedInThisLS.concat(this.evaluationCriteriasUsedInOtherLS)
-        ))
+        const evaluationCriteriasUsedInThisLS =
+          this.learningSituation.activities
+            .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
+            .map((item) =>
+              item.evaluationCriterias.reduce((ecs, ec) => ecs.concat(ec.id), [])
+            )[0] || []
+        const evaluationCriteriasUsed = Array.from(
+          new Set(evaluationCriteriasUsedInThisLS.concat(this.evaluationCriteriasUsedInOtherLS))
+        )
         this.learningResultsCheckeables =
           this.learningSituation.ponderedLearningResults?.map((item) => {
             return {
@@ -239,13 +292,14 @@ export default {
               number: item.learningResult.number,
               descriptor: item.learningResult.descriptor,
               evaluationCriterias: makeCheckeableArray(
-                item.learningResult.evaluationCriterias
-                .map((item) => {
+                item.learningResult.evaluationCriterias.map((item) => {
                   return {
                     ...item,
                     success: evaluationCriteriasUsed.includes(item.id)
                   }
-                }), this.modalFields.evaluationCriterias)
+                }),
+                this.modalFields.evaluationCriterias
+              )
             }
           }) || []
       }
@@ -281,8 +335,11 @@ export default {
           .reduce((total, item) => total + (item.hours || 0), 0)
         if (totActivHours + this.modalFields.hours > this.learningSituation.hours) {
           this.errors.hours =
-            "Te'n pases d'hores. La resta d'activitats ja sumen " + totActivHours + " de les " 
-            + this.learningSituation.hours + " hores de la situació d'aprenentatge"
+            "Te'n pases d'hores. La resta d'activitats ja sumen " +
+            totActivHours +
+            ' de les ' +
+            this.learningSituation.hours +
+            " hores de la situació d'aprenentatge"
         }
       }
       if (Object.keys(this.errors).length) return
@@ -365,8 +422,11 @@ export default {
       <div class="row p-1 align-items-center form-group mb-3">
         <label class="col-sm-12 col-form-label fw-bold">Descripció de l'Activitat</label>
         <div class="col-sm-12">
-          <ckeditor :editor="editor" v-model="modalFields.description"
-                :config="editorConfig"></ckeditor>
+          <ckeditor
+            :editor="editor"
+            v-model="modalFields.description"
+            :config="editorConfig"
+          ></ckeditor>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
         </div>
       </div>
@@ -381,7 +441,8 @@ export default {
       </div>
       <div v-if="type === 'formative'" class="row align-items-center">
         <h2 class="form-label m-2">Continguts didàctics:</h2>
-        <ShowTable class="p-4 bg-info-subtle"
+        <ShowTable
+          class="p-4 bg-info-subtle"
           :checkeable="true"
           :actions="false"
           :data="didacticContents"
@@ -400,7 +461,8 @@ export default {
               <option
                 v-for="assessmentTool in activitiesData.assessmentTool"
                 :key="assessmentTool.id"
-                :value="assessmentTool.id">
+                :value="assessmentTool.id"
+              >
                 {{ assessmentTool.name }}
               </option>
             </select>
@@ -417,7 +479,8 @@ export default {
               <option
                 v-for="markingTool in activitiesData.markingTool"
                 :key="markingTool.id"
-                :value="markingTool.id">
+                :value="markingTool.id"
+              >
                 {{ markingTool.name }}
               </option>
             </select>
@@ -427,8 +490,11 @@ export default {
           </div>
         </div>
         <div class="row align-items-center">
-          <p class="form-label m-1 mt-3 fw-bold">Resultats d'Aprenentatge amb Criteris d'avaluació:</p>
-          <lr-table class="p-4 bg-info-subtle"
+          <p class="form-label m-1 mt-3 fw-bold">
+            Resultats d'Aprenentatge amb Criteris d'avaluació:
+          </p>
+          <lr-table
+            class="p-4 bg-info-subtle"
             :checkeable="true"
             :actions="false"
             :learningResults="learningResultsCheckeables"
@@ -440,7 +506,7 @@ export default {
       <template v-slot="{ item, index }">
         <button
           v-if="type === 'marking'"
-          @click="showActivityDetails = item"
+          @click="generateActivityDetails(item)"
           class="btn btn-secondary"
           title="Veure"
         >
@@ -466,18 +532,21 @@ export default {
         </button>
       </h5>
       <h6>Criteris d'avaluació</h6>
-      <p
-        v-for="evaluationCriteria in showActivityDetails.evaluationCriterias"
-        :key="evaluationCriteria.id"
-      >
-        <strong>{{ evaluationCriteria.code }} - </strong>{{ evaluationCriteria.description }}
+      <p v-for="lr in Object.keys(showActivityDetails.learningResults)" :key="lr">
+        {{ lr }}: {{ showActivityDetails.learningResults[lr].descrip }}<br>
+        <span
+          v-for="evaluationCriteria in showActivityDetails.learningResults[lr].evaluationCriterias"
+          :key="evaluationCriteria.id"
+        >
+          - <strong>{{ evaluationCriteria.code }})</strong>
+          {{ evaluationCriteria.description }} <br /></span>
       </p>
       <p>
         <strong>Tècnica: </strong>
         {{ showActivityDetails.assessmentTool.name }}
       </p>
       <p>
-        <strong>Instriment: </strong>
+        <strong>Instrument: </strong>
         {{ showActivityDetails.markingTool.name }}
       </p>
     </div>

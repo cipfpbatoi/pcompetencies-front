@@ -131,7 +131,7 @@ export default {
     async saveActivity() {
       // Comprovacions
       try {
-        const response = await api.saveSyllabusMarlingActivities(this.syllabus.id, {
+        const response = await api.saveSyllabusMarkingActivities(this.syllabus.id, {
           activities: [this.modalFields]
         })
         const index = this.sylMarkingActivities.findIndex((item) => item.id === response.data[0].id)

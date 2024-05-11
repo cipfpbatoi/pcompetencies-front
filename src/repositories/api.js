@@ -90,7 +90,7 @@ export const api = {
   createSyllabus: (data) => instance.post('/syllabus', data),
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
   getSyllabusMarlingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
-  saveSyllabusMarlingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
+  saveSyllabusMarkingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
   saveSyllabusInstructionalUnit: (id, data) => instance.post(`/syllabus/${id}/instructionalUnit`, data),
   deleteSyllabusInstructionalUnit: (id, iUId) => instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
 
@@ -106,7 +106,15 @@ export const api = {
   saveMarkingActivity: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/activity/marking`, data),
   deleteActivity: (lsId, activityId) =>
-    instance.delete(`/syllabus/learningSituation/${lsId}/activity/${activityId}`)
-}
+    instance.delete(`/syllabus/learningSituation/${lsId}/activity/${activityId}`),
+
+  // Final Activities
+  getFinalActivities: (id) =>
+    instance.get(`/syllabus/${id}/final/activity`),
+  saveFinalActivity: (id, data) =>
+    instance.post(`/syllabus/${id}/final/activity`, data),
+  deleteFinalActivity: (id, activityId) =>
+    instance.delete(`/syllabus/${id}/final/activity/${activityId}`),
+  }
 
 export default instance

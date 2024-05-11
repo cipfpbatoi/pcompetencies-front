@@ -64,7 +64,7 @@ const instructionalUnitsColumns = [
   },
   {
     title: "Situacions d'Aprenentatge",
-    func: (x) => x ? x.join(', ') : 'Cap',
+    func: (x) => (x ? x.join(', ') : 'Cap'),
     param: 'learningSituationId'
   }
 ]
@@ -92,15 +92,11 @@ export default {
       )
     },
     errorTotalRAWeightClass() {
-      return this.totalRAWeight === 100
-        ? ''
-        : 'bg-danger text-white'
+      return this.totalRAWeight === 100 ? '' : 'bg-danger text-white'
     },
     errorTotalHoursClass() {
-      return this.totalHours === this.module.numberOfHours
-        ? ''
-        : 'bg-danger text-white'
-    },
+      return this.totalHours === this.module.numberOfHours ? '' : 'bg-danger text-white'
+    }
   },
   data() {
     return {
@@ -129,8 +125,8 @@ export default {
     showModal(iUnit) {
       this.errors = {}
       if (iUnit) {
-        let iUnitId = iUnit.id;
-        delete iUnit.id;
+        let iUnitId = iUnit.id
+        delete iUnit.id
         this.modalFields = {
           ...iUnit,
           iUnitId: iUnitId
@@ -153,11 +149,10 @@ export default {
       try {
         const response = await api.saveSyllabusInstructionalUnit(this.syllabus.id, {
           ...this.modalFields,
-          learningSituations: this.modalFields.learningSituationId,
+          learningSituations: this.modalFields.learningSituationId
         })
-        response.data.learningSituationId = response.data.learningSituations
-          .map(item => item.id)
-          response.data.iUnitId = response.data.id
+        response.data.learningSituationId = response.data.learningSituations.map((item) => item.id)
+        response.data.iUnitId = response.data.id
         if (this.modalFields.iUnitId) {
           const index = this.syllabus.instructionalUnits.findIndex(
             (item) => item.id === response.data.id
@@ -198,8 +193,8 @@ export default {
       if (
         confirm(
           'ATENCIÓ: Vas a esborrar la unitat "' +
-          unit.title +
-          '". Aquest procés NO es por des-fer !!!'
+            unit.title +
+            '". Aquest procés NO es por des-fer !!!'
         )
       ) {
         this.deleteLearningSituation(unit.id)
@@ -247,8 +242,8 @@ export default {
         <span class="input-group-text">Posició:</span>
         <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
         <span v-if="errors.position" class="input-group-text text-danger">{{
-            errors.position
-          }}</span>
+          errors.position
+        }}</span>
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text">Nom:</span>
@@ -259,8 +254,8 @@ export default {
         <span class="input-group-text">Descripció:</span>
         <textarea class="form-control" v-model="modalFields.description"></textarea>
         <span v-if="errors.description" class="input-group-text text-danger">{{
-            errors.description
-          }}</span>
+          errors.description
+        }}</span>
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text">Situacions d'aprenentatge:</span>
@@ -271,8 +266,8 @@ export default {
         </select>
         <p><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
         <span v-if="errors.learningSituations" class="input-group-text text-danger">{{
-            errors.learningSituations
-          }}</span>
+          errors.learningSituations
+        }}</span>
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="4" :done="done"></app-breadcrumb>
@@ -310,12 +305,15 @@ export default {
           </template>
           <template #footer>
             <th colspan="2">TOTAL</th>
-            <th :class="errorTotalHoursClass"
+            <th
+              :class="errorTotalHoursClass"
               :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`"
-            >{{ totalHours }}</th>
-            <th :class="errorTotalRAWeightClass"
-              title="El total hauria de ser 100 %"
-            >{{ totalRAWeight }} %</th>
+            >
+              {{ totalHours }}
+            </th>
+            <th :class="errorTotalRAWeightClass" title="El total hauria de ser 100 %">
+              {{ totalRAWeight }} %
+            </th>
           </template>
         </show-table>
         <div class="text-center">

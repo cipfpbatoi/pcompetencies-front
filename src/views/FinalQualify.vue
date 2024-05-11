@@ -79,8 +79,69 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module', 'activitiesData']),
+    qualificationsSummaryColumns() {
+      const columns = this.syllabusFinalActivities.map((activ) => {
+        return {
+          title: `${activ.code}<br>(${activ.assessmentTool.name})`,
+          value: activ.code
+        }
+      })
+      columns.unshift({
+        title: '',
+        value: 'ra',
+        html: true
+      })
+      columns.push({
+        title: 'Total RA',
+        value: 'totalRa'
+      })
+      columns.push({
+        title: 'Total curs',
+        value: 'total'
+      })
+      return columns
+    },
+    qualificationsSummaryData() {
+      if (!this.syllabusFinalActivities.length) return []
+      const data = []
+      this.syllabusPonderedLearningResults?.forEach((lr) => {
+        const row = {
+          ra: '<strong>RA' + lr.number + '</strong>'
+        }
+        let totalPercentageWeight = 0
+        this.syllabusFinalActivities.forEach((activ) => {
+          const percentageWeight =
+            this.activitiesPonderedLearningResults['RA' + lr.number][activ.code]
+          if (percentageWeight) {
+            row[activ.code] = percentageWeight + ' %'
+            totalPercentageWeight += percentageWeight
+          } else {
+            row[activ.code] = '---'
+          }
+        })
+        row.totalRa = totalPercentageWeight + ' %'
+        row.total = lr.syllabusPercentageWeight + ' %'
+        data.push(row)
+      })
+      return data
+    },
+    totalRa() {
+      return this.qualificationsSummaryData.some((ra) => ra.totalRa !== '100 %')
+    },
+    activitiesPonderedLearningResults() {
+      const aPLR = {}
+      this.syllabusPonderedLearningResults?.forEach((lr) => {
+        aPLR['RA' + lr.number] = {}
+      })
+      this.syllabusFinalActivities.forEach((activ) => {
+        activ.ponderedLearningResults.forEach((lr) => {
+          aPLR['RA' + lr.learningResult.number][activ.code] = lr.percentageWeight
+        })
+      })
+      return aPLR
+    },
     syllabusPonderedLearningResults() {
-      const sPLR = this.module.learningResults.map((item) => {
+      const sPLR = this.module.learningResults?.map((item) => {
         return {
           id: item.id,
           number: item.number,
@@ -203,7 +264,6 @@ export default {
       })
       this.errors = await validateFormErrors(validationSchema, this.modalFields)
       // Extra validations
-      this.errors.ponderedLearningResults= ''
       const ponderedLearningResultsToSave = []
       this.learningResultsCheckeables.forEach((lr) => {
         const percentageWeight = this.modalFields['RA' + lr.number]
@@ -215,17 +275,36 @@ export default {
             evaluationCriteriaIds: ecIds
           })
           if (!percentageWeight) {
-            this.errors.ponderedLearningResults +=
-            'RA' + lr.number + ": has marcat criteris d'avaluació però has deixat la seua ponderació a 0%<br>"
+            const error =
+              'RA' +
+              lr.number +
+              ": has marcat criteris d'avaluació però has deixat la seua ponderació a 0%<br>"
+            if (this.errors.ponderedLearningResults) {
+              this.errors.ponderedLearningResults += error
+            } else {
+              this.errors.ponderedLearningResults = error
+            }
           }
         } else if (percentageWeight) {
-          this.errors.ponderedLearningResults +=
-            'RA' + lr.number + ": li has donat pes a aquest RA però no has marcat cap criteri d'avaluació<br>"
+          const error =
+            'RA' +
+            lr.number +
+            ": li has donat pes a aquest RA però no has marcat cap criteri d'avaluació<br>"
+          if (this.errors.ponderedLearningResults) {
+            this.errors.ponderedLearningResults += error
+          } else {
+            this.errors.ponderedLearningResults = error
+          }
         }
       })
 
       if (!ponderedLearningResultsToSave.length) {
-        this.errors.ponderedLearningResults += "Has de marcar al menys 1 criteri d'avaluació"
+        const error = "Has de marcar al menys 1 criteri d'avaluació"
+        if (this.errors.ponderedLearningResults) {
+          this.errors.ponderedLearningResults += error
+        } else {
+          this.errors.ponderedLearningResults = error
+        }
       }
 
       if (Object.keys(this.errors).length) return
@@ -351,7 +430,11 @@ export default {
           @changeWeigth="changeRAWeight"
         ></lr-table>
         <div class="col-auto">
-          <span class="text-danger" v-if="errors.ponderedLearningResults" v-html="errors.ponderedLearningResults"></span>
+          <span
+            class="text-danger"
+            v-if="errors.ponderedLearningResults"
+            v-html="errors.ponderedLearningResults"
+          ></span>
         </div>
       </div>
     </ModalComponent>
@@ -406,6 +489,23 @@ export default {
         Afegir nova activitat
       </button>
       <br />
+    </div>
+    <div class="p-lg-4 p-1 p-sm-0">
+      <h4>Resum d'activitats</h4>
+      <div class="bg-danger m-1">
+        <p v-if="totalRa" class="text-light p-2 text-justify">
+          <strong>ATENCIÓ:</strong> la suma dels percentatges de cada RA hauria de ser el 100%. Has
+          d'arreglar-lo
+        </p>
+      </div>
+      <div class="border border-black">
+        <show-table
+          :actions="false"
+          :columns="qualificationsSummaryColumns"
+          :data="qualificationsSummaryData"
+        >
+        </show-table>
+      </div>
     </div>
   </main>
 </template>

@@ -50,7 +50,7 @@ export default {
   <div>
     <p class="mt-lg-5" v-html="$route.query.message"></p>
     <div class="col-md-5 mx-auto border p-3">
-      <h2>Inicia sessió</h2>
+      <h2 class="text-center p-lg-3 text-primary">Inicia sessió</h2>
       <form @submit.prevent="handleForm">
         <div class="mb-3">
           <label class="form-label">Email per a loguejarse</label>
@@ -71,11 +71,13 @@ export default {
             placeholder="Mínim 7 caracters"
           />
           <p v-if="errors.password" class="error">{{ errors.password }}</p>
-          <div class="mt-2">
+          <div class="mt-2 text-end">
             <a href="#">He oblidat la contrasenya</a>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">Enviar</button>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Enviar</button>
+        </div>
       </form>
       </div>
     </div>

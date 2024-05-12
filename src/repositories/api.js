@@ -31,7 +31,7 @@ instance.interceptors.response.use(
       // Redireccionar al usuario al inicio de sesión
       localStorage.redirect = JSON.stringify({
         path: window.location.pathname,
-        message: 'La sessió ha caducat. Per favor, loguejat de nou'
+        message: (error.response.data?.message) ? error.response.data?.message : 'La sessió ha caducat. Per favor, loguejat de nou'
       })
       window.location.replace('/login') // Redirigir a la página de inicio de sesión
       //      router.push('/login')

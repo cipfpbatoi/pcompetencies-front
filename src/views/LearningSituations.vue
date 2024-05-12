@@ -309,7 +309,7 @@ export default {
               :class="errorTotalHoursClass"
               :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`"
             >
-              {{ totalHours }}
+              {{ totalHours }}/ {{ module.numberOfHours }}
             </th>
             <th :class="errorTotalRAWeightClass" title="El total hauria de ser 100 %">
               {{ totalRAWeight }} %

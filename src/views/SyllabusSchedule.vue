@@ -162,10 +162,10 @@ export default {
       </div>
     </ModalComponent>
 
-    <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1 mt-2">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h3>Temporalització</h3>
+      <h2>6. Temporalització</h2>
       <div class="container">
         <div v-for="schedule in syllabus.schedules" :key="schedule.id" class="p-2 border border-dark">
           <div class="text-center">

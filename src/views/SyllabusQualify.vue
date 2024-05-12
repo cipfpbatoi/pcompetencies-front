@@ -187,10 +187,10 @@ export default {
         <p v-if="errors.fundamental" class="error">{{ errors.fundamental }}</p>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>8. Qualificació</h2>
+      <h2>7. Qualificació</h2>
       <div class="bg-danger m-1">
       <p v-if="totalPercentajeWeight !== 100" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma dels percentatges de les situacions d'aprenentage és {{ totalPercentajeWeight}}% i NO 100%. Has d'arreglar-lo abans de continuar</p>
     </div>

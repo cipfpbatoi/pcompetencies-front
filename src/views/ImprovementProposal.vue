@@ -108,10 +108,10 @@ export default {
       </div>
     </ModalComponent>
 
-    <app-breadcrumb :actualStep="3" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="2" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h3>Propostes de millora</h3>
+      <h2>2. Propostes de millora</h2>
       <div class="p-2">
         <div v-if="syllabus.improvementProposal">
           <p class="border p-2" v-html="syllabus.improvementProposal.proposals"></p>

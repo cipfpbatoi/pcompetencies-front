@@ -270,12 +270,12 @@ export default {
         }}</span>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="4" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="3" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <div>
-        <h3>Situacions d'aprenentatge</h3>
-        <show-table
+        <h2>3. Situacions d'aprenentatge</h2>
+        <show-table class="border border-black"
           :data="this.syllabus.learningSituations"
           :columns="this.learningSituationsColumns"
         >
@@ -323,7 +323,7 @@ export default {
         </div>
 
         <h3>Blocs formatius</h3>
-        <show-table
+        <show-table class="border border-black"
           :data="this.syllabus.instructionalUnits"
           :columns="this.instructionalUnitsColumns"
         >
@@ -344,7 +344,7 @@ export default {
       <br />
       <div class="border bg-light p-2">
         <h3>Resultats d'aprenentatge</h3>
-        <Lr-Table :learningResults="module.learningResults"></Lr-Table>
+        <Lr-Table class="border border-black" :learningResults="module.learningResults"></Lr-Table>
       </div>
     </div>
   </main>

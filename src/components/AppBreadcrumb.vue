@@ -18,12 +18,12 @@ export default {
   data() {
     return {
       steps: [
-      {
-          number: 1,
-          title: 'Selecciona la programació',
-          path: 'selectSyllabus',
-          nextPath: 'contextSyl'
-        },
+      // {
+      //     number: 1,
+      //     title: 'Selecciona la programació',
+      //     path: 'selectSyllabus',
+      //     nextPath: 'contextSyl'
+      //   },
         {
           number: 2,
           title: 'Contextualització',
@@ -80,14 +80,14 @@ export default {
 
 <template>
     <div class="bg-info text-center text-white p-1 px-3 mb-3 border-top border-bottom border-2 border-primary text-light shadow">
-      <template v-for="step in steps" :key="step.number">
-        <span v-if="step.number > 1 && step.number <= actualStep"> -> </span>
+      <template v-for="(step, index) in steps" :key="step.number">
+        <span v-if="index > 0"> -> </span>
         <button class="btn btn-primary"
-          v-if="step.number < actualStep"
+          v-if="index !== actualStep -1"
           :title="step.title"
           @click="$router.push({name: step.path, params})"
-        > {{  step.number }}</button>
-        <span class="p-2 text-uppercase" v-if="step.number == actualStep"><span class="bg-white p-1 px-2 mx-1 fw-bold rounded-circle  text-dark">{{ step.number }}</span> {{ step.title }}</span>
+        > {{  index + 1 }}</button>
+        <span class="p-2 text-uppercase" v-if="index == actualStep-1"><span class="bg-white p-1 px-2 mx-1 fw-bold rounded-circle  text-dark">{{ index+1 }}</span> {{ step.title }}</span>
       </template>
       <template v-if="actualStep < steps.length">
         <span> -> </span>

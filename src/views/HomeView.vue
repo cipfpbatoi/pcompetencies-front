@@ -2,12 +2,8 @@
 import { api } from '../repositories/api.js'
 import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
-import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
 export default {
-  components: {
-    AppBreadcrumb,
-  },
   async mounted() {
     this.syllabuses = []
     try {
@@ -87,16 +83,16 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <app-breadcrumb :actualStep="1" :done="done"></app-breadcrumb>
+    <h2>Tria la programació</h2>
     <div class="container-fluid px-lg-4" >
       <div class="form-group">
-        <label class="form-label fw-bold">Ciclo</label>
+        <label class="form-label fw-bold">Cicle</label>
         <select
           v-model="cycleSelect"
           @change="getModules"
           class="form-select form-control"
           aria-label="Selecciona cycleSelect">
-          <option value="">-- Selecciona ciclo --</option>
+          <option value="">-- Selecciona cicle --</option>
           <option v-for="cycleSelect in cycles" :key="cycleSelect.id" :value="cycleSelect.id">
             {{ cycleSelect.completeName }}
           </option>

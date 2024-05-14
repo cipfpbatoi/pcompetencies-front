@@ -10,6 +10,7 @@ import ContextSyllabus from '../views/ContextSyllabus.vue'
 import SyllabusSchedule from '../views/SyllabusSchedule.vue'
 import SyllabusQualify from '../views/SyllabusQualify.vue'
 import FinalQualify from '../views/FinalQualify.vue'
+import MethodologicalPrinciples from '../views/MethodologicalPrinciples.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,7 +80,13 @@ const router = createRouter({
       name: 'FinalQualify',
       component: FinalQualify,
       meta: { requiresAuth: true }
-    },   
+    },  
+    {
+      path: '/method-principles',
+      name: 'MethodologicalPrinciples',
+      component: MethodologicalPrinciples,
+      meta: { requiresAuth: true }
+    }, 
     {
       path: '/about',
       name: 'about',

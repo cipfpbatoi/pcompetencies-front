@@ -115,6 +115,15 @@ export const api = {
     instance.post(`/syllabus/${id}/final/activity`, data),
   deleteFinalActivity: (id, activityId) =>
     instance.delete(`/syllabus/${id}/final/activity/${activityId}`),
+
+  // Methodological Principles
+  getMethodologicalPrinciples: () =>
+    instance.get(`/methodological-principles`),
+  getSyllabusMethodologicalPrinciples: (id) =>
+    instance.get(`/syllabus/${id}/methodological-principles`),
+  saveMethodologicalPrinciples: (id, data) =>
+    instance.post(`/syllabus/${id}/methodological-principles`, data),
+
   }
 
 export default instance

@@ -192,17 +192,16 @@ export default {
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>7. Qualificació</h2>
       <div class="bg-danger m-1">
-      <p v-if="totalPercentajeWeight !== 100" class="text-light p-2 text-justify"><strong>ATENCIÓ:</strong> la suma dels percentatges de les situacions d'aprenentage és {{ totalPercentajeWeight}}% i NO 100%. Has d'arreglar-lo abans de continuar</p>
     </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
+        <p v-if="ls.totalPercentageWeight !== 100" class="bg-danger text-white p-2"><strong>ATENCIÓ:</strong> la suma dels percentatges de la S.A. NO és 100%. Has d'arreglar-lo abans de continuar</p>
         <table class="table table-striped">
           <thead>
             <th>R.A.</th>
             <th>Codi</th>
             <th>Criteri d'avaluació a utilitzar</th>
             <th>S.A. (%)</th>
-            <th>Curs (%)</th>
             <th>Fonamental</th>
             <th>Accions</th>
           </thead>
@@ -216,7 +215,6 @@ export default {
               <td>{{ activity.code }}</td>
               <td v-html="showCes(activity)"></td>
               <td>{{ activity.percentageWeight }} %</td>
-              <td>{{ activity.hours }}</td>
               <td>
                 <check-icon :checked="activity.fundamental"></check-icon>
               </td>

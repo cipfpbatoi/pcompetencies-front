@@ -39,7 +39,7 @@ export default {
     <table v-if="data.length" class="table table-striped">
       <thead>
         <th v-if="checkeable" title="Selecciona">Sel.</th>
-        <th v-for="(col, index) in columns" :key="index" :title="col.hint">{{ col.title }}</th>
+        <th v-for="(col, index) in columns" :key="index" :title="col.hint" v-html="col.title"></th>
         <th v-if="actions">Accions</th>
       </thead>
       <tbody>

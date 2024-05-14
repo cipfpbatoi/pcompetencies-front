@@ -25,51 +25,48 @@ export default {
       //     nextPath: 'contextSyl'
       //   },
         {
-          number: 2,
           title: 'Contextualització',
           path: 'contextSyl',
           nextPath: 'imprProp'
         },
         {
-          number: 3,
           title: 'Propostes de millora',
           path: 'imprProp',
           nextPath: 'learningSituations'
         },
         {
-          number: 4,
           title: "Crear Situacions d'aprenentatge",
           path: 'learningSituations',
           nextPath: 'LSTest'
         },
         {
-          number: 5,
           title: 'Comprova els RA',
           path: 'LSTest',
           nextPath: 'LSsDevelopment'
         },
         {
-          number: 6,
           title: 'Desenvolupar les S.A.',
           path: 'LSsDevelopment',
           nextPath: 'SyllabusSchedule'
         },
         {
-          number: 7,
           title: 'Temporalització',
           path: 'SyllabusSchedule',
           nextPath: 'SyllabusQualify'
         },
         {
-          number: 8,
           title: 'Qualificació',
           path: 'SyllabusQualify',
           nextPath: 'FinalQualify'
         },
         {
-          number: 9,
           title: 'Qualificació Final',
           path: 'FinalQualify',
+          nextPath: 'MethodologicalPrinciples'
+        },
+        {
+          title: 'Principis metodològics',
+          path: 'MethodologicalPrinciples',
           nextPath: 'imprProp'
         },
       ]
@@ -80,7 +77,7 @@ export default {
 
 <template>
     <div class="bg-info text-center text-white p-1 px-3 mb-3 border-top border-bottom border-2 border-primary text-light shadow">
-      <template v-for="(step, index) in steps" :key="step.number">
+      <template v-for="(step, index) in steps" :key="index">
         <span v-if="index > 0"> -> </span>
         <button class="btn btn-primary"
           v-if="index !== actualStep -1"

@@ -93,6 +93,7 @@ export const api = {
   saveSyllabusMarkingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
   saveSyllabusInstructionalUnit: (id, data) => instance.post(`/syllabus/${id}/instructionalUnit`, data),
   deleteSyllabusInstructionalUnit: (id, iUId) => instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
+  saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
 
   // Activities
   saveActivity: (lsId, type, data) =>

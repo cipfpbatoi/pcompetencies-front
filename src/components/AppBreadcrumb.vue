@@ -65,7 +65,7 @@ export default {
           nextPath: 'MethodologicalPrinciples'
         },
         {
-          title: 'Principis metodològics',
+          title: 'Metodologia i Materials',
           path: 'MethodologicalPrinciples',
           nextPath: 'imprProp'
         },

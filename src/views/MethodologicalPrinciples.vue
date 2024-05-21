@@ -185,7 +185,7 @@ export default {
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>9. Principis metodològics i recursos didàctics</h2>
-      <h3>9. Principis metodològics</h3>
+      <h3>Principis metodològics</h3>
       <div class="border border-black">
         <show-table
           :data="syllabusMethodologicalPrinciples"

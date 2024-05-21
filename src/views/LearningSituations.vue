@@ -64,8 +64,8 @@ const instructionalUnitsColumns = [
   },
   {
     title: "Situacions d'Aprenentatge",
-    func: (x) => (x ? x.join(', ') : 'Cap'),
-    param: 'learningSituationId'
+    func: (x) => (x ? x.position.join(', ') : 'Cap'),
+    param: 'learningSituations'
   }
 ]
 export default {
@@ -103,6 +103,7 @@ export default {
       LearnSitModal: null,
       modalData: { ponderedLearningResults: [] },
       learningSituationsColumns,
+      instructionalUnits: [],
       instructionalUnitsColumns,
       // Modal generic
       GenericModal: null,
@@ -117,6 +118,7 @@ export default {
     if (!this.syllabus.id) {
       this.$router.push('/')
     }
+    this.getIUnits()
     this.GenericModal = new Modal(document.getElementById('iUnitModal'))
     this.LearnSitModal = new Modal(document.getElementById('unitMmodalComp'))
   },
@@ -142,40 +144,40 @@ export default {
       }
       this.GenericModal.show()
     },
+    async getIUnits() {
+      try {
+        const response = await api.getSyllabusInstructionalUnits(this.syllabus.id)
+        this.instructionalUnits = response.data
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
     async saveIUnit() {
       this.errors = await validateFormErrors(validationSchema, this.modalFields)
       if (Object.keys(this.errors).length) return
 
       try {
-        const response = await api.saveSyllabusInstructionalUnit(this.syllabus.id, {
+        await api.saveSyllabusInstructionalUnit(this.syllabus.id, {
           ...this.modalFields,
           learningSituations: this.modalFields.learningSituationId
         })
-        response.data.learningSituationId = response.data.learningSituations.map((item) => item.id)
-        response.data.iUnitId = response.data.id
-        if (this.modalFields.iUnitId) {
-          const index = this.syllabus.instructionalUnits.findIndex(
-            (item) => item.id === response.data.id
-          )
-          this.syllabus.instructionalUnits.splice(index, 1, response.data)
-        } else {
-          this.syllabus.instructionalUnits.push(response.data)
-        }
         this.modalFields = {}
         this.GenericModal.hide()
       } catch (error) {
         this.addMessage('error', error)
+        return
       }
+      this.getIUnits()
     },
     async deleteIUnit(iUnit) {
       if (confirm('Vas a esborrar el bloc ' + iUnit.name)) {
         try {
           await api.deleteSyllabusInstructionalUnit(this.syllabus.id, iUnit.id)
-          const index = this.syllabus.instructionalUnits.findIndex((item) => item.id === iUnit.id)
-          this.syllabus.instructionalUnits.splice(index, 1)
         } catch (error) {
           this.addMessage('error', error)
+          return
         }
+        this.getIUnits()
       }
     },
     showLSModal(unit) {
@@ -275,7 +277,8 @@ export default {
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <div>
         <h2>3. Situacions d'aprenentatge</h2>
-        <show-table class="border border-black"
+        <show-table
+          class="border border-black"
           :data="this.syllabus.learningSituations"
           :columns="this.learningSituationsColumns"
         >
@@ -323,8 +326,9 @@ export default {
         </div>
 
         <h3>Blocs formatius</h3>
-        <show-table class="border border-black"
-          :data="this.syllabus.instructionalUnits"
+        <show-table
+          class="border border-black"
+          :data="this.instructionalUnits"
           :columns="this.instructionalUnitsColumns"
         >
           <template #default="{ item }">

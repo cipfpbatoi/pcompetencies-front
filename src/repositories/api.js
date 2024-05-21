@@ -91,6 +91,7 @@ export const api = {
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
   getSyllabusMarlingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
   saveSyllabusMarkingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
+  getSyllabusInstructionalUnits: (id) => instance.get(`/syllabus/${id}/instructionalUnit`),
   saveSyllabusInstructionalUnit: (id, data) => instance.post(`/syllabus/${id}/instructionalUnit`, data),
   deleteSyllabusInstructionalUnit: (id, iUId) => instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
   saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
@@ -116,6 +117,14 @@ export const api = {
     instance.post(`/syllabus/${id}/final/activity`, data),
   deleteFinalActivity: (id, activityId) =>
     instance.delete(`/syllabus/${id}/final/activity/${activityId}`),
+
+  // Complementary Activities
+  getComplementaryActivities: (id) =>
+    instance.get(`/syllabus/${id}/complementaryActivities`),
+  saveComplementaryActivity: (id, data) =>
+    instance.post(`/syllabus/${id}/activity/complementary`, data),
+  deleteComplementaryActivity: (id, activityId) =>
+    instance.delete(`/syllabus/${id}/ComplementaryActivity/${activityId}`),
 
   // Methodological Principles
   getMethodologicalPrinciples: () =>

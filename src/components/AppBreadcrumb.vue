@@ -69,6 +69,10 @@ export default {
           path: 'MethodologicalPrinciples',
           nextPath: 'imprProp'
         },
+        // {
+        //   title: 'Generar programació',
+        //   path: 'Print',
+        // },
       ]
     }
   }

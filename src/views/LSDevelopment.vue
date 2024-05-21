@@ -165,7 +165,7 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <app-breadcrumb :actualStep="6" :done="true" :back="true"></app-breadcrumb>
+    <app-breadcrumb :actualStep="5" :done="true" :back="true"></app-breadcrumb>
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }}</h3>

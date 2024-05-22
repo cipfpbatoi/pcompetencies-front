@@ -232,6 +232,7 @@ export default {
         )
       })
       learningSituation.position = learningSituation.position + positionStep
+      this.syllabus.learningSituations.sort((a,b) => (a.position > b.position) ? 1 : ((b.position > a.position) ? -1 : 0))
     }
   }
 }

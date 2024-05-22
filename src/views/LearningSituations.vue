@@ -199,7 +199,9 @@ export default {
             '". Aquest procés NO es por des-fer !!!'
         )
       ) {
-        this.deleteLearningSituation(unit.id)
+        this.deleteLearningSituation(unit.id);
+        this.syllabus.learningSituations.forEach((element) => (element.position > unit.position) ? element.position-- : '');
+        this.reorderLSLIst();
       }
     },
     simplifyPonderedLearningResults(pLRs) {
@@ -209,6 +211,9 @@ export default {
           percentageWeight: item.percentageWeight
         }
       })
+    },
+    reorderLSLIst() {
+      this.syllabus.learningSituations.sort((a,b) => (a.position > b.position) ? 1 : ((b.position > a.position) ? -1 : 0))
     },
     changeLSPosition(learningSituation, positionStep) {
       const learningSituationToSwap = this.syllabus.learningSituations.find(
@@ -231,8 +236,8 @@ export default {
           learningSituation.ponderedLearningResults
         )
       })
-      learningSituation.position = learningSituation.position + positionStep
-      this.syllabus.learningSituations.sort((a,b) => (a.position > b.position) ? 1 : ((b.position > a.position) ? -1 : 0))
+      learningSituation.position = learningSituation.position + positionStep;
+      this.reorderLSLIst();
     }
   }
 }

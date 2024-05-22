@@ -64,7 +64,7 @@ const instructionalUnitsColumns = [
   },
   {
     title: "Situacions d'Aprenentatge",
-    func: (x) => (x ? x.position.join(', ') : 'Cap'),
+    func: (x) => (x ? x.position?.join(', ') : 'Cap'),
     param: 'learningSituations'
   }
 ]

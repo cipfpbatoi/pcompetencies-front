@@ -79,12 +79,7 @@ export default {
       </p>
       <template v-else>
         <h4>
-          <span class="text-danger"
-            >La programació NO inclou tots els resultats d' aprenentatge</span
-          >
-          <button @click="$router.push({ name: 'learningSituations' })" class="button btn-sm">
-            Tornar
-          </button>
+          <span class="text-light p-2 text-justify">La programació NO inclou tots els resultats d' aprenentatge</span>
         </h4>
       </template>
     </div>

@@ -18,7 +18,7 @@ export default {
       <div
         v-for="message in messages"
         :key="message.id"
-        data-bs-autohide="false"
+        data-bs-autohide="true"
         class="toast"
         role="alert"
         aria-live="assertive"

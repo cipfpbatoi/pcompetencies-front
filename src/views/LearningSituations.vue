@@ -241,32 +241,32 @@ export default {
   <main class="border shadow view-main">
     <ModalComponent @save="saveIUnit" :title="modalTitle" id="iUnitModal">
       <div class="input-group mb-3">
-        <span class="input-group-text">Posició:</span>
+        <span class="input-group-text col-2">Posició:</span>
         <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
         <span v-if="errors.position" class="input-group-text text-danger">{{
           errors.position
         }}</span>
       </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text">Nom:</span>
+      <div class="input-group mb-3 col-2">
+        <span class="input-group-text col-lg-2">Nom:</span>
         <input type="text" class="form-control" v-model="modalFields.name" />
         <span v-if="errors.name" class="input-group-text text-danger">{{ errors.name }}</span>
       </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text">Descripció:</span>
+      <div class="input-group mb-3 ">
+        <span class="input-group-text col-lg-2">Descripció:</span>
         <textarea class="form-control" v-model="modalFields.description"></textarea>
         <span v-if="errors.description" class="input-group-text text-danger">{{
           errors.description
         }}</span>
       </div>
       <div class="input-group mb-3">
-        <span class="input-group-text">Situacions d'aprenentatge:</span>
+        <span class="input-group-text col-lg-2 text-start">Situacions <br> d'aprenentatge:</span>
         <select class="form-select" multiple v-model="modalFields.learningSituationId">
           <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
             {{ ls.title }}
           </option>
         </select>
-        <p><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
+        <p class="col-12 text-center"><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
         <span v-if="errors.learningSituations" class="input-group-text text-danger">{{
           errors.learningSituations
         }}</span>
@@ -276,9 +276,9 @@ export default {
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <div>
-        <h2>3. Situacions d'aprenentatge</h2>
+        <h2>3.1 Situacions d'Aprenentatge</h2>
         <show-table
-          class="border border-black"
+          class="border border-black p-2"
           :data="this.syllabus.learningSituations"
           :columns="this.learningSituationsColumns"
         >
@@ -307,12 +307,9 @@ export default {
             </button>
           </template>
           <template #footer>
-            <th colspan="2">TOTAL</th>
-            <th
-              :class="errorTotalHoursClass"
-              :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`"
-            >
-              {{ totalHours }}/ {{ module.numberOfHours }}
+            <th colspan="2" class="text-end pe-3">TOTAL</th>
+            <th :class="errorTotalHoursClass" :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`">
+                {{ totalHours }} / {{ module.numberOfHours }}
             </th>
             <th :class="errorTotalRAWeightClass" title="El total hauria de ser 100 %">
               {{ totalRAWeight }} %
@@ -320,14 +317,14 @@ export default {
           </template>
         </show-table>
         <div class="text-center">
-          <button class="btn btn-success" @click="showLSModal()">
+          <button class="btn btn-success mt-2" @click="showLSModal()">
             Afegir Situació d'Aprenentatge
           </button>
         </div>
 
-        <h3>Blocs formatius</h3>
+        <h3>3.2 Blocs formatius</h3>
         <show-table
-          class="border border-black"
+          class="border border-black p-2"
           :data="this.instructionalUnits"
           :columns="this.instructionalUnitsColumns"
         >
@@ -341,7 +338,7 @@ export default {
           </template>
         </show-table>
         <div class="text-center">
-          <button class="btn btn-success" @click="showModal()">Afegir Bloc</button>
+          <button class="btn btn-success mt-2" @click="showModal()">Afegir Bloc</button>
         </div>
         <LearnSitModal @saved="hideLSModal" :unit="modalData"></LearnSitModal>
       </div>

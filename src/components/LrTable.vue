@@ -8,7 +8,7 @@ const evaluationCriteriasColumns = [
   },
   {
     title: 'Descripció',
-    value: 'description'
+    value: 'description',
   }
 ]
 
@@ -49,23 +49,23 @@ export default {
 <template>
   <div>
     <table class="table table-striped text-center">
-      <thead>
+      <thead class="border-bottom border-dark p-2 bg-primary text-white">
         <th>Codi</th>
         <th>Descripció</th>
         <th v-if="percentageWeight">Pes</th>
-        <th>Accions</th>
+        <th class="pe-1">Accions</th>
       </thead>
       <tbody>
         <template v-for="(result, index) in learningResults" :key="result.id">
           <tr>
-            <td>RA {{ result.number }}</td>
-            <td>{{ result.descriptor }}</td>
+            <td class="fw-bold">RA {{ result.number }}</td>
+            <td class="text-start">{{ result.descriptor }}</td>
             <td v-if="percentageWeight">
               <input v-if="percentageWeight=='edit'" size="3" type="number" min="1" max="100" 
               :value="result.percentageWeight" 
               @change="changeWeight(result, $event.target.value)" />
               <span v-else>{{ result.percentageWeight }}</span> %</td>
-            <td>
+            <td class="shadow-lg rounded">
               <button
                 @click="toogleDeployedRa(result.id)"
                 type="button"
@@ -78,7 +78,7 @@ export default {
             </td>
           </tr>
           <tr v-if="deployedRA == result.id">
-            <td colspan="3">
+            <td class="px-3 py-1 bg-primary-subtle text-start" colspan="3">
               <ShowTable
                 :data="result.evaluationCriterias"
                 :columns="evaluationCriteriasColumns"

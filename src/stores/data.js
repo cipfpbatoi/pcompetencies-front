@@ -79,7 +79,7 @@ export const useDataStore = defineStore('data', {
       }
       newMessage.time = new Date().toLocaleTimeString()
       this.messages.push(newMessage)
-      if (type === 'success') {
+      if (type === 'success' || type === 'error') {
         setTimeout(() => this.delMessage(id), DELMSG_TIMEOUT)
       }
     },

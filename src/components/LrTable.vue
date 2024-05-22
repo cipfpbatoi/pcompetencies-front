@@ -65,7 +65,7 @@ export default {
               :value="result.percentageWeight" 
               @change="changeWeight(result, $event.target.value)" />
               <span v-else>{{ result.percentageWeight }}</span> %</td>
-            <td class="shadow-lg rounded">
+            <td class="shadow rounded">
               <button
                 @click="toogleDeployedRa(result.id)"
                 type="button"

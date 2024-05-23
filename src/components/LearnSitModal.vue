@@ -75,8 +75,8 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['saveLearningSituation']),
     addRA() {
-      if (this.newLearningResult.percentageWeight < 1 || this.newLearningResult.percentageWeight > 100) {
-          this.errors.percentageWeight = 'El pes de cada RA no pot ser menor que 1 ni major que el 100%'
+      if (this.newLearningResult.percentageWeight < 0 || this.newLearningResult.percentageWeight > 100) {
+          this.errors.percentageWeight = 'El pes de cada RA no pot ser menor que 0 ni major que el 100%'
           return
       }
       if (!Number.isInteger(this.newLearningResult.percentageWeight)){

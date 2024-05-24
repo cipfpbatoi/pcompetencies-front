@@ -263,15 +263,11 @@ export default {
       </div>
     </ModalComponent>
     <ModalComponent @save="saveContents" :title="modalTitle" modalId="complementaryActivitiesModal">
-      <div class="row g-3 align-items-center">
-        <div class="col-auto">
-          <label class="form-label">Nom</label>
-        </div>
-        <div class="col-auto">
-          <input type="text" v-model="modalFields.description" />
-        </div>
-        <div class="col-auto">
-          <p v-if="errors.description" class="error">{{ errors.description }}</p>
+      <div class="row p-2">
+        <div class="input-group cols-8 p-2">
+          <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Nom</label>
+          <input type="text" v-model="modalFields.description" class="form-control p-2" />
+          <p v-if="errors.description" class="error p-2">{{ errors.description }}</p>
         </div>
       </div>
       <div class="row">
@@ -280,7 +276,7 @@ export default {
             <tbody>
               <tr v-for="(item, index) in modalFields.contentDescriptors" :key="index">
                 <td>{{ item }}</td>
-                <td>
+                <td class="text-end">
                   <button @click="delContent(index)" class="btn btn-secondary" title="Eliminar">
                 <i class="bi bi-trash"></i>
               </button>

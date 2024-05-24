@@ -7,7 +7,7 @@ const evaluationCriteriasColumns = [
     value: 'code'
   },
   {
-    title: 'Descripció',
+    title: "Criteris d'avaluació",
     value: 'description',
   }
 ]

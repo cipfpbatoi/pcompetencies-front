@@ -211,7 +211,7 @@ export default {
                 size="3"
                 type="number"
                 v-model="newLearningResult.percentageWeight"
-                min="1"
+                min="0"
                 max="100"
               />
               <span class="p-2">%</span>
@@ -220,7 +220,7 @@ export default {
                 class="btn btn-sm btn-primary p-2"
                 @click="addRA"
                 :disabled="
-                  !(newLearningResult.learningResultId && newLearningResult.percentageWeight)
+                  !(newLearningResult.learningResultId && newLearningResult.percentageWeight >=0)
                 "
               >
                 Afegir RA

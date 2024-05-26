@@ -5,6 +5,10 @@ import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
 const learningSituationsColumns = [
+{
+    title: 'Num.',
+    value: 'position'
+  },
   {
     title: 'Títol',
     value: 'title'

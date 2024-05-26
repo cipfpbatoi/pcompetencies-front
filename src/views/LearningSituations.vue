@@ -25,7 +25,8 @@ const validationSchema = object({
 const learningSituationsColumns = [
   {
     title: 'Num.',
-    value: 'position'
+    value: 'position',
+    class: 'text-center'
   },
   {
     title: 'Títol',
@@ -33,10 +34,12 @@ const learningSituationsColumns = [
   },
   {
     title: 'Hores',
-    value: 'hours'
+    value: 'hours',
+    class: 'text-center'
   },
   {
     title: 'R.A.',
+    class: 'text-center',
     func: (x) => {
       if (!x || !x.length) return ''
       return x
@@ -64,7 +67,7 @@ const instructionalUnitsColumns = [
   },
   {
     title: "Situacions d'Aprenentatge",
-    func: (x) => (x ? x.position?.join(', ') : 'Cap'),
+    func: (x) => x.map(ls => 'SA ' + ls.position).join(', '),
     param: 'learningSituations'
   }
 ]
@@ -163,6 +166,7 @@ export default {
         })
         this.modalFields = {}
         this.GenericModal.hide()
+        this.addMessage('success', 'Bloc afegit')
       } catch (error) {
         this.addMessage('error', error)
         return
@@ -173,6 +177,7 @@ export default {
       if (confirm('Vas a esborrar el bloc ' + iUnit.name)) {
         try {
           await api.deleteSyllabusInstructionalUnit(this.syllabus.id, iUnit.id)
+          this.addMessage('success', 'Bloc eliminat')
         } catch (error) {
           this.addMessage('error', error)
           return
@@ -191,7 +196,7 @@ export default {
     hideLSModal() {
       this.LearnSitModal.hide()
     },
-    delUnit(unit) {
+    async delUnit(unit) {
       if (
         confirm(
           'ATENCIÓ: Vas a esborrar la unitat "' +
@@ -199,9 +204,29 @@ export default {
             '". Aquest procés NO es por des-fer !!!'
         )
       ) {
-        this.deleteLearningSituation(unit.id);
-        this.syllabus.learningSituations.forEach((element) => (element.position > unit.position) ? element.position-- : '');
-        this.reorderLSLIst();
+        let response = null
+        try {
+          response = await api.getLearningSituationById(unit.id)
+        } catch (error) {
+          this.addMessage('error', error)
+          return
+        }
+        if (response.data.activities.length) {
+          if (
+            !confirm(
+              'ATENCIÓ: La unitat que vas a esborrar te ' +
+                response.data.activities.length +
+                ' activitats creades que també es borraran!!!'
+            )
+          ) {
+            return
+          }
+        }
+        this.deleteLearningSituation(unit.id)
+        this.syllabus.learningSituations.forEach((element) =>
+          element.position > unit.position ? element.position-- : ''
+        )
+        this.reorderLSLIst()
       }
     },
     simplifyPonderedLearningResults(pLRs) {
@@ -213,7 +238,9 @@ export default {
       })
     },
     reorderLSLIst() {
-      this.syllabus.learningSituations.sort((a,b) => (a.position > b.position) ? 1 : ((b.position > a.position) ? -1 : 0))
+      this.syllabus.learningSituations.sort((a, b) =>
+        a.position > b.position ? 1 : b.position > a.position ? -1 : 0
+      )
     },
     changeLSPosition(learningSituation, positionStep) {
       const learningSituationToSwap = this.syllabus.learningSituations.find(
@@ -236,8 +263,8 @@ export default {
           learningSituation.ponderedLearningResults
         )
       })
-      learningSituation.position = learningSituation.position + positionStep;
-      this.reorderLSLIst();
+      learningSituation.position = learningSituation.position + positionStep
+      this.reorderLSLIst()
     }
   }
 }
@@ -258,7 +285,7 @@ export default {
         <input type="text" class="form-control" v-model="modalFields.name" />
         <span v-if="errors.name" class="input-group-text text-danger">{{ errors.name }}</span>
       </div>
-      <div class="input-group mb-3 ">
+      <div class="input-group mb-3">
         <span class="input-group-text col-lg-2">Descripció:</span>
         <textarea class="form-control" v-model="modalFields.description"></textarea>
         <span v-if="errors.description" class="input-group-text text-danger">{{
@@ -266,10 +293,13 @@ export default {
         }}</span>
       </div>
       <div class="input-group mb-3">
-        <span class="input-group-text col-lg-2 text-start">Situacions <br> d'aprenentatge:</span>
+        <span class="input-group-text col-lg-2 text-start"
+          >Situacions <br />
+          d'aprenentatge:</span
+        >
         <select class="form-select" multiple v-model="modalFields.learningSituationId">
           <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
-            {{ ls.title }}
+            {{ ls.position }} - {{ ls.title }}
           </option>
         </select>
         <p class="col-12 text-center"><small>(Pots marcar vàries amb Ctrl polsat)</small></p>
@@ -314,10 +344,16 @@ export default {
           </template>
           <template #footer>
             <th colspan="2" class="text-end pe-3">TOTAL</th>
-            <th :class="errorTotalHoursClass" :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`">
-                {{ totalHours }} / {{ module.numberOfHours }}
+            <th
+              :class="[errorTotalHoursClass, 'text-center']"
+              :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`"
+            >
+              {{ totalHours }} / {{ module.numberOfHours }}
             </th>
-            <th :class="errorTotalRAWeightClass" title="El total hauria de ser 100 %">
+            <th
+              :class="[errorTotalRAWeightClass, 'text-center']"
+              title="El total hauria de ser 100 %"
+            >
               {{ totalRAWeight }} %
             </th>
           </template>

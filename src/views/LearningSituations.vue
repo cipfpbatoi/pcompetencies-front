@@ -67,7 +67,7 @@ const instructionalUnitsColumns = [
   },
   {
     title: "Situacions d'Aprenentatge",
-    func: (x) => (x ? x.position?.join(', ') : 'Cap'),
+    func: (x) => x.map(ls => 'SA ' + ls.position).join(', '),
     param: 'learningSituations'
   }
 ]
@@ -160,7 +160,7 @@ export default {
       if (Object.keys(this.errors).length) return
 
       try {
-        const response = await api.saveSyllabusInstructionalUnit(this.syllabus.id, {
+        await api.saveSyllabusInstructionalUnit(this.syllabus.id, {
           ...this.modalFields,
           learningSituations: this.modalFields.learningSituationId
         })
@@ -299,7 +299,7 @@ export default {
         >
         <select class="form-select" multiple v-model="modalFields.learningSituationId">
           <option v-for="ls in syllabus.learningSituations" :key="ls.id" :value="ls.id">
-            {{ ls.title }}
+            {{ ls.position }} - {{ ls.title }}
           </option>
         </select>
         <p class="col-12 text-center"><small>(Pots marcar vàries amb Ctrl polsat)</small></p>

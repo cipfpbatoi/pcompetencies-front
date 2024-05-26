@@ -17,6 +17,10 @@ export default {
       type: Boolean,
       default: false
     },
+    class: {
+      type: [Boolean, String],
+      default: false
+    },
   },
   computed: {
 
@@ -38,16 +42,21 @@ export default {
   <div style="overflow: auto">
     <table v-if="data.length" class="table table-striped">
       <thead>
-        <th v-if="checkeable" title="Selecciona">Sel.</th>
-        <th v-for="(col, index) in columns" :key="index" :title="col.hint" v-html="col.title"></th>
+        <th v-if="checkeable" title="Selecciona" class="text-center">Sel.</th>
+        <th v-for="(col, index) in columns" :key="index" 
+          :title="col.hint" 
+          v-html="col.title"
+          :class="[col.class]"
+        ></th>
         <th v-if="actions">Accions</th>
       </thead>
       <tbody>
         <tr v-for="(item, index) in data" :key="index">
-          <td v-if="checkeable">
+          <td v-if="checkeable" class="text-center">
             <input type="checkbox" v-model="item.checked" />
           </td>
-          <td v-for="(col, tdIndex) in columns" :key="tdIndex" :class="{ 'text-success': item.success }">
+          <td v-for="(col, tdIndex) in columns" :key="tdIndex" 
+          :class="[{ 'text-success': item.success}, col.class ]">
             <span v-if="col.html" v-html="fieldContent(item, col)"></span>
             <span v-else>{{ fieldContent(item, col) }}</span>
           </td>

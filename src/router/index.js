@@ -11,6 +11,7 @@ import SyllabusSchedule from '../views/SyllabusSchedule.vue'
 import SyllabusQualify from '../views/SyllabusQualify.vue'
 import FinalQualify from '../views/FinalQualify.vue'
 import MethodologicalPrinciples from '../views/MethodologicalPrinciples.vue'
+import ValidateSyllabus from '../views/ValidateSyllabus.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -85,6 +86,12 @@ const router = createRouter({
       path: '/method-principles',
       name: 'MethodologicalPrinciples',
       component: MethodologicalPrinciples,
+      meta: { requiresAuth: true }
+    }, 
+    {
+      path: '/validate',
+      name: 'ValidateSyllabus',
+      component: ValidateSyllabus,
       meta: { requiresAuth: true }
     }, 
     {

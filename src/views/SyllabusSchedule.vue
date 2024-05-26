@@ -55,7 +55,7 @@ export default {
       modalTitle: '',
       DAYS_NAME,
       complementaryActivColumns,
-      newContent: '',
+      newContent: ''
     }
   },
   methods: {
@@ -77,16 +77,16 @@ export default {
           break
         case 'activity':
           if (data) {
-            this.modalFields = { 
+            this.modalFields = {
               ...data,
-              contentDescriptors: [...data.contentDescriptors],
-             }
+              contentDescriptors: [...data.contentDescriptors]
+            }
             this.modalTitle = 'Editar activitat complementària'
           } else {
             this.modalFields = {
-              description: '', 
-              contentDescriptors: [],
-             }
+              description: '',
+              contentDescriptors: []
+            }
             this.modalTitle = 'Agegir nova activitat complementària'
           }
 
@@ -188,7 +188,7 @@ export default {
     },
     addContent() {
       if (this.newContent.length < 5) {
-        this.errors.contentDescriptors = "Al menys ha de tindre 5 caracters"
+        this.errors.contentDescriptors = 'Al menys ha de tindre 5 caracters'
         return
       }
       this.modalFields.contentDescriptors.push(this.newContent)
@@ -208,13 +208,15 @@ export default {
 
       if (this.modalFields.id) {
         this.modalFields.activityId = this.modalFields.id
-        delete(this.modalFields.id)
+        delete this.modalFields.id
       }
       try {
         const response = await api.saveComplementaryActivity(this.syllabus.id, this.modalFields)
         if (this.modalFields.id) {
-        const index = this.syllabus.complementaryActivities.findIndex((item) => item.id === response.data.id)
-        this.syllabus.complementaryActivities.splice(index, 1, response.data)
+          const index = this.syllabus.complementaryActivities.findIndex(
+            (item) => item.id === response.data.id
+          )
+          this.syllabus.complementaryActivities.splice(index, 1, response.data)
         } else {
           this.syllabus.complementaryActivities.push(response.data)
         }
@@ -223,7 +225,6 @@ export default {
       } catch (error) {
         this.addMessage('error', error)
       }
-
     }
   }
 }
@@ -237,6 +238,13 @@ export default {
           <label class="form-label">Nom del grup</label>
         </div>
         <div class="col-auto">
+          <select v-model="modalFields.nameGroup">
+            <option value="">--- Tria el grup ---</option>
+            <option value="A">Grup A</option>
+            <option value="B">Grup B</option>
+            <option value="C">Grup C</option>
+            <option value="D">Grup D</option>
+          </select>
           <input type="text" v-model="modalFields.nameGroup" />
         </div>
         <div class="col-auto">
@@ -271,34 +279,34 @@ export default {
         </div>
       </div>
       <div class="row">
-          <p><strong>Continguts tractats en l'activitat:</strong></p>
-          <table class="table table-striped">
-            <tbody>
-              <tr v-for="(item, index) in modalFields.contentDescriptors" :key="index">
-                <td>{{ item }}</td>
-                <td class="text-end">
-                  <button @click="delContent(index)" class="btn btn-secondary" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
-                </td>
-              </tr>
-            </tbody>
-            </table>
-          <form @submit.prevent="addContent">
-            <div class="input-group">
-              <input
-                type="text"
-                class="form-control"
-                v-model="newContent"
-                placeholder="Afegir nou contingut"
-              />
-              <button type="submit" class="btn btn-secondary" title="Establir objectiu">
-                Afegir nou contingut
-              </button>
-            </div>
-            <span v-if="errors.newContent" class="error">{{ errors.newContent }}</span>
-          </form>
-          <p v-if="errors.contentDescriptors" class="error">{{ errors.contentDescriptors }}</p>
+        <p><strong>Continguts tractats en l'activitat:</strong></p>
+        <table class="table table-striped">
+          <tbody>
+            <tr v-for="(item, index) in modalFields.contentDescriptors" :key="index">
+              <td>{{ item }}</td>
+              <td class="text-end">
+                <button @click="delContent(index)" class="btn btn-secondary" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <form @submit.prevent="addContent">
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              v-model="newContent"
+              placeholder="Afegir nou contingut"
+            />
+            <button type="submit" class="btn btn-secondary" title="Establir objectiu">
+              Afegir nou contingut
+            </button>
+          </div>
+          <span v-if="errors.newContent" class="error">{{ errors.newContent }}</span>
+        </form>
+        <p v-if="errors.contentDescriptors" class="error">{{ errors.contentDescriptors }}</p>
       </div>
     </ModalComponent>
 

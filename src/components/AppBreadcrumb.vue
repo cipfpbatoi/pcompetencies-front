@@ -50,7 +50,7 @@ export default {
           nextPath: 'SyllabusSchedule'
         },
         {
-          title: 'Temporalització',
+          title: 'Temporalització i Act. compl.',
           path: 'SyllabusSchedule',
           nextPath: 'SyllabusQualify'
         },
@@ -67,12 +67,12 @@ export default {
         {
           title: 'Metodologia i Materials',
           path: 'MethodologicalPrinciples',
-          nextPath: 'imprProp'
+          nextPath: 'ValidateSyllabus'
         },
-        // {
-        //   title: 'Generar programació',
-        //   path: 'Print',
-        // },
+        {
+          title: 'Validar i enviar la programació',
+          path: 'ValidateSyllabus',
+        },
       ]
     }
   }

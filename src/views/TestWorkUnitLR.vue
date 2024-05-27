@@ -24,7 +24,7 @@ export default {
     },
     totalHours() {
       const hoursUsed = this.syllabus.learningSituations.reduce((total, ls) => total + ls.hours, 0)
-      return hoursUsed == this.module.numberOfHours
+      return hoursUsed == this.syllabus.numberOfHours
     }
   },
   mounted() {
@@ -90,7 +90,7 @@ export default {
       </p>
       <p v-if="!totalHours" class="text-light p-2 text-justify">
         <strong>ATENCIÓ:</strong> la suma de les hores NO suma les totals del mòdul ({{
-          module.numberOfHours
+          syllabus.numberOfHours
         }}). Has d'arreglar-lo en el pas anterior
       </p>
     </div>

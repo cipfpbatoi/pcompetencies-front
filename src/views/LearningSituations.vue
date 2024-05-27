@@ -98,7 +98,7 @@ export default {
       return this.totalRAWeight === 100 ? '' : 'bg-danger text-white'
     },
     errorTotalHoursClass() {
-      return this.totalHours === this.module.numberOfHours ? '' : 'bg-danger text-white'
+      return this.totalHours === this.syllabus.numberOfHours ? '' : 'bg-danger text-white'
     }
   },
   data() {
@@ -346,9 +346,9 @@ export default {
             <th colspan="2" class="text-end pe-3">TOTAL</th>
             <th
               :class="[errorTotalHoursClass, 'text-center']"
-              :title="`El núm. total d'hores hauria de ser ${module.numberOfHours}`"
+              :title="`El núm. total d'hores hauria de ser ${syllabus.numberOfHours}`"
             >
-              {{ totalHours }} / {{ module.numberOfHours }}
+              {{ totalHours }} / {{ syllabus.numberOfHours }}
             </th>
             <th
               :class="[errorTotalRAWeightClass, 'text-center']"

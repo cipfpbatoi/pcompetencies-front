@@ -36,7 +36,7 @@ export default {
       return this.modalFields.entries?.reduce((total, item) => total + item.hours, 0) || 0
     },
     hoursClass() {
-      return this.totalHours === this.syllabus.module?.weekHours ? 'text-success' : 'text-danger'
+      return this.totalHours === this.syllabus.weekHours ? 'text-success' : 'text-danger'
     }
   },
   mounted() {
@@ -124,9 +124,9 @@ export default {
       }
     },
     async saveSchedule() {
-      if (this.totalHours !== this.syllabus.module?.weekHours) {
+      if (this.totalHours !== this.syllabus.weekHours) {
         this.errors.hours =
-          'Les hores totals setmanals han de ser ' + this.syllabus.module?.weekHours
+          'Les hores totals setmanals han de ser ' + this.syllabus.weekHours
       }
       const findScheduleGroup = this.syllabus.schedules.find(
         (item) => item.nameGroup === this.modalFields.nameGroup
@@ -263,7 +263,7 @@ export default {
           <td v-for="entry in modalFields.entries" :key="entry.day">
             <input type="number" v-model="entry.hours" min="0" size="2" />
           </td>
-          <td :class="hoursClass">{{ totalHours }} de {{ syllabus.module?.weekHours }}</td>
+          <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
         </tbody>
       </table>
       <div class="col-auto">

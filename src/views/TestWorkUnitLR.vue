@@ -109,7 +109,7 @@ export default {
         <tbody>
           <!-- Iterar sobre cada contenido para crear una fila en la tabla -->
           <tr v-for="unit in syllabus.learningSituations" :key="unit.id">
-            <td>{{ unit.title }}</td>
+            <td>{{ unit.position }} - {{ unit.title }}</td>
             <!-- Iterar sobre cada resultado para crear una celda en la fila -->
             <td v-for="result in module.learningResults" :key="result.id">
               <!-- Colocar una 'X' si el result está presente en el unit -->

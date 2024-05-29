@@ -7,8 +7,9 @@ export default {
   async mounted() {
     this.syllabuses = []
     try {
-      const response = await api.getCycles()
-      this.cycles = response.data
+      const [respCicles, respData] = await Promise.all([api.getCycles(), api.getCurrentData()])
+      this.cycles = respCicles.data
+      this.currentData = respData.data
       if (this.cycle.id) {
         this.cycleSelect = this.cycle.id
         await this.getModules()
@@ -25,11 +26,26 @@ export default {
     ...mapState(useDataStore, ['cycle', 'module']),
     selectedModule() {
       return this.cycle.modules.find((item) => item.code == this.moduleSelect) || {}
+    },
+    canEdit() {
+      const today = new Date()
+      const initDateArray = this.currentData.syllabusStartDate?.split('/')
+      const initDate = new Date(initDateArray[2], initDateArray[1] - 1, initDateArray[0])
+      const finishDateArray = this.currentData.syllabusFinishDate?.split('/')
+      const finDate = new Date(finishDateArray[2], finishDateArray[1] - 1, finishDateArray[0])
+      if (
+        today.getTime() >= initDate.getTime() &&
+        today.getTime() <= finDate.getTime()
+      ) {
+        return true
+      }
+      return false
     }
   },
   data() {
     return {
       cycles: [],
+      currentData: {},
       cycleSelect: '',
       moduleSelect: '',
       syllabuses: [],
@@ -76,6 +92,24 @@ export default {
     },
     existsSyllabusInTurn(turn) {
       return this.syllabuses.find((item) => item.turn === turn)
+    },
+    async showPdf(turn) {
+      try {
+        const response = await api.getPdf(this.existsSyllabusInTurn(turn)?.id);
+        if (!response.ok) {
+            this.addMessage('error', response);
+        }
+        const url = URL.createObjectURL(response.data);
+        const pdfWindow = window.open();
+        if (pdfWindow) {
+            pdfWindow.document.write(`<iframe src="${url}" width="100%" height="100%"></iframe>`);
+        } else {
+            this.addMessage('error', "No s'ha pogut obrir la nova finestra. Configura les Preferències del teu navegador");
+        }      
+      } catch (error) {
+        this.addMessage('error', error)
+        return
+      }
     }
   }
 }
@@ -84,14 +118,15 @@ export default {
 <template>
   <main class="border shadow view-main">
     <h2 class="text-center fw-bold text-primary p-lg-2">Tria la programació</h2>
-    <div class="container-fluid px-lg-4" >
+    <div class="container-fluid px-lg-4">
       <div class="form-group">
         <label class="form-label fw-bold">Cicle</label>
         <select
           v-model="cycleSelect"
           @change="getModules"
           class="form-select form-control"
-          aria-label="Selecciona cycleSelect">
+          aria-label="Selecciona cycleSelect"
+        >
           <option value="">-- Selecciona cicle --</option>
           <option v-for="cycleSelect in cycles" :key="cycleSelect.id" :value="cycleSelect.id">
             {{ cycleSelect.completeName }}
@@ -104,7 +139,8 @@ export default {
           v-model="moduleSelect"
           @change="getSyllabuses"
           class="form-select form-control"
-          aria-label="Default select example">
+          aria-label="Default select example"
+        >
           <option value="">-- Selecciona mòdul --</option>
           <option v-for="module in cycle.modules" :key="module.code" :value="module.code">
             {{ module.name }}
@@ -116,10 +152,21 @@ export default {
         <h3>Torns</h3>
         <ul>
           <li v-for="(turn, index) in cycle.availableTurns" :key="index">
-            {{ (turn == 'presential') ? 'Presencial' : 'Semi-presencial' }}:
-            <button @click="getSyl(turn)" class="btn btn-primary">
+            {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}:
+            <button @click="getSyl(turn)" class="btn btn-primary" v-if="canEdit">
               {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}
             </button>
+            <template v-else>
+              <button
+                v-if="existsSyllabusInTurn(turn)"
+                @click="showPdf(turn)"
+                class="btn btn-secondary"
+                title="Vore PDF"
+              >
+                Vore PDF
+              </button>
+              <strong v-else>No hi ha programació</strong>
+            </template>
           </li>
         </ul>
       </div>

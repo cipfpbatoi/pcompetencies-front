@@ -28,13 +28,13 @@ export default {
     if (!this.syllabus.id) {
       this.$router.push('/')
     }
-    if (!this.syllabus.improvementProposal) {
+    if (!this.syllabus.currentImprovementProposal) {
       this.done = true
     } else {
-      if (this.syllabus.improvementProposal.comments) {
+      if (this.syllabus.currentImprovementProposal.comments) {
         this.done = true
-        this.modalFields.accepted = this.syllabus.improvementProposal.status == 2
-        this.modalFields.comments = this.syllabus.improvementProposal.comments
+        this.modalFields.accepted = this.syllabus.currentImprovementProposal.status == 2
+        this.modalFields.comments = this.syllabus.currentImprovementProposal.comments
       }
     }
     this.modalFields.groupContext = this.syllabus.groupContext
@@ -72,8 +72,8 @@ export default {
       const response = await this.evaluateImprovement(this.syllabus.id, this.modalFields)
       if (response === 'ok') {
         this.done = true
-        this.syllabus.improvementProposal.status = this.modalFields.accepted ? 2 : 3
-        this.syllabus.improvementProposal.comments = this.modalFields.comments
+        this.syllabus.currentImprovementProposal.status = this.modalFields.accepted ? 2 : 3
+        this.syllabus.currentImprovementProposal.comments = this.modalFields.comments
         this.GenericModal.hide()
       } else {
         if (response.response?.status == 422) {
@@ -113,18 +113,18 @@ export default {
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>2. Propostes de millora</h2>
       <div class="p-2">
-        <div v-if="syllabus.improvementProposal">
-          <p class="border p-2" v-html="syllabus.improvementProposal.proposals"></p>
+        <div v-if="syllabus.currentImprovementProposal">
+          <p class="border p-2" v-html="syllabus.currentImprovementProposal.proposals"></p>
           <h4><i>Feedback</i> de la proposta</h4>
           <div class="border bg-light p-2">
             <p>
               {{
-                syllabus.improvementProposal.status == 2
+                syllabus.currentImprovementProposal.status == 2
                   ? "S'aplicaran les propostes de millora o part d'elles:"
                   : "NO s'aplicaran les propostes de millora: "
               }}
             </p>
-            <p class="bg-light-subtle fw-bold">{{ syllabus.improvementProposal.comments }}</p>
+            <p class="bg-light-subtle fw-bold">{{ syllabus.currentImprovementProposal.comments }}</p>
           </div>
           <div class="text-center">
             <button

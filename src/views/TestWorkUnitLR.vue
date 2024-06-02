@@ -68,35 +68,36 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="border shadow view-main">
     <app-breadcrumb :actualStep="4" :done="areAllLearningResultsInluded"></app-breadcrumb>
-    <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-    <h2>4. Comprovació dels R.A.</h2>
-    <div class="bg-success m-1">
-      <p class="text-light p-2 text-justify" v-if="areAllLearningResultsInluded">
-        <strong>OK!</strong> La programació inclou tots els resultats d'aprenentatge. Pots continuar
-        al següent pas.
-      </p>
-      <template v-else>
-        <h4>
-          <span class="text-light p-2 text-justify">La programació NO inclou tots els resultats d' aprenentatge</span>
-        </h4>
-      </template>
-    </div>
-    <div class="bg-danger m-1">
-      <p v-if="totalSum !== 100" class="text-light p-2 text-justify">
-        <strong>ATENCIÓ:</strong> la suma dels percentatges NO és el 100%. Has d'arreglar-lo en el
-        pas anterior
-      </p>
-      <p v-if="!totalHours" class="text-light p-2 text-justify">
-        <strong>ATENCIÓ:</strong> la suma de les hores NO suma les totals del mòdul ({{
-          syllabus.numberOfHours
-        }}). Has d'arreglar-lo en el pas anterior
-      </p>
-    </div>
-    <div class="border border-black">
-      <table class="table table-striped">
-        <thead>
+    <div class="p-lg-4 p-1">
+      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
+      <h2>4. Comprovació dels R.A.</h2>
+      <div class="bg-success m-1">
+        <p class="text-light p-2 text-justify" v-if="areAllLearningResultsInluded">
+          <strong>OK!</strong> La programació inclou tots els resultats d'aprenentatge. Pots continuar
+          al següent pas.
+        </p>
+        <template v-else>
+          <h4>
+            <span class="text-light p-2 text-justify">La programació NO inclou tots els resultats d' aprenentatge</span>
+          </h4>
+        </template>
+      </div>
+      <div class="bg-danger m-1">
+        <p v-if="totalSum !== 100" class="text-light p-2 text-justify">
+          <strong>ATENCIÓ:</strong> la suma dels percentatges NO és el 100%. Has d'arreglar-lo en el
+          pas anterior
+        </p>
+        <p v-if="!totalHours" class="text-light p-2 text-justify">
+          <strong>ATENCIÓ:</strong> la suma de les hores NO suma les totals del mòdul ({{
+            syllabus.numberOfHours
+          }}). Has d'arreglar-lo en el pas anterior
+        </p>
+      </div>
+      <div class="border border-black">
+        <table class="table table-striped">
+          <thead>
           <tr>
             <th>Situació d'aprenentatge</th>
             <!-- Encabezados de columnas para cada resultado -->
@@ -105,8 +106,8 @@ export default {
             </th>
             <th>Pes</th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           <!-- Iterar sobre cada contenido para crear una fila en la tabla -->
           <tr v-for="unit in syllabus.learningSituations" :key="unit.id">
             <td>{{ unit.position }} - {{ unit.title }}</td>
@@ -125,8 +126,9 @@ export default {
             </td>
             <th>{{ totalSum }}%</th>
           </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 </template>

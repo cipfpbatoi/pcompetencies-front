@@ -16,7 +16,8 @@ const learningSituationsColumns = [
   {
     title: 'Objectius',
     func: (x) => x ? x.substr(0, 80) + (x.length>80 ? '...':'') : '',
-    param: 'didacticObjectives'
+    param: 'didacticObjectives',
+    html: true,
   },
   {
     title: 'Coneix. previs',

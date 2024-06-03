@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 const instance = axios.create({
-  baseURL: BASE_URL
+  baseURL: BASE_URL,
 })
 
 // Interceptor para adjuntar el token JWT a las solicitudes
@@ -99,6 +99,15 @@ export const api = {
   saveSyllabusInstructionalUnit: (id, data) => instance.post(`/syllabus/${id}/instructionalUnit`, data),
   deleteSyllabusInstructionalUnit: (id, iUId) => instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
   saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
+
+  // Syllabus status
+  syllabusValidate: (id) => axios.post(`${BASE_URL}syllabus/${id}/validate`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.token}`,
+      'Content-Type': 'application/json',
+    },
+  }),
+  syllabusSend: (id) => instance.post(`/syllabus/${id}/send`),
   getPdf: (id) => axios.get(`${BASE_URL}syllabus/${id}/pdf`, {
     headers: {
       Authorization: `Bearer ${localStorage.token}`,

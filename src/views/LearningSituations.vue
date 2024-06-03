@@ -193,7 +193,13 @@ export default {
       }
       this.LearnSitModal.show()
     },
-    hideLSModal() {
+    hideLSModal(position) {
+      if (position) {
+        for (let i = position-1; i < this.syllabus.learningSituations.length-1; i++) {
+          this.syllabus.learningSituations[i].position++
+        }
+        this.reorderLSLIst()
+      }
       this.LearnSitModal.hide()
     },
     async delUnit(unit) {
@@ -238,9 +244,7 @@ export default {
       })
     },
     reorderLSLIst() {
-      this.syllabus.learningSituations.sort((a, b) =>
-        a.position > b.position ? 1 : b.position > a.position ? -1 : 0
-      )
+      this.syllabus.learningSituations.sort((a, b) => a.position - b.position)
     },
     changeLSPosition(learningSituation, positionStep) {
       const learningSituationToSwap = this.syllabus.learningSituations.find(
@@ -275,7 +279,7 @@ export default {
     <ModalComponent @save="saveIUnit" :title="modalTitle" id="iUnitModal">
       <div class="input-group mb-3">
         <span class="input-group-text col-2">Posició:</span>
-        <input type="number" size="1" min="0" class="form-control" v-model="modalFields.position" />
+        <input type="number" size="1" min="1" class="form-control" v-model="modalFields.position" />
         <span v-if="errors.position" class="input-group-text text-danger">{{
           errors.position
         }}</span>

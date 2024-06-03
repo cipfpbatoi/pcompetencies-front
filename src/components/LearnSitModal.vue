@@ -16,19 +16,20 @@ const validationSchema = object({
     .number()
     .required("Has d'indicar les hores")
     .min(1, "Al menys l'has de dedicar 1 hora"),
+  position: yup.number().min(1, 'La posició ha de ser igual o major que 1'),
   ponderedLearningResults: yup.array().min(1, 'Has de afegir al menys 1 RA')
 })
 
 export default {
   emits: ['saved'],
   props: {
-    unit: Object
+    unit: Object,
   },
   components: {
     LrTable
   },
   computed: {
-    ...mapState(useDataStore, ['module', 'getLearningResultById']),
+    ...mapState(useDataStore, ['syllabus', 'module', 'getLearningResultById']),
     editing() {
       return !!this.unit?.id
     },
@@ -66,7 +67,10 @@ export default {
         this.editedUnit = JSON.parse(JSON.stringify(newValue))
         this.simplifyPLR(newValue)
       } else {
-        this.editedUnit = { ponderedLearningResults: [] }
+        this.editedUnit = { 
+          position: this.syllabus.learningSituations?.length + 1,
+          ponderedLearningResults: [] 
+        }
       }
       this.$forceUpdate()
       //      this.$nextTick(() => {});
@@ -75,22 +79,26 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['saveLearningSituation']),
     addRA() {
-      if (this.newLearningResult.percentageWeight < 0 || this.newLearningResult.percentageWeight > 100) {
-          this.errors.percentageWeight = 'El pes de cada RA no pot ser menor que 0 ni major que el 100%'
-          return
+      if (
+        this.newLearningResult.percentageWeight < 0 ||
+        this.newLearningResult.percentageWeight > 100
+      ) {
+        this.errors.percentageWeight =
+          'El pes de cada RA no pot ser menor que 0 ni major que el 100%'
+        return
       }
-      if (!Number.isInteger(this.newLearningResult.percentageWeight)){
-           this.errors.percentageWeight = 'El pes de cada RA ha de ser un valor enter'
-           return
+      if (!Number.isInteger(this.newLearningResult.percentageWeight)) {
+        this.errors.percentageWeight = 'El pes de cada RA ha de ser un valor enter'
+        return
       }
       this.editedUnit.ponderedLearningResults.push(this.newLearningResult)
       this.newLearningResult = {}
     },
     delRA(index) {
-        this.editedUnit.ponderedLearningResults.splice(index, 1)
+      this.editedUnit.ponderedLearningResults.splice(index, 1)
     },
     changeRAWeight(ra) {
-      const result = this.editedUnit.ponderedLearningResults.find(item => item.id === ra.id)
+      const result = this.editedUnit.ponderedLearningResults.find((item) => item.id === ra.id)
       result.percentageWeight = ra.percentageWeight
     },
     simplifyPLR() {
@@ -120,8 +128,11 @@ export default {
           ponderedLearningResults: this.editedUnit.ponderedLearningResults
         })
       ) {
-        this.editedUnit = { ponderedLearningResults: [] }
-        this.$emit('saved')
+        this.$emit('saved', this.editedUnit.id ? 0 : this.editedUnit.position)
+        this.editedUnit = { 
+          position: this.syllabus.learningSituations?.length + 1,
+          ponderedLearningResults: [] 
+        }
       }
     }
   }
@@ -140,7 +151,9 @@ export default {
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
-          <h1 class="modal-title fs-5" id="unit-modal">{{ editing ? 'Editar' : 'Afegir' }} Situació d'Aprenentatge</h1>
+          <h1 class="modal-title fs-5" id="unit-modal">
+            {{ editing ? 'Editar' : 'Afegir' }} Situació d'Aprenentatge
+          </h1>
           <button
             type="button"
             class="btn-close"
@@ -164,6 +177,8 @@ export default {
               </div>
               <div class="input-group cols-8 p-2">
                 <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Hores</label>
+                <div class="col-sm-4">
+
                 <input
                   size="2"
                   type="number"
@@ -171,19 +186,42 @@ export default {
                   v-model="editedUnit.hours"
                   placeholder="Nombre d'hores"
                 />
-                <p v-if="errors.hours" class="error text-danger">{{ errors.hours }}</p>
+              </div>
+              <div class="col-auto">
+                  <span v-if="errors.hours" class="text-danger">{{ errors.hours }}</span>
+                </div>
+              </div>
+              <div v-if="!editing" class="input-group cols-8 p-2">
+                <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Posició</label>
+                <div class="col-sm-4">
+                  <input
+                    size="2"
+                    type="number"
+                    class="form-control p-2 col-4"
+                    v-model="editedUnit.position"
+                    placeholder="Posició"
+                  />
+                </div>
+                <div class="col-auto">
+                  <span v-if="errors.position" class="text-danger">{{ errors.position }}</span>
+                </div>
               </div>
             </div>
             <div>
               <label class="form-label p-2 fw-bold">Resultats d'Aprenentatge</label>
-              <lr-table :learningResults="formattedLearningResults" percentageWeight="edit" @changeWeigth="changeRAWeight">
+              <lr-table
+                :learningResults="formattedLearningResults"
+                percentageWeight="edit"
+                @changeWeigth="changeRAWeight"
+              >
                 <template v-slot="{ index }">
                   <button @click="delRA(index)" class="btn btn-link" title="Eliminar">
                     <i class="bi bi-trash"></i>
                   </button>
                 </template>
               </lr-table>
-              <p v-if="errors.ponderedLearningResults" class="error">{{ errors.ponderedLearningResults }}
+              <p v-if="errors.ponderedLearningResults" class="text-danger">
+                {{ errors.ponderedLearningResults }}
               </p>
             </div>
             <div class="input-group">
@@ -220,13 +258,15 @@ export default {
                 class="btn btn-sm btn-primary p-2"
                 @click="addRA"
                 :disabled="
-                  !(newLearningResult.learningResultId && newLearningResult.percentageWeight >=0)
+                  !(newLearningResult.learningResultId && newLearningResult.percentageWeight >= 0)
                 "
               >
                 Afegir RA
               </button>
             </div>
-            <p v-if="errors.percentageWeight" class="error text-center">{{ errors.percentageWeight }}</p>
+            <p v-if="errors.percentageWeight" class="text-danger text-center">
+              {{ errors.percentageWeight }}
+            </p>
           </form>
         </div>
         <div class="modal-footer">
@@ -239,8 +279,3 @@ export default {
   </div>
 </template>
 
-<style scoped>
-.error {
-  color: red;
-}
-</style>

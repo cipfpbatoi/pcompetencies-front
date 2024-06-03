@@ -172,11 +172,11 @@ export const useDataStore = defineStore('data', {
     async saveLearningSituation(ls) {
       if (!ls.id) {
         // Estamos creando una nueva
-        const maxPosition = this.syllabus.learningSituations.reduce(
-          (max, item) => Math.max(max, item.position),
-          0
-        )
-        ls.position = maxPosition + 1
+        // const maxPosition = this.syllabus.learningSituations.reduce(
+        //   (max, item) => Math.max(max, item.position),
+        //   0
+        // )
+        // ls.position = maxPosition + 1
         try {
           const response = await api.createLearningSituation(this.syllabus.id, ls)
           this.syllabus.learningSituations.push(response.data)

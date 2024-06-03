@@ -419,14 +419,13 @@ export default {
           <span v-if="errors.position" class="error">{{ errors.position }}</span>
         </div>
       </div>
-      <div class="row p-1 align-items-center form-group mb-3">
-        <label class="col-sm-12 col-form-label fw-bold">Descripció de l'Activitat</label>
-        <div class="col-sm-12">
-          <ckeditor
-            :editor="editor"
+      <div class="row p-1 align-items-center">
+        <label class="col-sm-2 col-form-label fw-bold">Descripció de l'activitat</label>
+        <div class="col-sm-4">
+          <textarea
             v-model="modalFields.description"
-            :config="editorConfig"
-          ></ckeditor>
+            rows="3"
+          ></textarea>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
         </div>
       </div>

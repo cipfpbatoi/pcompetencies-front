@@ -48,7 +48,7 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
     showModal(content) {
-      this.modalFields.content = content
+      this.modalFields.content = { ...content }
       this.modalTitle = 'Modificar contenido ' + content?.code
       this.GenericModal = new Modal(document.getElementById('contentModal'))
       this.GenericModal.show()

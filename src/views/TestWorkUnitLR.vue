@@ -2,10 +2,12 @@
 import { mapState } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
+import LrTable from '@/components/LrTable.vue'
 
 export default {
   components: {
-    AppBreadcrumb
+    AppBreadcrumb,
+    LrTable,
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module']),
@@ -101,7 +103,7 @@ export default {
           <tr>
             <th>Situació d'aprenentatge</th>
             <!-- Encabezados de columnas para cada resultado -->
-            <th v-for="result in module.learningResults" :key="result.id">
+            <th v-for="result in module.learningResults" :key="result.id" :title="result.descriptor">
               R.A. {{ result.number }}
             </th>
             <th>Pes</th>
@@ -130,5 +132,9 @@ export default {
         </table>
       </div>
     </div>
+    <div class="border bg-light p-2">
+        <h3>Resultats d'aprenentatge</h3>
+        <Lr-Table class="border border-black" :learningResults="module.learningResults"></Lr-Table>
+      </div>
   </main>
 </template>

@@ -310,10 +310,10 @@ export default {
       </div>
     </ModalComponent>
 
-    <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1 mt-2">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>6.a Temporalització</h2>
+      <h2>8.a Temporalització</h2>
       <div class="container">
         <div
           v-for="schedule in syllabus.schedules"
@@ -356,7 +356,7 @@ export default {
           </button>
         </div>
       </div>
-      <h2>6.b. Activitats complementàries</h2>
+      <h2>8.b. Activitats complementàries</h2>
       <p>
         Són les organitzades en el centre en horari escolar y que es diferèncien de les lectivas pel
         moment, espais o recursos que utilitzen.

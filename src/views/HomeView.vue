@@ -33,10 +33,7 @@ export default {
       const initDate = new Date(initDateArray[2], initDateArray[1] - 1, initDateArray[0])
       const finishDateArray = this.currentData.syllabusFinishDate?.split('/')
       const finDate = new Date(finishDateArray[2], finishDateArray[1] - 1, finishDateArray[0])
-      if (
-        today.getTime() >= initDate.getTime() &&
-        today.getTime() <= finDate.getTime()
-      ) {
+      if (today.getTime() >= initDate.getTime() && today.getTime() <= finDate.getTime()) {
         return true
       }
       return false
@@ -71,7 +68,7 @@ export default {
         this.addMessage('error', error)
       }
     },
-    async getSyl(turn) {
+    async selectSyllabus(turn) {
       let syllabus = this.existsSyllabusInTurn(turn)
       if (!syllabus) {
         try {
@@ -93,19 +90,36 @@ export default {
     existsSyllabusInTurn(turn) {
       return this.syllabuses.find((item) => item.turn === turn)
     },
+    statusClass(status) {
+      switch (status) {
+        case 'pendent':
+          return 'bg-secondary'
+        case 'enviada':
+          return 'bg-warning'
+        case 'rebutjada':
+          return 'bg-danger'
+        case 'acceptada':
+          return 'bg-success'
+        default:
+          return 'bg-dark'
+      }
+    },
     async showPdf(turn) {
       try {
-        const response = await api.getPdf(this.existsSyllabusInTurn(turn)?.id);
+        const response = await api.getPdf(this.existsSyllabusInTurn(turn)?.id)
         if (!response.ok) {
-            this.addMessage('error', response);
+          this.addMessage('error', response)
         }
-        const url = URL.createObjectURL(response.data);
-        const pdfWindow = window.open();
+        const url = URL.createObjectURL(response.data)
+        const pdfWindow = window.open()
         if (pdfWindow) {
-            pdfWindow.document.write(`<iframe src="${url}" width="100%" height="100%"></iframe>`);
+          pdfWindow.document.write(`<iframe src="${url}" width="100%" height="100%"></iframe>`)
         } else {
-            this.addMessage('error', "No s'ha pogut obrir la nova finestra. Configura les Preferències del teu navegador");
-        }      
+          this.addMessage(
+            'error',
+            "No s'ha pogut obrir la nova finestra. Configura les Preferències del teu navegador"
+          )
+        }
       } catch (error) {
         this.addMessage('error', error)
         return
@@ -153,8 +167,17 @@ export default {
         <ul>
           <li v-for="(turn, index) in cycle.availableTurns" :key="index">
             {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}:
-            <button @click="getSyl(turn)" class="btn btn-primary" v-if="canEdit">
-              {{ existsSyllabusInTurn(turn) ? 'Editar' : 'Crear nova programació' }}
+            <button
+              @click="selectSyllabus(turn)"
+              class="btn btn-primary position-relative"
+              v-if="canEdit"
+            >
+              {{ existsSyllabusInTurn(turn) ? 'Editar la programació' : 'Crear nova programació' }}
+              <span
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill" :class="statusClass(syllabuses[index]?.status)"
+              >
+                {{ syllabuses[index]?.status }}
+              </span>
             </button>
             <template v-else>
               <button

@@ -87,7 +87,7 @@ export const api = {
   getModuleByCode: (code) => instance.get(`/module/${code}`),
 
   // Syllabus
-  getSyllabuses: () => instance.get('/syllabus'),
+  getSyllabusesPaginated: () => instance.get('/syllabus'),
   getSyllabusByCycleAndModule: (cycleId, moduleCode) =>
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),
@@ -101,8 +101,9 @@ export const api = {
   saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
 
   // Syllabus status
-  syllabusValidate: (id) => instance.get(`${BASE_URL}syllabus/${id}/valida`),
-  syllabusSend: (id) => instance.post(`/syllabus/${id}/send`),
+  syllabusValidate: (id) => instance.post(`${BASE_URL}syllabus/${id}/valida`, {}),
+  syllabusSend: (id) => instance.post(`/syllabus/${id}/send`, {}),
+
   getPdf: (id) => axios.get(`${BASE_URL}syllabus/${id}/pdf`, {
     headers: {
       Authorization: `Bearer ${localStorage.token}`,

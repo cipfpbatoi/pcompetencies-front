@@ -438,10 +438,10 @@ export default {
         </div>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="8" :done="true"></app-breadcrumb>
+    <app-breadcrumb :actualStep="7" :done="true"></app-breadcrumb>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>8. Qualificació Final</h2>
+      <h2>7. Qualificació Final</h2>
       <h3>Activitats de Qualificació</h3>
       <div class="border border-black">
         <show-table :data="syllabusFinalActivities" :columns="activityColumns">

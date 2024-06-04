@@ -47,11 +47,6 @@ export default {
         {
           title: 'Desenvolupar les S.A.',
           path: 'LSsDevelopment',
-          nextPath: 'SyllabusSchedule'
-        },
-        {
-          title: 'Temporalització i Act. compl.',
-          path: 'SyllabusSchedule',
           nextPath: 'SyllabusQualify'
         },
         {
@@ -62,6 +57,11 @@ export default {
         {
           title: 'Qualificació Final',
           path: 'FinalQualify',
+          nextPath: 'SyllabusSchedule'
+        },
+        {
+          title: 'Temporalització i Act. compl.',
+          path: 'SyllabusSchedule',
           nextPath: 'MethodologicalPrinciples'
         },
         {

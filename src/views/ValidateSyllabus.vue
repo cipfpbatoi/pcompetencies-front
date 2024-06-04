@@ -22,17 +22,21 @@ export default {
     async validate() {
       try {
         const response = await api.syllabusValidate(this.syllabus.id)
-        this.isValid = response.data.error
+        this.isValid = !response.data.error
         this.errors = response.data.reasons
-        console.log(response)
       } catch (error) {
         this.addMessage('error', error)
       }
     },
-    sendSyllabus() {
+    async sendSyllabus() {
       if (confirm('Una vegada enviada ja no es pot modificar la programació. Vols continuar?')) {
-        // send
-      }
+        try {
+        await api.syllabusSend(this.syllabus.id)
+        this.addMessage('success', 'Programació enviada correctament')
+        this.$router.push({ name: 'selectSyllabus' })
+      } catch (error) {
+        this.addMessage('error', error)
+      }      }
     },
     async showPdf() {
       try {
@@ -80,11 +84,15 @@ export default {
             }}
           </p>
         </div>
-        <br />
-        <div v-if="errors">
-          <h3>Errors detectats</h3>
+        <div v-if="errors" class="bg-danger-subtle">
+          <h4>Errors detectats</h4>
+          <ul>
+            <li v-if="errors.totalHours">{{ errors.totalHours }}</li>
+            <li v-if="errors.groupContext">{{ errors.groupContext }}</li>
+            <li v-if="errors.didacticResources">{{ errors.didacticResources }}</li>
+          </ul>
           <div v-if="errors.learningSituations">
-            <h4>Situacions d'aprenentatge</h4>
+            <h5>Situacions d'aprenentatge</h5>
             <ul>
               <li v-for="ls in errors.learningSituations" :key="ls">
                 S.A. {{ ls.learningSituationPosition }}
@@ -94,19 +102,47 @@ export default {
               </li>
             </ul>
           </div>
+          <div v-if="errors.finalEvaluation">
+            <h5>Avaluació Final</h5>
+            <ul>
+              <li v-for="error in errors.finalEvaluation" :key="error">
+               {{ error }}
+              </li>
+            </ul>
+          </div>
+          <div v-if="errors.ponderedRA">
+            <h5>Resultats d'aprenentatge</h5>
+            <ul>
+              <li v-for="error in errors.ponderedRA" :key="error">
+               {{ error }}
+              </li>
+            </ul>
+          </div>
+          <div v-if="errors.evaluationCriteriaNotAssigned">
+            <h5>Criteris d'avaluació no assignats a activitats qualificables</h5>
+            <ul>
+              <li v-for="ra in Object.keys(errors.evaluationCriteriaNotAssigned)" :key="ra">
+                {{ ra }}: {{ errors.evaluationCriteriaNotAssigned[ra].join(', ') }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <div v-else>
         <button
           @click="sendSyllabus"
           class="btn btn-secondary"
-          title="Vore PDF"
-          :disabled="!isValid"
+          title="Enviar programació"
         >
           Enviar programació al Departament
         </button>
+        <div class="bg-danger m-1">
+          <p class="text-white">
+            ATENCIÓ: Un cop enviada la programació ja no es pot modificar
+          </p>
+        </div>
       </div>
-
+      <br>
       <div>
         <button @click="showPdf" class="btn btn-secondary" title="Vore PDF">
           {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
@@ -116,3 +152,7 @@ export default {
     </div>
   </main>
 </template>
+
+<style scoped>
+
+</style>

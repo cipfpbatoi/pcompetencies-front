@@ -134,6 +134,8 @@ export default {
             </div>
             <div class="cols-6">
               <h5 class="form-label">Objectius didàctics</h5>
+              <p class="bg-primary-subtle p-2"><i class="bi bi-eye-fill p-2"></i>Recorda que per a formular objectius has d'utilitzar <strong>verbs mesurables</strong> com; Conèixer, Identificar, Distingir
+                Aplicar, Analitzar, Sintetitzar, Avalua</p>
               <ckeditor
                 :editor="editor"
                 v-model="didacticObjectives"

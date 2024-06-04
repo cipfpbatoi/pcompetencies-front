@@ -69,7 +69,7 @@ export default {
         <template v-slot="{ item }">
           <button type="button"
                   @click="$router.push({ name: 'LSDevelopment', params: { lsId: item.id } })"
-                  class="btn btn-secondary"
+                  class="btn btn-success"
           >Desenvolupar</button>
         </template>
       </show-table>

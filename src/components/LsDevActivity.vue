@@ -384,8 +384,8 @@ export default {
       if (
         confirm(
           "ATENCIÓ: Vas a esborrar l'activitat " +
-            activity.code +
-            '. Aquest procés NO es por des-fer !!!'
+          activity.code +
+          '. Aquest procés NO es por des-fer !!!'
         )
       ) {
         try {
@@ -402,7 +402,7 @@ export default {
 </script>
 
 <template>
-  <div class="bordered">
+  <div class="bordered border-primary-subtle mt-0">
     <ModalComponent @save="saveActivity" :title="modalTitle" :modalId="type + 'Activities'">
       <div v-if="editing" class="row p-1 align-items-center">
         <label class="col-sm-2 col-form-label fw-bold">Codi</label>
@@ -420,12 +420,9 @@ export default {
         </div>
       </div>
       <div class="row p-1 align-items-center">
-        <label class="col-sm-2 col-form-label fw-bold">Descripció de l'activitat</label>
-        <div class="col-sm-4">
-          <textarea
-            v-model="modalFields.description"
-            rows="3"
-          ></textarea>
+        <label class="col-sm-2 col-form-label fw-bold">Descripció del tipus d'activitat</label>
+        <div class="col-md-10 col-sm-12">
+          <textarea class="form-control border-secondary" v-model="modalFields.description" rows="3"></textarea>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
         </div>
       </div>
@@ -453,7 +450,7 @@ export default {
       </div>
       <div v-if="type === 'marking'">
         <div class="form-group row p-1">
-          <label class="col-sm-2 col-form-label fw-bold">Tècnica</label>
+          <label class="col-sm-2 col-form-label fw-bold">Tècnica Avaluació</label>
           <div class="col-4">
             <select class="form-control custom-select" v-model="modalFields.assessmentToolId">
               <option value="undefined">--- Selecciona ---</option>
@@ -471,7 +468,7 @@ export default {
           </div>
         </div>
         <div class="form-group row p-1">
-          <label class="col-sm-2 col-form-label fw-bold">Instrument</label>
+          <label class="col-sm-2 col-form-label fw-bold">Instrument Qualificació</label>
           <div class="col-auto col-4">
             <select class="form-control custom-select" v-model="modalFields.markingToolId">
               <option value="undefined">--- Selecciona ---</option>
@@ -541,26 +538,23 @@ export default {
           {{ evaluationCriteria.description }} <br /></span>
       </p>
       <p>
-        <strong>Tècnica: </strong>
+        <strong>Tècnica Aval.: </strong>
         {{ showActivityDetails.assessmentTool.name }}
       </p>
       <p>
-        <strong>Instrument: </strong>
+        <strong>Instrument Qual.: </strong>
         {{ showActivityDetails.markingTool.name }}
       </p>
     </div>
-    <button type="button" class="btn btn-secondary" title="Afegir activitat" @click="showModal">
-      Afegir nova activitat
-    </button>
+    <div class="text-center">
+      <button type="button" class="btn btn-success" title="Afegir activitat" @click="showModal">
+        Afegir nova activitat
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.bordered {
-  border: 1px solid black;
-  padding: 5px;
-  margin: 5px auto;
-}
 .error {
   color: red;
 }

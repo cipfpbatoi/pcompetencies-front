@@ -101,12 +101,7 @@ export const api = {
   saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
 
   // Syllabus status
-  syllabusValidate: (id) => instance.get(`${BASE_URL}syllabus/${id}/valida`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.token}`,
-      'Content-Type': 'application/json',
-    },
-  }),
+  syllabusValidate: (id) => instance.get(`${BASE_URL}syllabus/${id}/valida`),
   syllabusSend: (id) => instance.post(`/syllabus/${id}/send`),
   getPdf: (id) => axios.get(`${BASE_URL}syllabus/${id}/pdf`, {
     headers: {

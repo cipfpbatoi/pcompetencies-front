@@ -24,7 +24,7 @@ export default {
         const response = await api.syllabusValidate(this.syllabus.id)
         this.isValid = response.data.error
         this.errors = response.data.reasons
-        console.log(response)
+
       } catch (error) {
         this.addMessage('error', error)
       }

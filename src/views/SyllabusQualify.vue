@@ -187,10 +187,10 @@ export default {
         <p v-if="errors.fundamental" class="error">{{ errors.fundamental }}</p>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>7. Qualificació</h2>
+      <h2>6. Qualificació</h2>
       <div class="bg-danger m-1">
     </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">

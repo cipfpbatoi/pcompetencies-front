@@ -133,7 +133,7 @@ export default {
     },
     async editSyllabus(turn) {
       let syllabus = this.getSyllabusByTurn(turn)
-      if (!syllabus) {
+      if (!syllabus.id) {
         try {
           const response = await api.createSyllabus({
             cycleId: this.cycleSelect,

@@ -140,8 +140,7 @@ export default {
       } else {
         this.modalTitle = 'Nou bloc'
         this.modalFields = {
-          position:
-            this.syllabus.instructionalUnits.reduce((max, iu) => Math.max(max, iu.position), 0) + 1,
+          position: this.syllabus.instructionalUnits.length + 1,
           learningSituationId: []
         }
       }

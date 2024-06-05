@@ -89,6 +89,7 @@ export default {
           <ul>
             <li v-if="errors.totalHours">{{ errors.totalHours }}</li>
             <li v-if="errors.groupContext">{{ errors.groupContext }}</li>
+            <li v-if="errors.improvementsProposals">{{ errors.improvementsProposals }}</li>
             <li v-if="errors.didacticResources">{{ errors.didacticResources }}</li>
           </ul>
           <div v-if="errors.learningSituations">
@@ -99,14 +100,6 @@ export default {
                 <ul>
                   <li v-for="error in ls.errors" :key="error">{{ error }}</li>
                 </ul>
-              </li>
-            </ul>
-          </div>
-          <div v-if="errors.finalEvaluation">
-            <h5>Avaluació Final</h5>
-            <ul>
-              <li v-for="error in errors.finalEvaluation" :key="error">
-               {{ error }}
               </li>
             </ul>
           </div>
@@ -123,6 +116,14 @@ export default {
             <ul>
               <li v-for="ra in Object.keys(errors.evaluationCriteriaNotAssigned)" :key="ra">
                 {{ ra }}: {{ errors.evaluationCriteriaNotAssigned[ra].join(', ') }}
+              </li>
+            </ul>
+          </div>
+          <div v-if="errors.finalEvaluation">
+            <h5>Avaluació Final</h5>
+            <ul>
+              <li v-for="error in errors.finalEvaluation" :key="error">
+               {{ error }}
               </li>
             </ul>
           </div>

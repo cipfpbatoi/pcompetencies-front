@@ -209,7 +209,7 @@ export default {
           v-model="newContent"
           placeholder="Afegir nou contingut"
         />
-        <button type="submit" class="btn btn-secondary" title="Establir objectiu">
+        <button type="submit" class="btn btn-success" title="Establir objectiu">
           Afegir nou contingut
         </button>
       </div>

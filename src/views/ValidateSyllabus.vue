@@ -95,7 +95,7 @@ export default {
             <h5>Situacions d'aprenentatge</h5>
             <ul>
               <li v-for="ls in errors.learningSituations" :key="ls">
-                S.A. {{ ls.learningSituationPosition }}
+                S.A. - {{ ls.ls }}
                 <ul>
                   <li v-for="error in ls.errors" :key="error">{{ error }}</li>
                 </ul>

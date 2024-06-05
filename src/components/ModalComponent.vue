@@ -6,7 +6,11 @@ export default {
       type: String,
       default: 'unitMmodalComp'
     },
-    title: String
+    title: String,
+    saveButton: {
+      type: Boolean,
+      default: true
+    }
   },
   methods: {
     async save() {
@@ -41,7 +45,7 @@ export default {
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tanca</button>
-          <button @click="save" type="button" class="btn btn-success">Guarda</button>
+          <button v-if="saveButton" @click="save" type="button" class="btn btn-success">Guarda</button>
         </div>
       </div>
     </div>

@@ -2,8 +2,14 @@
 import { api } from '../repositories/api.js'
 import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
+import { Modal } from 'bootstrap'
+import ModalComponent from '../components/ModalComponent.vue'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 export default {
+  components: {
+    ModalComponent
+  },
   async mounted() {
     this.syllabuses = []
     try {
@@ -21,6 +27,7 @@ export default {
     } catch (error) {
       this.addMessage('error', error)
     }
+    this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
   },
   computed: {
     ...mapState(useDataStore, ['cycle', 'module']),
@@ -37,7 +44,7 @@ export default {
         return true
       }
       return false
-    }
+    },
   },
   data() {
     return {
@@ -46,11 +53,67 @@ export default {
       cycleSelect: '',
       moduleSelect: '',
       syllabuses: [],
-      done: false
+      done: false,
+      GenericModal: null,
+      modalFields: {},
+      errors: {},
+      // CKEditor
+      editor: ClassicEditor,
+      editorConfig: {
+        // The configuration of the editor.
+      }
     }
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage', 'fetchData', 'fetchCycle']),
+    getSyllabusByTurn(turn) {
+      return this.syllabuses.find((item) => item.turn == turn) || {}
+    },
+    showModal(turn) {
+      this.errors = {}
+      this.modalFields = {
+        turn,
+        editable: false,
+        currentImprovementProposal: this.getSyllabusByTurn(turn).currentImprovementProposal?.proposals || ''
+      }
+      this.GenericModal.show()
+    },
+    isSyllabusOfCurrentYear(turn) {
+      return this.getSyllabusByTurn(turn).courseYear == this.currentData.currentSchoolYear.course    },
+    editButtonText(turn) {
+      const syllabus = this.getSyllabusByTurn(turn)
+      return syllabus.id
+        ? this.isSyllabusOfCurrentYear(turn)
+          ? 'Editar la programació'
+          : 'Crear programació a partir de la del curs ' + syllabus.courseYear 
+        : 'Crear nova programació'
+    },
+    async saveImprovementProposals() {
+      if (!this.modalFields.editable) {
+        this.GenericModal.hide()
+        return
+      }
+      if (!this.modalFields.currentImprovementProposal) {
+        if (
+          !confirm("Estàs segur que vols eliminar les propostes de millora d'aquesta programació?")
+        ) {
+          return
+        }
+      }
+
+      try {
+        const syllabus = this.getSyllabusByTurn(this.modalFields.turn)
+        const response = await api.createImprovement(syllabus.id, {
+          proposals: this.modalFields.currentImprovementProposal
+        })
+        console.log(response)
+        syllabus.currentImprovementProposal = response.data
+        this.GenericModal.hide()
+        this.addMessage('success', 'Propostes de millora guardades')
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
     async getModules() {
       if (this.cycleSelect) {
         await this.fetchCycle(this.cycleSelect)
@@ -68,8 +131,8 @@ export default {
         this.addMessage('error', error)
       }
     },
-    async selectSyllabus(turn) {
-      let syllabus = this.existsSyllabusInTurn(turn)
+    async editSyllabus(turn) {
+      let syllabus = this.getSyllabusByTurn(turn)
       if (!syllabus) {
         try {
           const response = await api.createSyllabus({
@@ -83,19 +146,25 @@ export default {
           this.addMessage('error', error)
           return
         }
+      } else if (!this.isSyllabusOfCurrentYear(turn)) {
+        try {
+          const response = await api.createSyllabusCourseYear(syllabus.id)
+          syllabus = response.data
+          this.addMessage('success', 'Programació creada')
+        } catch (error) {
+          this.addMessage('error', error)
+          return
+        }
       }
       await this.fetchData(this.moduleSelect, syllabus.id)
       this.$router.push('/context')
     },
-    existsSyllabusInTurn(turn) {
-      return this.syllabuses.find((item) => item.turn === turn)
-    },
     statusClass(status) {
       switch (status) {
         case 'pendent':
-          return 'bg-secondary'
-        case 'enviada':
           return 'bg-warning'
+        case 'enviada':
+          return 'bg-info'
         case 'rebutjada':
           return 'bg-danger'
         case 'acceptada':
@@ -106,8 +175,8 @@ export default {
     },
     async showPdf(turn) {
       try {
-        const response = await api.getPdf(this.existsSyllabusInTurn(turn)?.id)
-        if (!response.ok) {
+        const response = await api.getPdf(this.getSyllabusByTurn(turn).id)
+        if (response.status !== 200) {
           this.addMessage('error', response)
         }
         const url = URL.createObjectURL(response.data)
@@ -131,6 +200,24 @@ export default {
 
 <template>
   <main class="border shadow view-main">
+    <ModalComponent @save="saveImprovementProposals" title="Propostes de millora">
+      <div class="row">
+        <div v-show="modalFields.editable">
+          <ckeditor
+          :editor="editor"
+          v-model="modalFields.currentImprovementProposal"
+          :config="editorConfig"
+        ></ckeditor>
+        </div>
+        <div v-show="!modalFields.editable">
+          <p v-html="modalFields.currentImprovementProposal || 'No hi ha cap proposta'"></p>
+          <button @click="modalFields.editable=true" class="btn btn-secondary">Editar</button>
+        </div>
+        <p v-if="errors.currentImprovementProposal" class="error">
+          {{ errors.currentImprovementProposal }}
+        </p>
+      </div>
+    </ModalComponent>
     <h2 class="text-center fw-bold text-primary p-lg-2">Tria la programació</h2>
     <div class="container-fluid px-lg-4">
       <div class="form-group">
@@ -163,34 +250,42 @@ export default {
       </div>
       <br />
       <div v-if="moduleSelect" class="form-group">
-        <h3>Torns</h3>
         <ul>
-          <li v-for="(turn, index) in cycle.availableTurns" :key="index">
-            {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}:
-            <button
-              @click="selectSyllabus(turn)"
-              class="btn btn-primary position-relative"
-              v-if="canEdit"
-            >
-              {{ existsSyllabusInTurn(turn) ? 'Editar la programació' : 'Crear nova programació' }}
-              <span
-                class="position-absolute top-0 start-100 translate-middle badge rounded-pill" :class="statusClass(syllabuses[index]?.status)"
-              >
-                {{ syllabuses[index]?.status }}
-              </span>
-            </button>
-            <template v-else>
+          <template v-for="(turn) in cycle.availableTurns" :key="turn">
+            <li>
+              <h3>Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}</h3>
+              <div v-if="canEdit">
+                <button
+                  @click="editSyllabus(turn)"
+                  class="btn btn-primary position-relative"
+                >
+                  {{  editButtonText(turn) }}
+                  <span v-if="this.isSyllabusOfCurrentYear(turn)"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                    :class="statusClass(getSyllabusByTurn(turn).status)"
+                  >
+                    {{ getSyllabusByTurn(turn).status }}
+                  </span>
+                </button>
+                <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage }}</p>
+              </div>
+              <div v-else>
+                <button @click="showModal(turn)" class="btn btn-secondary">
+                  Veure/Modificar propostes de millora
+                </button>
+              </div>
+              <br />
               <button
-                v-if="existsSyllabusInTurn(turn)"
+                v-if="getSyllabusByTurn(turn)"
                 @click="showPdf(turn)"
                 class="btn btn-secondary"
-                title="Vore PDF"
+                title="Veure PDF"
               >
-                Vore PDF
+                Veure PDF
               </button>
               <strong v-else>No hi ha programació</strong>
-            </template>
-          </li>
+            </li>
+          </template>
         </ul>
       </div>
     </div>

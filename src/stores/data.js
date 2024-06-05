@@ -123,7 +123,7 @@ export const useDataStore = defineStore('data', {
         this.addMessage('error', error)
       }
     },
-    async fetchData(moduleCode, syllabusId) {
+    async tatialamorafetchData(moduleCode, syllabusId) {
       try {
         const [respMod, respSyl] = await Promise.all([
           api.getModuleByCode(moduleCode),

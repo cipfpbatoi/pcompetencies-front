@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import LearningSituations from '../views/LearningSituations.vue'
-import LSDevelopment from '../views/LSDevelopment.vue'
+import LSsDefine from '../views/LSsDefine.vue'
+import LSDevelop from '../views/LSDevelop.vue'
 import LSsDevelopment from '../views/LSsDevelopment.vue'
 import TestWorkUnitLR from '../views/TestWorkUnitLR.vue'
 import LoginView from '../views/LoginView.vue'
@@ -12,6 +12,7 @@ import SyllabusQualify from '../views/SyllabusQualify.vue'
 import FinalQualify from '../views/FinalQualify.vue'
 import MethodologicalPrinciples from '../views/MethodologicalPrinciples.vue'
 import ValidateSyllabus from '../views/ValidateSyllabus.vue'
+import SyllabusesManage from '../views/SyllabusesManage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,8 +42,8 @@ const router = createRouter({
     },
     {
       path: '/learn-sit',
-      name: 'learningSituations',
-      component: LearningSituations,
+      name: 'LSsDefine',
+      component: LSsDefine,
       meta: { requiresAuth: true }
     },
     {
@@ -59,8 +60,8 @@ const router = createRouter({
     },        
     {
       path: '/learning-situation/:lsId',
-      name: 'LSDevelopment',
-      component: LSDevelopment,
+      name: 'LSDevelop',
+      component: LSDevelop,
       props: true,
       meta: { requiresAuth: true }
     },    
@@ -94,6 +95,12 @@ const router = createRouter({
       component: ValidateSyllabus,
       meta: { requiresAuth: true }
     }, 
+    {
+      path: '/syl-manage',
+      name: 'SyllabusesManage',
+      component: SyllabusesManage,
+      meta: { requiresAuth: true }
+    },
     {
       path: '/about',
       name: 'about',

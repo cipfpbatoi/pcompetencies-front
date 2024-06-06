@@ -29,6 +29,7 @@ export const useDataStore = defineStore('data', {
     async loginUser(credentials) {
       try {
         const response = await api.loginCheck(credentials)
+        console.info('loginUser', response.data)
         localStorage.token = response.data.token
         this.addMessage('success', 'Usuario logueado')
         await this.reloadData()

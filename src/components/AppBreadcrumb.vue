@@ -32,11 +32,11 @@ export default {
         {
           title: 'Propostes de millora',
           path: 'imprProp',
-          nextPath: 'learningSituations'
+          nextPath: 'LSsDefine'
         },
         {
           title: "Crear Situacions d'aprenentatge",
-          path: 'learningSituations',
+          path: 'LSsDefine',
           nextPath: 'LSTest'
         },
         {

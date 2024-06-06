@@ -25,7 +25,7 @@ export default {
       )
     },
     totalHours() {
-      const hoursUsed = this.syllabus.learningSituations.reduce((total, ls) => total + ls.hours, 0)
+      const hoursUsed = this.syllabus.learningSituations?.reduce((total, ls) => total + ls.hours, 0)
       return hoursUsed == this.syllabus.numberOfHours
     }
   },
@@ -40,6 +40,13 @@ export default {
     }
   },
   methods: {
+    getPercentage(ponderedLearningReslts, lrId) {
+      const percentage = ponderedLearningReslts.find((item) => item.learningResult.id == lrId)
+      if (percentage) {
+        this.lRincluded.add(lrId)
+      }
+      return percentage ? percentage.percentageWeight + '%' : ''
+    },
     includesLearningResult(ponderedLearningReslts, lRid) {
       const isIncluded = ponderedLearningReslts?.some((item) => item.learningResult.id == lRid)
       if (isIncluded) {
@@ -111,19 +118,20 @@ export default {
           </thead>
           <tbody>
           <!-- Iterar sobre cada contenido para crear una fila en la tabla -->
-          <tr v-for="unit in syllabus.learningSituations" :key="unit.id">
-            <td>{{ unit.position }} - {{ unit.title }}</td>
+          <tr v-for="(ls, indexLS) in syllabus.learningSituations" :key="ls.id">
+            <td>{{ ls.position }} - {{ ls.title }}</td>
             <!-- Iterar sobre cada resultado para crear una celda en la fila -->
-            <td v-for="result in module.learningResults" :key="result.id">
-              <!-- Colocar una 'X' si el result está presente en el unit -->
-              <span v-if="includesLearningResult(unit.ponderedLearningResults, result.id)">X</span>
+            <td v-for="(result) in module.learningResults" :key="result.id">
+              <!-- Colocar una 'X' si el result está presente en el ls -->
+              <!-- <span v-if="includesLearningResult(ls.ponderedLearningResults, result.id)">X</span> -->
+              {{ getPercentage(syllabus.learningSituations[indexLS].ponderedLearningResults, result.id) }}
             </td>
-            <th>{{ sumOfLS(unit) }}%</th>
+            <th>{{ sumOfLS(ls) }}%</th>
           </tr>
           <tr>
             <td><strong>Pes de cada R.A.</strong></td>
             <td v-for="result in module.learningResults" :key="result.id">
-              <!-- Colocar una 'X' si el result está presente en el unit -->
+              <!-- Colocar una 'X' si el result está presente en el ls -->
               <span>{{ ponderedSumOfRA(result) }}%</span>
             </td>
             <th>{{ totalSum }}%</th>

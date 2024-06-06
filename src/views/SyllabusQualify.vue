@@ -20,7 +20,7 @@ export default {
       .reduce((total, ls) => total + ls.totalPercentageWeight, 0)
     },
     done() {
-      return this.totalPercentajeWeight === 100
+      return this.learningSituationsToShow.every((ls) => ls.totalPercentageWeight === 100)
     },
     learningSituationsToShow() {
       if (!this.syllabus.learningSituations || !this.sylMarkingActivities.length) return []
@@ -190,7 +190,7 @@ export default {
     <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>6. Qualificació</h2>
+      <h2>6. Qualificació de les Situacions d'Aprenentatge</h2>
       <div class="bg-danger m-1">
     </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">

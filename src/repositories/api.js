@@ -87,7 +87,7 @@ export const api = {
   getModuleByCode: (code) => instance.get(`/module/${code}`),
 
   // Syllabus
-  getSyllabusesPaginated: () => instance.get('/syllabus'),
+  getSyllabusesPaginated: (filter) => instance.get('/syllabus?'+filter),
   getSyllabusByCycleAndModule: (cycleId, moduleCode) =>
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),

@@ -5,6 +5,7 @@ import { useDataStore } from '../stores/data'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
+import { statusClass } from '../utils/utils.js'
 
 export default {
   components: {
@@ -159,20 +160,6 @@ export default {
       await this.fetchData(this.moduleSelect, syllabus.id)
       this.$router.push('/context')
     },
-    statusClass(status) {
-      switch (status) {
-        case 'pendent':
-          return 'bg-warning'
-        case 'enviada':
-          return 'bg-info'
-        case 'rebutjada':
-          return 'bg-danger'
-        case 'acceptada':
-          return 'bg-success'
-        default:
-          return 'bg-dark'
-      }
-    },
     async showPdf(turn) {
       try {
         const response = await api.getPdf(this.getSyllabusByTurn(turn).id)
@@ -193,6 +180,9 @@ export default {
         this.addMessage('error', error)
         return
       }
+    },
+    statusClass(status) {
+      return statusClass(status)
     }
   }
 }

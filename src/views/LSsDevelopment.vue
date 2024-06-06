@@ -63,12 +63,12 @@ export default {
     <app-breadcrumb :actualStep="5" :done="true"></app-breadcrumb>
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h2>5.a. Desenvolupament de les S.A</h2>
+      <h2>5.a. Desenvolupar les Situacions d'Aprenentatge</h2>
       <p>Des d'ací pots desenvolupar cada situació d'aprenentatge.</p>
       <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
         <template v-slot="{ item }">
           <button type="button"
-                  @click="$router.push({ name: 'LSDevelopment', params: { lsId: item.id } })"
+                  @click="$router.push({ name: 'LSDevelop', params: { lsId: item.id } })"
                   class="btn btn-success"
           >Desenvolupar</button>
         </template>

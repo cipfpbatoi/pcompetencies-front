@@ -39,8 +39,24 @@ async function validateFormErrors(validationSchema, data) {
   return {}
 }
 
+function statusClass(status) {
+  switch (status) {
+    case 'pendent':
+      return 'bg-warning'
+    case 'enviada':
+      return 'bg-info'
+    case 'rebutjada':
+      return 'bg-danger'
+    case 'acceptada':
+      return 'bg-success'
+    default:
+      return 'bg-dark'
+  }
+}
+
 export {
   makeCheckeableArray,
   getObjectsIds,
   validateFormErrors,
+  statusClass,
 }

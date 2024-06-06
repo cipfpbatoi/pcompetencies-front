@@ -315,7 +315,7 @@ export default {
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <div>
-        <h2>3.1 Situacions d'Aprenentatge</h2>
+        <h2>3.1 Definir Situacions d'Aprenentatge</h2>
         <show-table
           class="border border-black p-2"
           :data="this.syllabus.learningSituations"

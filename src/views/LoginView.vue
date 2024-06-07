@@ -42,7 +42,9 @@ export default {
         if (this.redirect) {
           this.$router.push(this.redirect.path)
         } else {
-          if (this.user.info?.roles.includes('ROLE_ADMIN')) {
+          console.log(this.user.info);
+          if (this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT')
+              || this.user.info?.roles.includes('ROLE_ADMIN')) {
             this.$router.push('/syl-manage')
           } else {
             // Redirect to home page (this is the default behaviour..

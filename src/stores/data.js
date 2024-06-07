@@ -101,11 +101,6 @@ export const useDataStore = defineStore('data', {
             markingTool: respActMark.data,
           }
           this.user.info = respUser.data
-          const roles = []
-          Object.keys(this.user.info.roles).forEach((key) => {
-            roles.push(respUser.data.roles[key])
-            this.user.info.roles = roles
-          })
         } catch (error) {
           this.addMessage('error', error)
         }

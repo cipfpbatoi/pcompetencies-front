@@ -79,46 +79,39 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <div class="p-lg-4 p-1">
-      <h2>Gestió de les programacions</h2>
+    <div class="p-lg-4 p-1 overflow-auto">
+      <h2 class="fw-bold">Gestió de les programacions</h2>
       <div class="row mb-3">
-        <div class="col d-flex align-items-center">
-          <label>Cicle:</label>
+        <div class="col-lg-12 d-flex align-items-center">
+          <label class="p-2 fw-bold">Cicle:</label>
           <input
             @input="getSyllabuses"
             size="10"
             type="text"
             v-model="cycleNameFilter"
-            class="form-input"
+            class="form-input col-5 p-2"
             placeholder="Escriu el nom del cicle"
           />
-          <select
-            @change="getSyllabuses"
-            v-model="cycleFilter"
-            class="form-select"
-          >
+          <select @change="getSyllabuses" v-model="cycleFilter" class="form-select p-2">
           <option value="0">--- o tria un cicle ---</option>
-
             <option v-for="cycle in cycles" :value="cycle.id" :key="cycle.id">
               {{ cycle.shortName }}
             </option>
           </select>
         </div>
-        <div class="col d-flex align-items-center">
-          <label>Codi del Mòdul:</label>
-          <input @input="getSyllabuses" v-model="moduleFilter" class="form-input" />
-        </div>
-        <div class="col d-flex align-items-center">
-          <label>Estat: </label>
-          <select @change="getSyllabuses" v-model="statusFilter" class="form-select">
+        <div class="col d-flex align-items-center col-lg-12">
+          <label class="p-2 fw-bold">Codi del Mòdul:</label>
+          <input @input="getSyllabuses" v-model="moduleFilter" class="form-input form-input p-2" placeholder="Ex. 03012..." />
+          <label class="p-2 fw-bold">Estat: </label>
+          <select @change="getSyllabuses" v-model="statusFilter" class="form-select p-2 fw-bold">
             <option value="0">--- Qualsevol ---</option>
             <option v-for="state in status" :value="state" :key="state">{{ state }}</option>
           </select>
-          <button @click="clear" type="button" class="btn btn-secondary">Borra els filtres</button>
+          <button @click="clear" type="button" class="btn btn-secondary btn-sm">Borrar filtres</button>
         </div>
       </div>
       <div style="overflow: auto">
-        <table class="table table-striped">
+        <table class="table table-striped col-lg-12 text-center">
           <thead>
             <th v-if="checkeable" title="Selecciona" class="text-center">Sel.</th>
             <th>Cicle</th>
@@ -130,41 +123,25 @@ export default {
           </thead>
           <tbody>
             <tr v-for="syl in syllabuses" :key="syl.id">
-              <td v-if="checkeable" class="text-center">
+              <td v-if="checkeable" class="text-center align-middle">
                 <input type="checkbox" v-model="item.checked" />
               </td>
               <td>{{ syl.cycle.shortName }}</td>
               <td>{{ syl.module.code }}</td>
               <td :title="syl.module.code">{{ syl.module.name }}</td>
               <td>{{ syl.turn }}</td>
-              <td>
-                <span class="text-white" :class="statusClass(syl.status)">{{ syl.status }}</span>
+              <td class="align-middle">
+                <span class="text-white p-2 rounded" :class="statusClass(syl.status)">{{ syl.status }}</span>
               </td>
               <td>
                 <button
-                  @click="accept"
-                  :disabled="syl.status != 'enviada'"
+                  @click="accept" :hidden="syl.status != 'enviada'"
                   type="button"
-                  class="btn btn-success"
-                >
-                  Aprova</button
-                >&nbsp;
-                <button
-                  @click="reject"
-                  :disabled="syl.status != 'enviada'"
-                  type="button"
-                  class="btn btn-danger"
-                >
-                  Rebutja</button
-                >&nbsp;
-                <button
-                  @click="open"
-                  :disabled="syl.status == 'pendent'"
-                  type="button"
-                  class="btn btn-warning"
-                >
-                  Obri
-                </button>
+                  class="btn btn-success">Aprova</button>&nbsp;
+                <button @click="reject"
+                        :hidden="syl.status != 'enviada'"
+                        type="button" class="btn btn-danger">Rebutja</button>&nbsp;
+                <button @click="open" type="button" class="btn btn-primary">Obri</button>
               </td>
             </tr>
           </tbody>

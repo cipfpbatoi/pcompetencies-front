@@ -3,6 +3,7 @@ import { mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import { api } from '@/repositories/api'
 import { statusClass } from '../utils/utils.js'
+import router from '@/router/index.js'
 
 export default {
   components: {},
@@ -33,6 +34,9 @@ export default {
     }
   },
   methods: {
+    router() {
+      return router
+    },
     ...mapActions(useDataStore, ['addMessage']),
     async getSyllabuses() {
       try {
@@ -141,7 +145,7 @@ export default {
                 <button @click="reject"
                         :hidden="syl.status != 'enviada'"
                         type="button" class="btn btn-danger">Rebutja</button>&nbsp;
-                <button @click="open" type="button" class="btn btn-primary">Obri</button>
+                <button @click="this.$router.push('/')" type="button" class="btn btn-secondary">Obri</button>
               </td>
             </tr>
           </tbody>

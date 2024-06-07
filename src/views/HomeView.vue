@@ -263,13 +263,11 @@ export default {
                   Veure/Modificar propostes de millora
                 </button>
               </div>
-              <br />
               <button
                 v-if="getSyllabusByTurn(turn)"
                 @click="showPdf(turn)"
                 class="btn btn-secondary"
-                title="Veure PDF"
-              >
+                title="Veure PDF">
                 Veure PDF
               </button>
               <strong v-else>No hi ha programació</strong>

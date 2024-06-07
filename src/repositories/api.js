@@ -81,6 +81,7 @@ export const api = {
 
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),
+  userCurrent: () => instance.get('/user/current'),
 
   // Module
   getModules: () => instance.get('/module'),

@@ -1,6 +1,6 @@
 <script>
 import { useDataStore } from '@/stores/data'
-import { mapActions } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 import * as yup from 'yup'
 import { object } from 'yup'
 import { validateFormErrors } from '../utils/utils.js'
@@ -18,10 +18,13 @@ export default {
   data() {
     return {
       errors: {},
-      user: {},
+      credentials: {},
       redirect: false,
       showPassword: false
     }
+  },
+  computed: {
+    ...mapState(useDataStore, ['user'])
   },
   mounted() {
     if (localStorage.redirect) {
@@ -32,14 +35,19 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['loginUser', 'addMessage']),
     async handleForm() {
-      this.errors = await validateFormErrors(validationSchema, this.user)
+      this.errors = await validateFormErrors(validationSchema, this.credentials)
       if (this.errors.length) return
 
-      if (await this.loginUser(this.user)) {
+      if (await this.loginUser(this.credentials)) {
         if (this.redirect) {
           this.$router.push(this.redirect.path)
         } else {
+          if (this.user.info?.roles.includes('ROLE_ADMIN')) {
+            this.$router.push('/syl-manage')
+          } else {
+            // Redirect to home page (this is the default behaviour..
           this.$router.push('/')
+          }
         }
       }
     }
@@ -58,7 +66,7 @@ export default {
           <input
             type="email"
             class="form-control"
-            v-model="user.email"
+            v-model="credentials.email"
             placeholder="email de l'usuari que gestionarà el compte"
           />
           <p v-if="errors.email" class="error">{{ errors.email }}</p>
@@ -89,7 +97,7 @@ export default {
             <input
               type="text"
               class="form-control"
-              v-model="user.password"
+              v-model="credentials.password"
               placeholder="Mínim 7 caracters"
             />
           </div>
@@ -114,7 +122,7 @@ export default {
             <input
               type="password"
               class="form-control"
-              v-model="user.password"
+              v-model="credentials.password"
               placeholder="Mínim 7 caracters"
             />
           </div>

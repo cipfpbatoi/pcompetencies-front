@@ -11,11 +11,11 @@ export default {
   },
   mounted() {
     if (window.location.pathname !== '/login') {
-      this.reloadData()
+      this.loadData()
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['reloadData'])
+    ...mapActions(useDataStore, ['loadData'])
   }
 }
 </script>

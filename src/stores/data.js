@@ -29,10 +29,9 @@ export const useDataStore = defineStore('data', {
     async loginUser(credentials) {
       try {
         const response = await api.loginCheck(credentials)
-        console.info('loginUser', response.data)
         localStorage.token = response.data.token
         this.addMessage('success', 'Usuario logueado')
-        await this.reloadData()
+        await this.loadData()
         return true
       } catch (error) {
         this.addMessage('error', error)
@@ -88,27 +87,40 @@ export const useDataStore = defineStore('data', {
       const index = this.messages.findIndex((item) => item.id === id)
       this.messages.splice(index, 1)
     },
-    async reloadData() {
+    async loadData() {
       if (localStorage.token) {
         this.user.token = localStorage.token
-        if (localStorage.data) {
+        try {
+          const [respActAsmt, respActMark, respUser] = await Promise.all([
+            api.getAsessmentTool(),
+            api.getMarkingTool(),
+            api.userCurrent(),
+          ])
+          this.activitiesData = {
+            assessmentTool: respActAsmt.data,
+            markingTool: respActMark.data,
+          }
+          this.user.info = respUser.data
+          const roles = []
+          Object.keys(this.user.info.roles).forEach((key) => {
+            roles.push(respUser.data.roles[key])
+            this.user.info.roles = roles
+          })
+        } catch (error) {
+          this.addMessage('error', error)
+        }
+      if (localStorage.data) {
           const data = JSON.parse(localStorage.data)
           this.syllabus = { id: data.syllabusId }
           try {
-            const [respCycle, respMod, respSyl, respActAsmt, respActMark] = await Promise.all([
+            const [respCycle, respMod, respSyl] = await Promise.all([
               api.getCycleById(data.cycleId),
               api.getModuleByCode(data.moduleCode),
               api.getSyllabusById(data.syllabusId),
-              api.getAsessmentTool(),
-              api.getMarkingTool(),
             ])
             this.cycle = respCycle.data
             this.module = respMod.data
             this.syllabus = respSyl.data
-            this.activitiesData = {
-              assessmentTool: respActAsmt.data,
-              markingTool: respActMark.data,
-            }
           } catch (error) {
             this.addMessage('error', error)
           }

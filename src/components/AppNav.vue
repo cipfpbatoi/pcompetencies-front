@@ -5,6 +5,9 @@ import { mapState, mapActions } from 'pinia'
 export default {
   computed: {
     ...mapState(useDataStore, ['user']),
+    isAdmin() {
+      return this.user.info?.roles.includes('ROLE_ADMIN')
+    },
     isLogged() {
       return !!this.user.token
     }
@@ -30,6 +33,9 @@ export default {
       <template v-if="isLogged">
         <li class="nav-item">
           <RouterLink class="nav-link" to="/">Inici</RouterLink>
+        </li>
+        <li class="nav-item" v-if="isAdmin">
+          <RouterLink class="nav-link" to="/syl-manage">Gestionar programacions</RouterLink>
         </li>
         <li class="nav-item">
           <RouterLink @click.prevent="logout" class="nav-link" to="/login">Eixir</RouterLink>

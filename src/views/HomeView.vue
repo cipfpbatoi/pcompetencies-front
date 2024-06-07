@@ -107,7 +107,6 @@ export default {
         const response = await api.createImprovement(syllabus.id, {
           proposals: this.modalFields.currentImprovementProposal
         })
-        console.log(response)
         syllabus.currentImprovementProposal = response.data
         this.GenericModal.hide()
         this.addMessage('success', 'Propostes de millora guardades')

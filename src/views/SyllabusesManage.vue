@@ -24,10 +24,10 @@ export default {
       modules: [],
       status: ['enviada', 'pendent', 'aprovada', 'rebutjada'],
       checkeable: false,
-      cycleFilter: [],
+      cycleFilter: 0,
       cycleNameFilter: '',
       moduleFilter: '',
-      statusFilter: [],
+      statusFilter: 0,
       page: 1,
       itemsPerPage: 5
     }
@@ -38,7 +38,6 @@ export default {
       try {
         const response = await api.getSyllabusesPaginated(this.getFilter())
         this.syllabuses = response.data
-        console.log(response)
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -47,32 +46,22 @@ export default {
       return statusClass(status)
     },
     clear() {
-      this.cycleFilter = []
+      this.cycleFilter = 0
       this.cycleNameFilter = ''
       this.moduleFilter = ''
-      this.statusFilter = []
+      this.statusFilter = 0
       this.getSyllabuses()
     },
     getFilter() {
       let filter = `page=${this.page}&itemsPerPage=${this.itemsPerPage}`
-      if (this.cycleFilter.length > 0) {
-        if (this.cycleFilter.length === 1) {
-          filter += `&cycle.id=${this.cycleFilter[0]}`
-        } else {
-          filter += '&cycle.id[]='
-          filter += `${this.cycleFilter.join('&cycle.id[]=')}`
-        }
+      if (this.cycleFilter) {
+          filter += `&cycle.id=${this.cycleFilter}`
       }
       if (this.cycleNameFilter) {
         filter += `&cycle.shortName=${this.cycleNameFilter}`
       }
-      if (this.statusFilter.length > 0) {
-        if (this.statusFilter.length === 1) {
-          filter += `&status=${this.statusFilter[0]}`
-        } else {
-          filter += '&status[]='
-          filter += `${this.statusFilter.join('&status[]=')}`
-        }
+      if (this.statusFilter) {
+          filter += `&status=${this.statusFilter}`
       }
       if (this.moduleFilter) {
         filter += `&module.code=${this.moduleFilter}`
@@ -105,11 +94,11 @@ export default {
           />
           <select
             @change="getSyllabuses"
-            size="3"
             v-model="cycleFilter"
-            multiple
             class="form-select"
           >
+          <option value="0">--- o tria un cicle ---</option>
+
             <option v-for="cycle in cycles" :value="cycle.id" :key="cycle.id">
               {{ cycle.shortName }}
             </option>
@@ -121,7 +110,8 @@ export default {
         </div>
         <div class="col d-flex align-items-center">
           <label>Estat: </label>
-          <select size="3" v-model="statusFilter" class="form-select" multiple>
+          <select @change="getSyllabuses" v-model="statusFilter" class="form-select">
+            <option value="0">--- Qualsevol ---</option>
             <option v-for="state in status" :value="state" :key="state">{{ state }}</option>
           </select>
           <button @click="clear" type="button" class="btn btn-secondary">Borra els filtres</button>

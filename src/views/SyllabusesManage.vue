@@ -143,9 +143,10 @@ export default {
                   type="button"
                   class="btn btn-success">Aprova</button>&nbsp;
                 <button @click="reject"
-                        :hidden="syl.status != 'enviada'"
+                        :hidden="syl.status !== 'enviada'"
                         type="button" class="btn btn-danger">Rebutja</button>&nbsp;
-                <button @click="this.$router.push('/')" type="button" class="btn btn-secondary">Obri</button>
+                <button @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
+                        type="button" class="btn btn-secondary">Obri</button>
               </td>
             </tr>
           </tbody>

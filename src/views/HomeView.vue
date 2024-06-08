@@ -17,9 +17,15 @@ export default {
       const [respCicles, respData] = await Promise.all([api.getCycles(), api.getCurrentData()])
       this.cycles = respCicles.data
       this.currentData = respData.data
+      if (this.$route.params.cycleId) {
+        this.cycle.id = this.$route.params.cycleId;
+      }
       if (this.cycle.id) {
         this.cycleSelect = this.cycle.id
         await this.getModules()
+        if (this.$route.params.moduleCode) {
+          this.module.code = this.$route.params.moduleCode;
+        }
         if (this.module.code) {
           this.moduleSelect = this.module.code
           this.getSyllabuses()

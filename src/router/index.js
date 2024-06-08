@@ -19,6 +19,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      alias: '/select/:cycleId(\\d+)/:moduleCode',
       name: 'selectSyllabus',
       component: HomeView,
       meta: { requiresAuth: true }

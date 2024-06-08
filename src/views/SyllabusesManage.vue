@@ -30,7 +30,7 @@ export default {
       moduleFilter: '',
       statusFilter: 0,
       page: 1,
-      itemsPerPage: 5
+      itemsPerPage: 25
     }
   },
   methods: {

@@ -88,7 +88,9 @@ export default {
           :title="step.title"
           @click="$router.push({name: step.path, params})"
         > {{  index + 1 }}</button>
-        <span class="p-2 text-uppercase" v-if="index == actualStep-1"><span class="bg-white p-1 px-2 mx-1 fw-bold rounded-circle  text-dark">{{ index+1 }}</span> {{ step.title }}</span>
+        <span class="p-2 text-uppercase" v-if="index == actualStep-1">
+          <span class="bg-white p-1 px-2 mx-1 fw-bold rounded-circle  text-dark">{{ index+1 }}</span>
+          <span class="d-none d-sm-inline">{{ step.title }}</span></span>
       </template>
       <template v-if="actualStep < steps.length">
         <span> -> </span>

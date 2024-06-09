@@ -248,7 +248,7 @@ export default {
       <br />
 
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.4 Continguts</h4>
-      <div class="bordered border-primary-subtle mt-0">
+      <div class="bordered border-primary-subtle mt-0 overflow-auto">
         <LsDevContents :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevContents>
       </div>
       <br /><br />

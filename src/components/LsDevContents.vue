@@ -85,7 +85,7 @@ export default {
       const newContents = this.learningSituation.didacticContents.map((item) => item.descriptor)
       if (newContents.includes(newContent)) {
         this.addMessage('error', "Eixe contingut ja està afegit")
-          return
+        return
       }
       newContents.push(newContent)
       this.newContent = ''
@@ -104,8 +104,8 @@ export default {
       if (
         confirm(
           'ATENCIÓ: Vas a esborrar el contingut "' +
-            content.descriptor +
-            '". Aquest procés NO es por des-fer !!!'
+          content.descriptor +
+          '". Aquest procés NO es por des-fer !!!'
         )
       ) {
         this.saveContents(
@@ -141,26 +141,23 @@ export default {
         <p v-if="errors.content" class="error">{{ errors.content }}</p>
       </div>
     </ModalComponent>
-
     <div
-      class="bordered"
+      class="m-0 p-2 align-items-center overflow-x-hidden"
       v-for="result in learningSituation.ponderedLearningResults"
-      :key="result.id"
-    >
-      <div class="position-relative">
-        <h5 class="position-absolute start-0">
-          RA {{ result.learningResult.number }}: {{ result.learningResult.descriptor }}
-        </h5>
-        <button
-          class="position-absolute end-0 btn btn-link"
-          @click="toogleDeployedRaContent(result.id)"
-          type="button"
-          title="Mostra els continguts"
-        >
-          <i class="bi bi-eye"></i>
-        </button>
+      :key="result.id">
+      <div class="row bg-secondary-subtle p-2">
+        <div class="col-11 pt-2">
+          <h5>RA {{ result.learningResult.number }}: {{ result.learningResult.descriptor }}</h5>
+        </div>
+        <div class="col align-middle align-content-end">
+          <button class="btn btn-link"
+                  @click="toogleDeployedRaContent(result.id)"
+                  type="button"
+                  title="Mostra els continguts">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
       </div>
-      <br /><br />
       <div v-if="result.id === deployedRaContent">
         <div v-for="block in getContentsBlock(result)" :key="block.id">
           <h5>{{ block.title }}</h5>

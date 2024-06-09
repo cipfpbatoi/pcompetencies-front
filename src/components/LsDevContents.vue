@@ -146,10 +146,10 @@ export default {
       v-for="result in learningSituation.ponderedLearningResults"
       :key="result.id">
       <div class="row bg-secondary-subtle p-2">
-        <div class="col-11 pt-2">
+        <div class="col-10 pt-2">
           <h5>RA {{ result.learningResult.number }}: {{ result.learningResult.descriptor }}</h5>
         </div>
-        <div class="col align-middle align-content-end">
+        <div class="col-2 align-middle align-content-end">
           <button class="btn btn-link"
                   @click="toogleDeployedRaContent(result.id)"
                   type="button"

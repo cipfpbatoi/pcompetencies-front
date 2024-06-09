@@ -1,4 +1,4 @@
-<script>
+<script xmlns="http://www.w3.org/1999/html">
 import ShowTable from './ShowTable.vue'
 import { useDataStore } from '@/stores/data'
 import { mapState, mapActions } from 'pinia'
@@ -87,7 +87,7 @@ export default {
       if (this.type === 'marking') {
         columns.push({
           title: 'C.A.',
-          hint: "Criteris d'avaluació associats",
+          hint: 'Criteris d\'avaluació associats',
           func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
           param: 'evaluationCriterias'
         })
@@ -187,7 +187,7 @@ export default {
     ...mapActions(useDataStore, ['addMessage']),
     createValidationSchema() {
       let validationSchema = object({
-        contents: yup.array().min(1, "Has d'incloure al menys 1 contingut"),
+        contents: yup.array().min(1, 'Has d\'incloure al menys 1 contingut'),
         description: yup
           .string()
           .trim()
@@ -207,16 +207,16 @@ export default {
         .when((values, schema) => {
           if (this.type === 'formative') {
             return schema.shape({
-              hours: yup.number().required("Has d'indicar les hores de la activitat")
+              hours: yup.number().required('Has d\'indicar les hores de la activitat')
             })
           }
         })
         .when((values, schema) => {
           if (this.type === 'marking') {
             return schema.shape({
-              hours: yup.number().required("Has d'indicar les hores de la activitat"),
-              assessmentToolId: yup.number().required("Has d'indicar la tàcnica d'avaluació"),
-              markingToolId: yup.number().required("Has d'indicar l'instrument de qualificació")
+              hours: yup.number().required('Has d\'indicar les hores de la activitat'),
+              assessmentToolId: yup.number().required('Has d\'indicar la tàcnica d\'avaluació'),
+              markingToolId: yup.number().required('Has d\'indicar l\'instrument de qualificació')
             })
           }
         })
@@ -265,6 +265,7 @@ export default {
         if (this.type === 'marking') {
           this.modalFields.assessmentToolId = activity.assessmentTool?.id
           this.modalFields.markingToolId = activity.markingTool?.id
+          this.modalFields.aggregateEndBlock = activity.aggregateEndBlock
         }
       } else {
         this.editing = false
@@ -273,6 +274,7 @@ export default {
         if (this.type === 'marking') {
           this.modalFields.didacticContents = []
           this.modalFields.evaluationCriterias = []
+          this.modalFields.aggregateEndBlock = activity.aggregateEndBlock
         }
       }
       if (this.type === 'marking') {
@@ -326,7 +328,7 @@ export default {
           []
         )
         if (!evaluationCriteriasIdsSelected.length) {
-          this.errors.evaluationCriterias = "Has de marcar al menys 1 criteri d'avaluació"
+          this.errors.evaluationCriterias = 'Has de marcar al menys 1 criteri d\'avaluació'
         }
       }
       if (['formative', 'marking'].includes(this.type)) {
@@ -335,11 +337,11 @@ export default {
           .reduce((total, item) => total + (item.hours || 0), 0)
         if (totActivHours + this.modalFields.hours > this.learningSituation.hours) {
           this.errors.hours =
-            "Te'n pases d'hores. La resta d'activitats ja sumen " +
+            'Te\'n pases d\'hores. La resta d\'activitats ja sumen ' +
             totActivHours +
             ' de les ' +
             this.learningSituation.hours +
-            " hores de la situació d'aprenentatge"
+            ' hores de la situació d\'aprenentatge'
         }
       }
       if (Object.keys(this.errors).length) return
@@ -368,7 +370,7 @@ export default {
         activity.assessmentToolId = this.modalFields.assessmentToolId
         activity.markingToolId = this.modalFields.markingToolId
         activity.evaluationCriteriaIds = evaluationCriteriasIdsSelected
-
+        activity.aggregateEndBlock = this.modalFields.aggregateEndBlock
         this.showActivityDetails = false
       }
       try {
@@ -383,7 +385,7 @@ export default {
     async delActivity(activity) {
       if (
         confirm(
-          "ATENCIÓ: Vas a esborrar l'activitat " +
+          'ATENCIÓ: Vas a esborrar l\'activitat ' +
           activity.code +
           '. Aquest procés NO es por des-fer !!!'
         )
@@ -484,6 +486,10 @@ export default {
           <div class="col-auto">
             <span v-if="errors.markingToolId" class="error">{{ errors.markingToolId }}</span>
           </div>
+        </div>
+        <div class="row p-1">
+          <p class="p-2 text-center"><input type="checkbox" v-model.number="modalFields.aggregateEndBlock">
+            Temporalitzar al final del bloc (Sols s'aplicarà si la SA pertany a un bloc formatiu)</p>
         </div>
         <div class="row align-items-center">
           <p class="form-label m-1 mt-3 fw-bold">

@@ -453,8 +453,8 @@ export default {
       <div v-if="type === 'marking'">
         <div class="form-group row p-1">
           <label class="col-sm-2 col-form-label fw-bold">Tècnica Avaluació</label>
-          <div class="col-4">
-            <select class="form-control custom-select" v-model="modalFields.assessmentToolId">
+          <div class="col-lg-4 col-sm-10">
+            <select class="form-control custom-select col-12" v-model="modalFields.assessmentToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="assessmentTool in activitiesData.assessmentTool"
@@ -471,8 +471,8 @@ export default {
         </div>
         <div class="form-group row p-1">
           <label class="col-sm-2 col-form-label fw-bold">Instrument Qualificació</label>
-          <div class="col-auto col-4">
-            <select class="form-control custom-select" v-model="modalFields.markingToolId">
+          <div class="col-lg-4 col-sm-10">
+            <select class="form-control custom-select col-12" v-model="modalFields.markingToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="markingTool in activitiesData.markingTool"
@@ -487,9 +487,9 @@ export default {
             <span v-if="errors.markingToolId" class="error">{{ errors.markingToolId }}</span>
           </div>
         </div>
-        <div class="row p-1">
+        <div class="row p-1 bg-secondary-subtle">
           <p class="p-2 text-center"><input type="checkbox" v-model.number="modalFields.aggregateEndBlock">
-            Temporalitzar al final del bloc (Sols s'aplicarà si la SA pertany a un bloc formatiu)</p>
+            Temporalitzar hores al final del bloc (Sols s'aplicarà si la SA pertany a un bloc formatiu)</p>
         </div>
         <div class="row align-items-center">
           <p class="form-label m-1 mt-3 fw-bold">

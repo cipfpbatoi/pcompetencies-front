@@ -40,7 +40,7 @@ export default {
 
 <template>
   <div style="overflow: auto">
-    <table v-if="data.length" class="table table-striped">
+    <table v-if="data.length" class="table table-striped align-middle">
       <thead>
         <th v-if="checkeable" title="Selecciona" class="text-center">Sel.</th>
         <th v-for="(col, index) in columns" :key="index" 

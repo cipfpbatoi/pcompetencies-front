@@ -149,7 +149,7 @@ export default {
         <div class="col-10 pt-2">
           <h5>RA {{ result.learningResult.number }}: {{ result.learningResult.descriptor }}</h5>
         </div>
-        <div class="col-2 align-middle align-content-end">
+        <div class="col-2 align-middle align-content-center">
           <button class="btn btn-link"
                   @click="toogleDeployedRaContent(result.id)"
                   type="button"

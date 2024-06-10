@@ -22,6 +22,21 @@ const generaObjectivesColumns = [
   }
 ]
 
+const transversalObjectivesColumns = [
+  {
+    title: 'Codi',
+    value: 'code'
+  },
+  {
+    title: 'Objectiu',
+    value: 'descriptor'
+  },
+  {
+    title: 'Àrea',
+    value: 'area'
+  }
+]
+
 const moduleCycleCompetencesColumns = [
   {
     title: 'Codi',
@@ -44,12 +59,26 @@ export default {
     ObjectivesModal
   },
   computed: {
-    ...mapState(useDataStore, ['syllabus', 'module']),
+    ...mapState(useDataStore, ['syllabus', 'module', 'transversalObjectives']),
     done() {
       return (
         this.learningSituation.generalObjectives?.length &&
         this.learningSituation.didacticObjectives
       )
+    },
+    transversalObjectivesArray() {
+      let transversals = []
+      this.transversalObjectives.forEach((element) => transversals = transversals
+      .concat(element.objectives.map((item) => {
+        return {
+          id: item.id,
+          code: item.code,
+          descriptor: item.description,
+          type: element.type,
+          area: element.area,
+        }
+      })))
+      return transversals
     }
   },
   data() {
@@ -67,7 +96,9 @@ export default {
       modalTitle: '',
       // Modal Objectius
       ObjectivesModal: null,
-      generaObjectivesColumns
+      TransversalObjectivesModal: null,
+      generaObjectivesColumns,
+      transversalObjectivesColumns
     }
   },
   async mounted() {
@@ -75,6 +106,7 @@ export default {
       this.$router.push('/')
     }
     this.fetchLearningSituation()
+    console.log(this.transversalObjectivesArray)
   },
   methods: {
     ...mapActions(useDataStore, [
@@ -99,6 +131,16 @@ export default {
         case 'objectives':
           this.ObjectivesModal = new Modal(document.getElementById('objectivesModalComp'))
           this.ObjectivesModal.show()
+          break
+        case 'transversals':
+        this.transversalsCheckeables = makeCheckeableArray(
+            this.transversalObjectivesArray,
+            this.learningSituation.transversalObjectivesItem
+          )
+          this.modalTitle = `${this.learningSituation.position}: ${this.learningSituation.title}`
+          this.modalFields = { transversals: this.learningSituation.transversalObjectivesItem }
+          this.GenericModal = new Modal(document.getElementById(this.modalId))
+          this.GenericModal.show()
           break
         case 'competences':
           this.competencesCheckeables = makeCheckeableArray(
@@ -173,22 +215,72 @@ export default {
         <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.1 Objectius</h4>
         <div class="bordered border-primary-subtle mt-0">
           <h5 class="fw-bold p-2">5.1.1 Objectius generals</h5>
-          <show-table :data="learningSituation.generalObjectives" :columns="generaObjectivesColumns">
+          <show-table
+            :data="learningSituation.generalObjectives"
+            :columns="generaObjectivesColumns"
+          >
           </show-table>
           <h5 class="fw-bold p-2">5.1.2 Objectius didàctics</h5>
           <p v-html="learningSituation.didacticObjectives"></p>
         </div>
         <div class="text-center">
-          <button @click="showModal('objectives')" class="btn btn-success" title="Establir objectiu">
+          <button
+            @click="showModal('objectives')"
+            class="btn btn-success"
+            title="Establir objectiu"
+          >
             Establir els objectius
           </button>
         </div>
       </div>
-      <br/>
+      <br />
       <div>
-        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.2 Competències</h4>
+        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.2 Objectius transversals</h4>
         <div class="bordered border-primary-subtle mt-0">
-          <ModalComponent v-if="lsLoaded" @save="saveData" modalId="competencesModal" :title="modalTitle">
+          <ModalComponent
+            v-if="lsLoaded"
+            @save="saveData"
+            modalId="transversalsModal"
+            :title="modalTitle"
+          >
+            <h5>Selecciona els objectius transversals</h5>
+            <ShowTable
+              :checkeable="true"
+              :actions="false"
+              :data="transversalsCheckeables"
+              :columns="transversalObjectivesColumns"
+            >
+            </ShowTable>
+            <p v-if="errors.transversals" class="error">{{ errors.transversals }}</p>
+          </ModalComponent>
+          <ShowTable
+            class="bordered"
+            :actions="false"
+            :data="learningSituation.transversalObjectivesItem"
+            :columns="transversalObjectivesColumns"
+          >
+          </ShowTable>
+        </div>
+        <div class="text-center">
+          <button
+            @click="showModal('transversals')"
+            class="btn btn-success"
+            title="Establir objectius transversals"
+          >
+            Establir els objectius transversals
+          </button>
+        </div>
+      </div>
+      <br />
+      <div>
+        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.3 Competències</h4>
+        <div class="bordered border-primary-subtle mt-0">
+          <ModalComponent
+            v-if="lsLoaded"
+            @save="saveData"
+            modalId="competencesModal"
+            :title="modalTitle"
+          >
             <h5>Selecciona les competències</h5>
             <ShowTable
               :checkeable="true"
@@ -208,19 +300,23 @@ export default {
           </ShowTable>
         </div>
         <div class="text-center">
-          <button @click="showModal('competences')" class="btn btn-success" title="Establir objectiu">
+          <button
+            @click="showModal('competences')"
+            class="btn btn-success"
+            title="Establir competències"
+          >
             Establir les competències
           </button>
         </div>
       </div>
-      <br/>
+      <br />
       <ObjectivesModal
         v-if="lsLoaded"
         @saved="savedObjectives"
         :unit="learningSituation"
       ></ObjectivesModal>
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.3 Coneixements previs</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.4 Coneixements previs</h4>
       <div class="bordered border-primary-subtle mt-0">
         <ModalComponent
           v-if="lsLoaded"
@@ -240,19 +336,31 @@ export default {
       </div>
       <div class="text-center">
         <button
-          @click="showModal('priorKnowledge')" class="btn btn-success" title="Establir objectiu">
+          @click="showModal('priorKnowledge')"
+          class="btn btn-success"
+          title="Establir objectiu"
+        >
           Establir els coneixements previs
         </button>
       </div>
       <br />
       <br />
 
+<<<<<<< HEAD
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.4 Continguts</h4>
       <div class="bordered border-primary-subtle mt-0 overflow-auto">
         <LsDevContents :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevContents>
+=======
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.5 Continguts</h4>
+      <div class="bordered border-primary-subtle mt-0">
+        <LsDevContents
+          :learningSituation="learningSituation"
+          @saved="fetchLearningSituation"
+        ></LsDevContents>
+>>>>>>> development
       </div>
       <br /><br />
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.5 Activitats Qualificables</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.6 Activitats Qualificables</h4>
       <LsDevActivity
         type="marking"
         :learningSituation="learningSituation"
@@ -260,7 +368,9 @@ export default {
       ></LsDevActivity>
       <br /><br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.6 Activitats Formatives (NO qualificables)</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">
+        5.7 Activitats Formatives (NO qualificables)
+      </h4>
       <LsDevActivity
         type="formative"
         :learningSituation="learningSituation"
@@ -268,7 +378,7 @@ export default {
       ></LsDevActivity>
       <br /><br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.7 Activitats de Repas</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.8 Activitats de Repas</h4>
       <LsDevActivity
         type="reinforcement"
         :learningSituation="learningSituation"
@@ -276,7 +386,7 @@ export default {
       ></LsDevActivity>
       <br /><br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.8 Activitats d'Aprofundiment</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.9 Activitats d'Aprofundiment</h4>
       <LsDevActivity
         type="deepening"
         :learningSituation="learningSituation"

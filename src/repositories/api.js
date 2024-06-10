@@ -78,7 +78,9 @@ export const api = {
     instance.post(`/syllabus/${id}/schedule`, data),
   deleteSchedule: (id, shId) =>
     instance.delete(`/syllabus/${id}/schedule/${shId}`),
-
+  createTransversalObjective: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
+  getTrasversalObjectives: () => instance.get('/transversal-objectives'),
+  
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),
   userCurrent: () => instance.get('/user/current'),

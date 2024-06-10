@@ -14,8 +14,9 @@ export const useDataStore = defineStore('data', {
       cycle: {},
       activitiesData: {
         assessmentTool: [],
-        markingTool: [],
-      }
+        markingTool: []
+      },
+      transversalObjectives: []
     }
   },
   getters: {
@@ -91,32 +92,37 @@ export const useDataStore = defineStore('data', {
       if (localStorage.token) {
         this.user.token = localStorage.token
         try {
-          const [respActAsmt, respActMark, respUser] = await Promise.all([
+          const [respActAsmt, respActMark, respTransversals, respUser] = await Promise.all([
             api.getAsessmentTool(),
             api.getMarkingTool(),
-            api.userCurrent(),
+            api.getTrasversalObjectives(),
+            api.userCurrent()
           ])
           this.activitiesData = {
             assessmentTool: respActAsmt.data,
-            markingTool: respActMark.data,
+            markingTool: respActMark.data
           }
+          this.transversalObjectives = respTransversals.data
           this.user.info = respUser.data
-          const roles = []
-          Object.keys(this.user.info.roles).forEach((key) => {
-            roles.push(respUser.data.roles[key])
-            this.user.info.roles = roles
-          })
+          // BORRAR
+          if (this.user.roles && this.user.roles['1']) {
+            const roles = []
+            Object.keys(this.user.info.roles).forEach((key) => {
+              roles.push(respUser.data.roles[key])
+              this.user.info.roles = roles
+            })
+          }
         } catch (error) {
           this.addMessage('error', error)
         }
-      if (localStorage.data) {
+        if (localStorage.data) {
           const data = JSON.parse(localStorage.data)
           this.syllabus = { id: data.syllabusId }
           try {
             const [respCycle, respMod, respSyl] = await Promise.all([
               api.getCycleById(data.cycleId),
               api.getModuleByCode(data.moduleCode),
-              api.getSyllabusById(data.syllabusId),
+              api.getSyllabusById(data.syllabusId)
             ])
             this.cycle = respCycle.data
             this.module = respMod.data
@@ -284,6 +290,5 @@ export const useDataStore = defineStore('data', {
       this.addMessage('success', 'Competències guardades')
       return 'ok'
     }
-
   }
 })

@@ -281,7 +281,23 @@ export const useDataStore = defineStore('data', {
       }
       this.addMessage('success', 'Competències guardades')
       return 'ok'
-    }
-
+    },
+    async saveLSTransversalObjectives(lsId, data) {
+      try {
+        const response = await api.saveLearningSituationTransversalObjectives(lsId, data)
+        this.syllabus.learningSituations.splice(
+          this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
+          1,
+          response.data
+        )
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+      this.addMessage('success', 'Objectius transversals guardats')
+      return 'ok'
+    },
   }
 })

@@ -30,7 +30,7 @@ instance.interceptors.response.use(
       // Eliminar el token caducado del almacenamiento local
       localStorage.removeItem('token')
       // Redireccionar al usuario al inicio de sesión
-      if (window.location.pathname != '/login') {
+      if (!['/', '/login'].includes(window.location.pathname)) {
         localStorage.redirect = JSON.stringify({
           path: window.location.pathname,
           message: (error.response.data?.message) ? error.response.data?.message : 'La sessió ha caducat. Per favor, loguejat de nou'
@@ -80,6 +80,8 @@ export const api = {
     instance.delete(`/syllabus/${id}/schedule/${shId}`),
   createTransversalObjective: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
   getTrasversalObjectives: () => instance.get('/transversal-objectives'),
+  saveLearningSituationTransversalObjectives: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
   
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),

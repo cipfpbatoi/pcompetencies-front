@@ -19,8 +19,13 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      alias: '/select/:cycleId(\\d+)/:moduleCode',
       name: 'selectSyllabus',
+      component: HomeView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/select/:cycleId/:moduleCode',
+      name: 'selectedSyllabus',
       component: HomeView,
       meta: { requiresAuth: true }
     },
@@ -114,7 +119,9 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.token
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    localStorage.setItem('redirectPath', to.fullPath)
+    if (!['/', '/login'].includes(to.fullPath)) {
+      localStorage.setItem('redirectPath', to.fullPath)
+    }
     next('/login')
     next({
       name: 'login',

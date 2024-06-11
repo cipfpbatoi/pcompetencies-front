@@ -29,7 +29,7 @@ const transversalObjectivesColumns = [
   },
   {
     title: 'Objectiu',
-    value: 'descriptor'
+    value: 'description'
   },
   {
     title: 'Àrea',
@@ -68,16 +68,20 @@ export default {
     },
     transversalObjectivesArray() {
       let transversals = []
-      this.transversalObjectives.forEach((element) => transversals = transversals
-      .concat(element.objectives.map((item) => {
-        return {
-          id: item.id,
-          code: item.code,
-          descriptor: item.description,
-          type: element.type,
-          area: element.area,
-        }
-      })))
+      this.transversalObjectives.forEach(
+        (element) =>
+          (transversals = transversals.concat(
+            element.objectives.map((item) => {
+              return {
+                id: item.id,
+                code: item.code,
+                description: item.description,
+                type: element.transversalElement.type,
+                area: element.transversalElement.area
+              }
+            })
+          ))
+      )
       return transversals
     }
   },
@@ -97,22 +101,21 @@ export default {
       // Modal Objectius
       ObjectivesModal: null,
       TransversalObjectivesModal: null,
+      transversalsCheckeables: [],
       generaObjectivesColumns,
       transversalObjectivesColumns
     }
   },
   async mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
-    this.fetchLearningSituation()
-    console.log(this.transversalObjectivesArray)
+    await this.fetchLearningSituation()
+    this.lsLoaded = true
   },
   methods: {
     ...mapActions(useDataStore, [
       'addMessage',
       'saveLearningSituationPriorKnowledge',
-      'saveLearningSituationCompetences'
+      'saveLearningSituationCompetences',
+      'saveLSTransversalObjectives'
     ]),
     async fetchLearningSituation() {
       try {
@@ -133,9 +136,9 @@ export default {
           this.ObjectivesModal.show()
           break
         case 'transversals':
-        this.transversalsCheckeables = makeCheckeableArray(
+          this.transversalsCheckeables = makeCheckeableArray(
             this.transversalObjectivesArray,
-            this.learningSituation.transversalObjectivesItem
+            this.learningSituation.transversalObjectivesItems
           )
           this.modalTitle = `${this.learningSituation.position}: ${this.learningSituation.title}`
           this.modalFields = { transversals: this.learningSituation.transversalObjectivesItem }
@@ -183,6 +186,11 @@ export default {
         response = await this.saveLearningSituationCompetences(this.learningSituation.id, {
           competencesIds: getObjectsIds(competencesChecked)
         })
+      } else if (this.modal === 'transversals') {
+        const transversalObjectivesChecked = this.transversalsCheckeables.filter((item) => item.checked)
+        response = await this.saveLSTransversalObjectives(this.learningSituation.id, {
+          transversalObjectivesIds: getObjectsIds(transversalObjectivesChecked)
+        })
       } else {
         console.error('Lanzado save ' + this.modal)
       }
@@ -200,7 +208,7 @@ export default {
     savedObjectives() {
       this.fetchLearningSituation()
       this.ObjectivesModal.hide()
-    },
+    }
   }
 }
 </script>
@@ -256,7 +264,7 @@ export default {
           <ShowTable
             class="bordered"
             :actions="false"
-            :data="learningSituation.transversalObjectivesItem"
+            :data="learningSituation.transversalObjectivesItems"
             :columns="transversalObjectivesColumns"
           >
           </ShowTable>
@@ -344,24 +352,17 @@ export default {
         </button>
       </div>
       <br />
-      <br />
 
-<<<<<<< HEAD
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.4 Continguts</h4>
-      <div class="bordered border-primary-subtle mt-0 overflow-auto">
-        <LsDevContents :learningSituation="learningSituation" @saved="fetchLearningSituation"></LsDevContents>
-=======
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.5 Continguts</h4>
       <div class="bordered border-primary-subtle mt-0">
         <LsDevContents
           :learningSituation="learningSituation"
           @saved="fetchLearningSituation"
         ></LsDevContents>
->>>>>>> development
       </div>
-      <br /><br />
+      <br />
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.6 Activitats Qualificables</h4>
-      <LsDevActivity
+      <LsDevActivity v-if="lsLoaded"
         type="marking"
         :learningSituation="learningSituation"
         @saved="fetchLearningSituation"

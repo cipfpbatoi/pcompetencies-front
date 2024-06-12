@@ -25,8 +25,10 @@ export default {
       )
     },
     totalHours() {
-      const hoursUsed = this.syllabus.learningSituations?.reduce((total, ls) => total + ls.hours, 0)
-      return hoursUsed == this.syllabus.numberOfHours
+      return this.syllabus.learningSituations?.reduce((total, ls) => total + ls.hours, 0)
+    },
+    totalHoursUsed() {
+      return this.totalHours == this.syllabus.numberOfHours
     }
   },
   mounted() {
@@ -98,7 +100,7 @@ export default {
           <strong>ATENCIÓ:</strong> la suma dels percentatges NO és el 100%. Has d'arreglar-lo en el
           pas anterior
         </p>
-        <p v-if="!totalHours" class="text-light p-2 text-justify">
+        <p v-if="!totalHoursUsed" class="text-light p-2 text-justify">
           <strong>ATENCIÓ:</strong> la suma de les hores NO suma les totals del mòdul ({{
             syllabus.numberOfHours
           }}). Has d'arreglar-lo en el pas anterior
@@ -109,6 +111,7 @@ export default {
           <thead>
           <tr>
             <th>Situació d'aprenentatge</th>
+            <th>Hores</th>
             <!-- Encabezados de columnas para cada resultado -->
             <th v-for="result in module.learningResults" :key="result.id" :title="result.descriptor">
               R.A. {{ result.number }}
@@ -120,6 +123,7 @@ export default {
           <!-- Iterar sobre cada contenido para crear una fila en la tabla -->
           <tr v-for="(ls, indexLS) in syllabus.learningSituations" :key="ls.id">
             <td>{{ ls.position }} - {{ ls.title }}</td>
+            <td>{{ ls.hours }}</td>
             <!-- Iterar sobre cada resultado para crear una celda en la fila -->
             <td v-for="(result) in module.learningResults" :key="result.id">
               <!-- Colocar una 'X' si el result está presente en el ls -->
@@ -130,6 +134,7 @@ export default {
           </tr>
           <tr>
             <td><strong>Pes de cada R.A.</strong></td>
+            <td><strong>{{ totalHours }}</strong></td>
             <td v-for="result in module.learningResults" :key="result.id">
               <!-- Colocar una 'X' si el result está presente en el ls -->
               <span>{{ ponderedSumOfRA(result) }}%</span>

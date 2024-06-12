@@ -4,12 +4,14 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
+import ActionButton from '../components/ActionButton.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import { statusClass } from '../utils/utils.js'
 
 export default {
   components: {
-    ModalComponent
+    ModalComponent,
+    ActionButton
   },
   async mounted() {
     this.syllabuses = []
@@ -18,13 +20,13 @@ export default {
       this.cycles = respCicles.data
       this.currentData = respData.data
       if (this.$route.params.cycleId) {
-        this.cycle.id = this.$route.params.cycleId;
+        this.cycle.id = this.$route.params.cycleId
       }
       if (this.cycle.id) {
         this.cycleSelect = this.cycle.id
         await this.getModules()
         if (this.$route.params.moduleCode) {
-          this.module.code = this.$route.params.moduleCode;
+          this.module.code = this.$route.params.moduleCode
         }
         if (this.module.code) {
           this.moduleSelect = this.module.code
@@ -51,7 +53,7 @@ export default {
         return true
       }
       return false
-    },
+    }
   },
   data() {
     return {
@@ -60,6 +62,7 @@ export default {
       cycleSelect: '',
       moduleSelect: '',
       syllabuses: [],
+      syllabusesToCopy: [],
       done: false,
       GenericModal: null,
       modalFields: {},
@@ -81,18 +84,20 @@ export default {
       this.modalFields = {
         turn,
         editable: false,
-        currentImprovementProposal: this.getSyllabusByTurn(turn).currentImprovementProposal?.proposals || ''
+        currentImprovementProposal:
+          this.getSyllabusByTurn(turn).currentImprovementProposal?.proposals || ''
       }
       this.GenericModal.show()
     },
     isSyllabusOfCurrentYear(turn) {
-      return this.getSyllabusByTurn(turn).courseYear == this.currentData.currentSchoolYear.course    },
+      return this.getSyllabusByTurn(turn).courseYear == this.currentData.currentSchoolYear.course
+    },
     editButtonText(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
       return syllabus.id
         ? this.isSyllabusOfCurrentYear(turn)
           ? 'Editar la programació'
-          : 'Crear programació a partir de la del curs ' + syllabus.courseYear 
+          : 'Crear programació a partir de la del curs ' + syllabus.courseYear
         : 'Crear nova programació'
     },
     async saveImprovementProposals() {
@@ -130,38 +135,74 @@ export default {
     },
     async getSyllabuses() {
       try {
-        const response = await api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect)
-        this.syllabuses = response.data
+        const [respSyl, respSylToCopy] = await Promise.all([
+          api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect),
+          api.syllabusToCopy(this.moduleSelect)
+        ])
+        this.syllabuses = respSyl.data
+        this.syllabusesToCopy = respSylToCopy.data
+        console.log(this.syllabusesToCopy)
       } catch (error) {
         this.syllabuses = []
         this.addMessage('error', error)
       }
     },
+    async showCopyModal(turn) {
+      this.errors = {}
+      this.modalFields = {
+        turn,
+        selectedSyllabusToCopy: ''
+      }
+      this.GenericModal.show()
+    },
+    async createSyllabus(turn) {
+      try {
+        const response = await api.createSyllabus({
+          cycleId: this.cycleSelect,
+          moduleCode: this.moduleSelect,
+          turn
+        })
+        this.addMessage('success', 'Programació creada')
+        await this.fetchData(this.moduleSelect, response.data.id)
+        this.$router.push('/context')
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    async copySyllabusFromOther() {
+      if (this.modalFields.selectedSyllabusToCopy === '') {
+        this.errors.selectedSyllabusToCopy = true
+        return
+      }
+      let syllabusToCopyFrom = this.syllabusesToCopy[this.modalFields.selectedSyllabusToCopy]
+      try {
+        const response = await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
+          destinationCycleId: this.cycleSelect,
+          destinationTurn: this.modalFields.turn
+        })
+        this.addMessage('success', 'Programació creada')
+        await this.fetchData(this.moduleSelect, response.data.id)
+        this.$router.push('/context')
+      } catch (error) {
+        this.addMessage('error', error)
+        return
+      }
+    },
+    async copySyllabusFromLastYear(turn) {
+      let syllabus = this.getSyllabusByTurn(turn)
+      try {
+        const response = await api.createSyllabusCourseYear(syllabus.id)
+        syllabus = response.data
+        this.addMessage('success', 'Programació creada')
+        await this.fetchData(this.moduleSelect, syllabus.id)
+        this.$router.push('/context')
+      } catch (error) {
+        this.addMessage('error', error)
+        return
+      }
+    },
     async editSyllabus(turn) {
       let syllabus = this.getSyllabusByTurn(turn)
-      if (!syllabus.id) {
-        try {
-          const response = await api.createSyllabus({
-            cycleId: this.cycleSelect,
-            moduleCode: this.moduleSelect,
-            turn
-          })
-          syllabus = response.data
-          this.addMessage('success', 'Programació creada')
-        } catch (error) {
-          this.addMessage('error', error)
-          return
-        }
-      } else if (!this.isSyllabusOfCurrentYear(turn)) {
-        try {
-          const response = await api.createSyllabusCourseYear(syllabus.id)
-          syllabus = response.data
-          this.addMessage('success', 'Programació creada')
-        } catch (error) {
-          this.addMessage('error', error)
-          return
-        }
-      }
       await this.fetchData(this.moduleSelect, syllabus.id)
       this.$router.push('/context')
     },
@@ -195,22 +236,15 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <ModalComponent @save="saveImprovementProposals" title="Propostes de millora">
+    <ModalComponent @save="copySyllabusFromOther" title="Tria quina programació vols copiar">
       <div class="row">
-        <div v-show="modalFields.editable">
-          <ckeditor
-          :editor="editor"
-          v-model="modalFields.currentImprovementProposal"
-          :config="editorConfig"
-        ></ckeditor>
-        </div>
-        <div v-show="!modalFields.editable">
-          <p v-html="modalFields.currentImprovementProposal || 'No hi ha cap proposta'"></p>
-          <button @click="modalFields.editable=true" class="btn btn-secondary">Editar</button>
-        </div>
-        <p v-if="errors.currentImprovementProposal" class="error">
-          {{ errors.currentImprovementProposal }}
-        </p>
+        <select v-model="modalFields.selectedSyllabusToCopy">
+          <option value="">--- Selecciona la programació ---</option>
+          <option v-for="(syl, index) in syllabusesToCopy" :key="syl.id" :value="index">
+            {{ syl.cycle.shortName }} - {{ syl.turn }}
+          </option>
+        </select>
+        <p v-if="errors.selectedSyllabusToCopy" class="text-danger">Has de triar una programació</p>
       </div>
     </ModalComponent>
     <h2 class="text-center fw-bold text-primary p-lg-2">Tria la programació</h2>
@@ -246,36 +280,56 @@ export default {
       <br />
       <div v-if="moduleSelect" class="form-group">
         <ul>
-          <template v-for="(turn) in cycle.availableTurns" :key="turn">
+          <template v-for="turn in cycle.availableTurns" :key="turn">
             <li>
               <h3>Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}</h3>
               <div v-if="canEdit">
-                <button
-                  @click="editSyllabus(turn)"
-                  class="btn btn-primary position-relative"
-                >
-                  {{  editButtonText(turn) }}
-                  <span v-if="this.isSyllabusOfCurrentYear(turn)"
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                    :class="statusClass(getSyllabusByTurn(turn).status)"
-                  >
-                    {{ getSyllabusByTurn(turn).status }}
-                  </span>
-                </button>
-                <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage }}</p>
+                <div v-if="getSyllabusByTurn(turn).id">
+                  <ActionButton
+                    v-if="isSyllabusOfCurrentYear(turn)"
+                    @clicked="editSyllabus(turn)"
+                    :status="getSyllabusByTurn(turn).status"
+                    title="Editar programació"
+                    buttonClass="btn-primary"
+                  ></ActionButton>
+                  <ActionButton
+                    v-else
+                    @clicked="copySyllabusFromLastYear(turn)"
+                    title="Crear programació a partir de la del curs anterior"
+                    buttonClass="btn-primary"
+                  ></ActionButton>
+                  <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage }}</p>
+                </div>
+                <div v-else>
+                  <ActionButton
+                    @clicked="createSyllabus(turn)"
+                    title="Crear programació"
+                    buttonClass="btn-primary"
+                  ></ActionButton>
+                  &nbsp;
+                  <ActionButton
+                    v-if="syllabusesToCopy.length > 0"
+                    @clicked="showCopyModal(turn)"
+                    title="Copiar programació d'altre cicle"
+                    buttonClass="btn-primary"
+                  ></ActionButton>
+                </div>
               </div>
               <div v-else>
-                <button @click="showModal(turn)" class="btn btn-secondary">
-                  Veure/Modificar propostes de millora
-                </button>
+                <ActionButton
+                  @clicked="showModal(turn)"
+                  buttonClass="btn btn-secondary"
+                  title="Veure/Modificar propostes de millora"
+                >
+                </ActionButton>
               </div>
-              <button
+              <br />
+              <ActionButton
                 v-if="getSyllabusByTurn(turn)"
                 @click="showPdf(turn)"
-                class="btn btn-secondary"
-                title="Veure PDF">
-                Veure PDF
-              </button>
+                buttonClass="btn btn-secondary"
+                title="Veure PDF"
+              ></ActionButton>
               <strong v-else>No hi ha programació</strong>
             </li>
           </template>

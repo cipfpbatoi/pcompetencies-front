@@ -327,7 +327,7 @@ export default {
                   <ActionButton
                     v-if="syllabusesToCopy.length > 0"
                     @clicked="showCopyModal(turn)"
-                    title="Copiar programació d'altre cicle"
+                    title="Crear a partir d'altra programació"
                     buttonClass="btn-primary"
                   ></ActionButton>
                 </div>

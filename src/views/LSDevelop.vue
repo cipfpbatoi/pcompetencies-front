@@ -379,7 +379,7 @@ export default {
       ></LsDevActivity>
       <br /><br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.8 Activitats de Repas</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.8 Activitats de Repàs</h4>
       <LsDevActivity
         type="reinforcement"
         :learningSituation="learningSituation"

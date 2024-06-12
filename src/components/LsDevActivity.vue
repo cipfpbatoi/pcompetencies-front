@@ -278,12 +278,11 @@ export default {
         }
       }
       if (this.type === 'marking') {
-        const evaluationCriteriasUsedInThisLS =
-          this.learningSituation.activities
+        let evaluationCriteriasUsedInThisLS = []
+        this.learningSituation.activities
             .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
-            .map((item) =>
-              item.evaluationCriterias.reduce((ecs, ec) => ecs.concat(ec.id), [])
-            )[0] || []
+            .forEach(activ => activ.evaluationCriterias
+              .forEach(ec => evaluationCriteriasUsedInThisLS.push(ec.id)))
         const evaluationCriteriasUsed = Array.from(
           new Set(evaluationCriteriasUsedInThisLS.concat(this.evaluationCriteriasUsedInOtherLS))
         )

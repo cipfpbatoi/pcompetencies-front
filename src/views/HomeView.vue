@@ -36,7 +36,8 @@ export default {
     } catch (error) {
       this.addMessage('error', error)
     }
-    this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
+    this.ImprovementModal = new Modal(document.getElementById('improvementModal'))
+    this.CopySyllabusModal = new Modal(document.getElementById('copySylModal'))
   },
   computed: {
     ...mapState(useDataStore, ['cycle', 'module']),
@@ -64,7 +65,8 @@ export default {
       syllabuses: [],
       syllabusesToCopy: [],
       done: false,
-      GenericModal: null,
+      ImprovementModal: null,
+      CopySyllabusModal: null,
       modalFields: {},
       errors: {},
       // CKEditor
@@ -87,7 +89,7 @@ export default {
         currentImprovementProposal:
           this.getSyllabusByTurn(turn).currentImprovementProposal?.proposals || ''
       }
-      this.GenericModal.show()
+      this.ImprovementModal.show()
     },
     isSyllabusOfCurrentYear(turn) {
       return this.getSyllabusByTurn(turn).courseYear == this.currentData.currentSchoolYear.course
@@ -102,7 +104,7 @@ export default {
     },
     async saveImprovementProposals() {
       if (!this.modalFields.editable) {
-        this.GenericModal.hide()
+        this.ImprovementModal.hide()
         return
       }
       if (!this.modalFields.currentImprovementProposal) {
@@ -119,7 +121,7 @@ export default {
           proposals: this.modalFields.currentImprovementProposal
         })
         syllabus.currentImprovementProposal = response.data
-        this.GenericModal.hide()
+        this.ImprovementModal.hide()
         this.addMessage('success', 'Propostes de millora guardades')
       } catch (error) {
         this.addMessage('error', error)
@@ -153,18 +155,17 @@ export default {
         turn,
         selectedSyllabusToCopy: ''
       }
-      this.GenericModal.show()
+      this.CopySyllabusModal.show()
     },
     async createSyllabus(turn) {
       try {
-        const response = await api.createSyllabus({
+        await api.createSyllabus({
           cycleId: this.cycleSelect,
           moduleCode: this.moduleSelect,
           turn
         })
         this.addMessage('success', 'Programació creada')
-        await this.fetchData(this.moduleSelect, response.data.id)
-        this.$router.push('/context')
+        this.getSyllabuses()
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -176,13 +177,13 @@ export default {
       }
       let syllabusToCopyFrom = this.syllabusesToCopy[this.modalFields.selectedSyllabusToCopy]
       try {
-        const response = await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
+        await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
           destinationCycleId: this.cycleSelect,
           destinationTurn: this.modalFields.turn
         })
         this.addMessage('success', 'Programació creada')
-        await this.fetchData(this.moduleSelect, response.data.id)
-        this.$router.push('/context')
+        this.CopySyllabusModal.hide()
+        this.getSyllabuses()
       } catch (error) {
         this.addMessage('error', error)
         return
@@ -191,11 +192,9 @@ export default {
     async copySyllabusFromLastYear(turn) {
       let syllabus = this.getSyllabusByTurn(turn)
       try {
-        const response = await api.createSyllabusCourseYear(syllabus.id)
-        syllabus = response.data
+        await api.createSyllabusCourseYear(syllabus.id)
         this.addMessage('success', 'Programació creada')
-        await this.fetchData(this.moduleSelect, syllabus.id)
-        this.$router.push('/context')
+        this.getSyllabuses()
       } catch (error) {
         this.addMessage('error', error)
         return
@@ -236,7 +235,25 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <ModalComponent @save="copySyllabusFromOther" title="Tria quina programació vols copiar">
+    <ModalComponent @save="saveImprovementProposals" title="Propostes de millora" modalId="improvementModal">
+      <div class="row">
+        <div v-show="modalFields.editable">
+          <ckeditor
+          :editor="editor"
+          v-model="modalFields.currentImprovementProposal"
+          :config="editorConfig"
+        ></ckeditor>
+        </div>
+        <div v-show="!modalFields.editable">
+          <p v-html="modalFields.currentImprovementProposal || 'No hi ha cap proposta'"></p>
+          <button @click="modalFields.editable=true" class="btn btn-secondary">Editar</button>
+        </div>
+        <p v-if="errors.currentImprovementProposal" class="error">
+          {{ errors.currentImprovementProposal }}
+        </p>
+      </div>
+    </ModalComponent>
+    <ModalComponent @save="copySyllabusFromOther" title="Tria quina programació vols copiar" modalId="copySylModal">
       <div class="row">
         <select v-model="modalFields.selectedSyllabusToCopy">
           <option value="">--- Selecciona la programació ---</option>
@@ -298,7 +315,7 @@ export default {
                     title="Crear programació a partir de la del curs anterior"
                     buttonClass="btn-primary"
                   ></ActionButton>
-                  <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage }}</p>
+                  <span class="bg-danger-subtle"> {{ getSyllabusByTurn(turn).rejectedMessage }}</span>
                 </div>
                 <div v-else>
                   <ActionButton
@@ -323,7 +340,7 @@ export default {
                 >
                 </ActionButton>
               </div>
-              <br />
+              <br>
               <ActionButton
                 v-if="getSyllabusByTurn(turn)"
                 @click="showPdf(turn)"
@@ -332,6 +349,7 @@ export default {
               ></ActionButton>
               <strong v-else>No hi ha programació</strong>
             </li>
+            <br />
           </template>
         </ul>
       </div>

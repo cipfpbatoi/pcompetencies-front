@@ -28,7 +28,7 @@ export default {
       cycleFilter: 0,
       cycleNameFilter: '',
       moduleFilter: '',
-      statusFilter: 0,
+      statusFilter: '',
       page: 1,
       itemsPerPage: 25
     }
@@ -53,7 +53,7 @@ export default {
       this.cycleFilter = 0
       this.cycleNameFilter = ''
       this.moduleFilter = ''
-      this.statusFilter = 0
+      this.statusFilter = ''
       this.getSyllabuses()
     },
     getFilter() {
@@ -112,7 +112,7 @@ export default {
           </div>
           <div class="col-lg-5 text-center col-sm-12">
             <select id="statusFilter" @change="getSyllabuses" v-model="statusFilter" class="d-inline form-select p-2 fw-bold">
-              <option value="0">--- Seleccionar Estat ---</option>
+              <option value="">--- Seleccionar Estat ---</option>
               <option v-for="state in status" :value="state" :key="state">{{ state }}</option>
             </select>
           </div>

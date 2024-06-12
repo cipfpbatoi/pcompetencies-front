@@ -254,7 +254,7 @@ export default {
       </div>
     </ModalComponent>
     <ModalComponent @save="copySyllabusFromOther" title="Tria quina programació vols copiar" modalId="copySylModal">
-      <div class="row">
+      <div class="row p-4">
         <select v-model="modalFields.selectedSyllabusToCopy">
           <option value="">--- Selecciona la programació ---</option>
           <option v-for="(syl, index) in syllabusesToCopy" :key="syl.id" :value="index">
@@ -328,7 +328,7 @@ export default {
                     v-if="syllabusesToCopy.length > 0"
                     @clicked="showCopyModal(turn)"
                     title="Crear a partir d'altra programació"
-                    buttonClass="btn-primary"
+                    buttonClass="btn-primary mt-2 mt-sm-0"
                   ></ActionButton>
                 </div>
               </div>

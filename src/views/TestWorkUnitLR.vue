@@ -106,7 +106,7 @@ export default {
           }}). Has d'arreglar-lo en el pas anterior
         </p>
       </div>
-      <div class="border border-black">
+      <div class="border border-black overflow-auto">
         <table class="table table-striped">
           <thead>
           <tr>

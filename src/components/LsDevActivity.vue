@@ -1,4 +1,4 @@
-<script xmlns="http://www.w3.org/1999/html">
+<script>
 import ShowTable from './ShowTable.vue'
 import { useDataStore } from '@/stores/data'
 import { mapState, mapActions } from 'pinia'

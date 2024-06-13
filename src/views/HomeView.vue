@@ -304,6 +304,7 @@ export default {
                 <div v-if="getSyllabusByTurn(turn).id">
                   <ActionButton
                     v-if="isSyllabusOfCurrentYear(turn)"
+                    :disabled="!['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)"
                     @clicked="editSyllabus(turn)"
                     :status="getSyllabusByTurn(turn).status"
                     title="Editar programació"
@@ -315,7 +316,7 @@ export default {
                     title="Crear programació a partir de la del curs anterior"
                     buttonClass="btn-primary"
                   ></ActionButton>
-                  <span class="bg-danger-subtle"> {{ getSyllabusByTurn(turn).rejectedMessage }}</span>
+                  <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
                 </div>
                 <div v-else>
                   <ActionButton
@@ -342,7 +343,7 @@ export default {
               </div>
               <br>
               <ActionButton
-                v-if="getSyllabusByTurn(turn)"
+                v-if="getSyllabusByTurn(turn).id"
                 @click="showPdf(turn)"
                 buttonClass="btn btn-secondary"
                 title="Veure PDF"

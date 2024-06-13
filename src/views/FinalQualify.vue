@@ -216,17 +216,15 @@ export default {
           learningResults: []
         }
       }
-      const evaluationCriteriasUsed = this.syllabusFinalActivities
+      const evaluationCriteriasUsed = []
+      this.syllabusFinalActivities
         .filter((item) => item.id != this.modalFields.id)
-        .reduce(
-          (totalEvaluationCriterias, activity) =>
-            activity.ponderedLearningResults.reduce(
-              (tot, lr) =>
-                totalEvaluationCriterias.concat(lr.evaluationCriterias.map((ec) => ec.id)),
-              []
-            ),
-          []
+        .forEach((activ) =>
+          activ.ponderedLearningResults.forEach((lr) =>
+            lr.evaluationCriterias.forEach((ec) => evaluationCriteriasUsed.push(ec.id))
+          )
         )
+
       this.learningResultsCheckeables =
         this.syllabusPonderedLearningResults.map((item) => {
           return {

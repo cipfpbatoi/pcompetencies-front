@@ -47,7 +47,7 @@ function statusClass(status) {
       return 'bg-info'
     case 'rebutjada':
       return 'bg-danger'
-    case 'acceptada':
+    case 'aprovada':
       return 'bg-success'
     default:
       return 'bg-dark'

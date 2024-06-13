@@ -111,6 +111,9 @@ export const api = {
   syllabusSend: (id) => instance.post(`/syllabus/${id}/send`, {}),
   syllabusToCopy: (code) => instance.get(`/syllabus/module/${code}`),
   createSyllabusFromOther: (id, data) => instance.post(`/syllabus/${id}/copy`, data),
+  syllabusApprove: (id) => instance.post(`${BASE_URL}syllabus/${id}/approve`, {}),
+  syllabusReject: (id, data) => instance.post(`${BASE_URL}syllabus/${id}/reject`, data),
+  syllabusPending: (id) => instance.post(`${BASE_URL}syllabus/${id}/pending`, {}),
 
   getPdf: (id) => axios.get(`${BASE_URL}syllabus/${id}/pdf`, {
     headers: {

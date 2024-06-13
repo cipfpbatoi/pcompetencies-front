@@ -122,7 +122,6 @@ router.beforeEach((to, from, next) => {
     if (!['/', '/login'].includes(to.fullPath)) {
       localStorage.setItem('redirectPath', to.fullPath)
     }
-    next('/login')
     next({
       name: 'login',
       query: {

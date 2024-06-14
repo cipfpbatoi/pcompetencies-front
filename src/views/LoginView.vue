@@ -58,9 +58,9 @@ export default {
 
 <template>
   <div>
-    <p class="mt-lg-5" v-html="$route.query.message"></p>
     <div class="col-md-5 mx-auto border p-3">
       <h2 class="text-center p-lg-3 text-primary">Inicia sessió</h2>
+      <p class="text-danger fw-semibold text-center" v-html="$route.query.message"></p>
       <form @submit.prevent="handleForm">
         <div class="mb-3">
           <label class="form-label">Email per a loguejarse</label>

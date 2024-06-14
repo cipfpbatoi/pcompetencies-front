@@ -126,9 +126,8 @@ router.beforeEach((to, from, next) => {
       name: 'login',
       query: {
         message: `
-      <h4>Logueja't</h4>
-      <p>T'has de loguejar per a accedir a eixa pàgina.</p>`,
-        redirectTo: to.path
+            <p>Has d'introduir les credencials per accedir a aquesta pàgina.</p>`,
+            redirectTo: to.path
       }
     })
   } else {

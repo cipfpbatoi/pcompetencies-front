@@ -143,7 +143,6 @@ export default {
         ])
         this.syllabuses = respSyl.data
         this.syllabusesToCopy = respSylToCopy.data
-        console.log(this.syllabusesToCopy)
       } catch (error) {
         this.syllabuses = []
         this.addMessage('error', error)

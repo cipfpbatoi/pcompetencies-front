@@ -20,7 +20,8 @@ export default {
       errors: {},
       credentials: {},
       redirect: false,
-      showPassword: false
+      showPassword: false,
+      isLogging: false
     }
   },
   computed: {
@@ -37,7 +38,7 @@ export default {
     async handleForm() {
       this.errors = await validateFormErrors(validationSchema, this.credentials)
       if (this.errors.length) return
-
+      this.isLogging = true;
       if (await this.loginUser(this.credentials)) {
         if (this.redirect) {
           this.$router.push(this.redirect.path)
@@ -51,6 +52,7 @@ export default {
           }
         }
       }
+      this.isLogging = false;
     }
   }
 }
@@ -133,7 +135,8 @@ export default {
           </div>
         </div>
         <div class="text-center">
-          <button type="submit" class="btn btn-primary">Enviar</button>
+          <span class="spinner-border text-primary" :class="{ 'd-none' : !this.isLogging }"></span>
+          <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Enviar</button>
         </div>
       </form>
     </div>

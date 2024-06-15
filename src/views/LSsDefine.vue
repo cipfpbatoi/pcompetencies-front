@@ -134,7 +134,8 @@ export default {
         delete iUnit.id
         this.modalFields = {
           ...iUnit,
-          iUnitId: iUnitId
+          iUnitId: iUnitId,
+          learningSituationId: iUnit.learningSituations.map(a => a.id)
         }
         this.modalTitle = 'Editar el bloc ' + iUnit.name
       } else {

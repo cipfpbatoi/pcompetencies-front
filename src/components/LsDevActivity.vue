@@ -421,17 +421,15 @@ export default {
         </div>
       </div>
       <div class="row p-1 align-items-center">
-        <label class="col-sm-2 col-form-label fw-bold">Descripció del tipus d'activitat</label>
-        <div class="col-md-10 col-sm-12">
+        <label class="col-sm-3 col-form-label fw-bold">Descripció del tipus d'activitat</label>
+        <div class="col-md-9 col-sm-12">
           <textarea class="form-control border-secondary" v-model="modalFields.description" rows="3"></textarea>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
         </div>
       </div>
-      <div v-if="['formative', 'marking'].includes(type)" class="row g-3 align-items-center">
-        <div class="col-sm-2">
-          <label class="form-label fw-bold">Hores</label>
-        </div>
-        <div class="col-sm-10">
+      <div v-if="['formative', 'marking'].includes(type)" class="row align-items-center">
+        <label class="col-sm-3 col-form-label fw-bold">Hores</label>
+        <div class="col-lg-4 col-sm-10">
           <input type="number" v-model.number="modalFields.hours" />
           <span v-if="errors.hours" class="error">{{ errors.hours }}</span>
         </div>
@@ -451,7 +449,7 @@ export default {
       </div>
       <div v-if="type === 'marking'">
         <div class="form-group row p-1">
-          <label class="col-sm-2 col-form-label fw-bold">Tècnica Avaluació</label>
+          <label class="col-sm-3 col-form-label fw-bold">Tècnica / Instrument Avaluació</label>
           <div class="col-lg-4 col-sm-10">
             <select class="form-control custom-select col-12" v-model="modalFields.assessmentToolId">
               <option value="undefined">--- Selecciona ---</option>
@@ -469,7 +467,7 @@ export default {
           </div>
         </div>
         <div class="form-group row p-1">
-          <label class="col-sm-2 col-form-label fw-bold">Instrument Qualificació</label>
+          <label class="col-sm-3 col-form-label fw-bold">Instrument Qualificació</label>
           <div class="col-lg-4 col-sm-10">
             <select class="form-control custom-select col-12" v-model="modalFields.markingToolId">
               <option value="undefined">--- Selecciona ---</option>

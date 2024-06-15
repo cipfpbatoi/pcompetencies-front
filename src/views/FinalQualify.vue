@@ -474,11 +474,11 @@ export default {
             </template>
           </p>
           <p>
-            <strong>Tècnica: </strong>
+            <strong>Tècnica / Instrument Avaluació: </strong>
             {{ showActivityDetails.assessmentTool.name }}
           </p>
           <p>
-            <strong>Instriment: </strong>
+            <strong>Instrument de Qualificació: </strong>
             {{ showActivityDetails.markingTool.name }}
           </p>
         </div>

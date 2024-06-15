@@ -340,7 +340,6 @@ export default {
                 >
                 </ActionButton>
               </div>
-              <br>
               <ActionButton
                 v-if="getSyllabusByTurn(turn).id"
                 @click="showPdf(turn)"
@@ -356,3 +355,8 @@ export default {
     </div>
   </main>
 </template>
+<style>
+[v-cloak] {
+  display: none;
+}
+</style>

@@ -74,10 +74,13 @@ export default {
     try {
       const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
       this.sylMarkingActivities = response.data
-      // this.generatesylMarkingActivitiesToShow(response.data)
     } catch (error) {
       this.addMessage('error', error)
     }
+    this.loading = false;
+  },
+  setup() {
+    return {loading: true}
   },
   data() {
     return {
@@ -89,7 +92,7 @@ export default {
       GenericModal: null,
       modalId: '',
       modalFields: {},
-      modalTitle: ''
+      modalTitle: '',
     }
   },
   methods: {
@@ -156,7 +159,7 @@ export default {
 </script>
 
 <template>
-  <main class="border shadow view-main">
+  <main class="border shadow view-main" >
     <ModalComponent @save="saveActivity" :title="modalTitle" id="activityModal">
       <p>
         <strong>Descripció Activitats {{ modalFields.code }}</strong>
@@ -193,6 +196,9 @@ export default {
       <h2>6. Qualificació de les Situacions d'Aprenentatge</h2>
       <div class="bg-danger m-1">
     </div>
+      <div class="text-center mt-5" :class="{ 'd-none' : !this.loading }">
+        <span class="spinner-border text-primary"></span>
+      </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
         <p v-if="ls.totalPercentageWeight !== 100" class="bg-danger text-white p-2"><strong>ATENCIÓ:</strong> la suma dels percentatges de la S.A. NO és 100%. Has d'arreglar-lo abans de continuar</p>

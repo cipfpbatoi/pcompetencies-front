@@ -26,18 +26,19 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Token caducado
-      // Eliminar el token caducado del almacenamiento local
+      if (!localStorage.getItem('token')) {
+        return;
+      }
       localStorage.removeItem('token')
       // Redireccionar al usuario al inicio de sesión
-      if (!['/', '/login'].includes(window.location.pathname)) {
+      if (!['login/', '/login'].includes(window.location.pathname)) {
         localStorage.redirect = JSON.stringify({
           path: window.location.pathname,
-          message: (error.response.data?.message) ? error.response.data?.message : 'La sessió ha caducat. Per favor, loguejat de nou'
+          message: (error.response.data?.message && error.response.data.message !== 'Expired JWT Token')
+            ? error.response.data?.message : 'La sessió ha caducat. Per favor, loguejat de nou'
         })  
         window.location.replace('/login') // Redirigir a la página de inicio de sesión
       }
-      //      router.push('/login')
     }
     return Promise.reject(error)
   }

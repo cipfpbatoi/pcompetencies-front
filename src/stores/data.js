@@ -93,7 +93,7 @@ export const useDataStore = defineStore('data', {
         this.user.token = localStorage.token
         try {
           const [respActAsmt, respActMark, respTransversals, respUser] = await Promise.all([
-            api.getAsessmentTool(),
+            await api.getAsessmentTool(),
             api.getMarkingTool(),
             api.getTrasversalObjectives(),
             api.userCurrent()

@@ -39,9 +39,6 @@ export default {
     }
   },
   mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
     this.modalFields.groupContext = this.syllabus.groupContext
     this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
   },

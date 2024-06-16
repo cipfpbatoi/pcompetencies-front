@@ -118,10 +118,9 @@ export default {
     }
   },
   mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
+    if (this.syllabus.id) {
+      this.getIUnits()
     }
-    this.getIUnits()
     this.GenericModal = new Modal(document.getElementById('iUnitModal'))
     this.LearnSitModal = new Modal(document.getElementById('unitMmodalComp'))
   },

@@ -11,13 +11,15 @@ export default {
   components: {
     AppBreadcrumb,
     ModalComponent,
-    CheckIcon,
+    CheckIcon
   },
   computed: {
     ...mapState(useDataStore, ['syllabus']),
     totalPercentajeWeight() {
-      return this.learningSituationsToShow
-      .reduce((total, ls) => total + ls.totalPercentageWeight, 0)
+      return this.learningSituationsToShow.reduce(
+        (total, ls) => total + ls.totalPercentageWeight,
+        0
+      )
     },
     done() {
       return this.learningSituationsToShow.every((ls) => ls.totalPercentageWeight === 100)
@@ -66,21 +68,16 @@ export default {
       return learningSituations
     }
   },
-  async mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
+  mounted() {
+    if (this.syllabus.id) {
+      this.loadActivities()
     }
     this.GenericModal = new Modal(document.getElementById('activityModal'))
-    try {
-      const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
-      this.sylMarkingActivities = response.data
-    } catch (error) {
-      this.addMessage('error', error)
-    }
-    this.loading = false;
   },
-  setup() {
-    return {loading: true}
+  watch: {
+    'syllabus.id'() {
+        this.loadActivities()
+    }
   },
   data() {
     return {
@@ -88,15 +85,25 @@ export default {
       sylMarkingActivities: [],
       sylMarkingActivitiesToShow: [],
       errors: {},
+      loading: true,
       // Modal generic
       GenericModal: null,
       modalId: '',
       modalFields: {},
-      modalTitle: '',
+      modalTitle: ''
     }
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
+    async loadActivities() {
+      try {
+        const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
+        this.sylMarkingActivities = response.data
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+      this.loading = false
+    },
     showModal(activity) {
       this.modalFields = {
         activityId: activity.id,
@@ -159,7 +166,7 @@ export default {
 </script>
 
 <template>
-  <main class="border shadow view-main" >
+  <main class="border shadow view-main">
     <ModalComponent @save="saveActivity" :title="modalTitle" id="activityModal">
       <p>
         <strong>Descripció Activitats {{ modalFields.code }}</strong>
@@ -191,17 +198,23 @@ export default {
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
-    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
+      {{ syllabus.module?.name }} ({{
+        syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
+      }}) - {{ syllabus.courseYear }}
+    </div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>6. Qualificació de les Situacions d'Aprenentatge</h2>
-      <div class="bg-danger m-1">
-    </div>
-      <div class="text-center mt-5" :class="{ 'd-none' : !this.loading }">
+      <div class="bg-danger m-1"></div>
+      <div class="text-center mt-5" :class="{ 'd-none': !this.loading }">
         <span class="spinner-border text-primary"></span>
       </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-        <p v-if="ls.totalPercentageWeight !== 100" class="bg-danger text-white p-2"><strong>ATENCIÓ:</strong> la suma dels percentatges de la S.A. NO és 100%. Has d'arreglar-lo abans de continuar</p>
+        <p v-if="ls.totalPercentageWeight !== 100" class="bg-danger text-white p-2">
+          <strong>ATENCIÓ:</strong> la suma dels percentatges de la S.A. NO és 100%. Has
+          d'arreglar-lo abans de continuar
+        </p>
         <table class="table table-striped">
           <thead>
             <th>R.A.</th>

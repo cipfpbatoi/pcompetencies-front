@@ -373,6 +373,7 @@ export default {
         5.7 Activitats Formatives (NO qualificables)
       </h4>
       <LsDevActivity
+      v-if="lsLoaded"
         type="formative"
         :learningSituation="learningSituation"
         @saved="fetchLearningSituation"
@@ -381,6 +382,7 @@ export default {
 
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.8 Activitats de Repàs</h4>
       <LsDevActivity
+      v-if="lsLoaded"
         type="reinforcement"
         :learningSituation="learningSituation"
         @saved="fetchLearningSituation"
@@ -389,6 +391,7 @@ export default {
 
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.9 Activitats d'Aprofundiment</h4>
       <LsDevActivity
+      v-if="lsLoaded"
         type="deepening"
         :learningSituation="learningSituation"
         @saved="fetchLearningSituation"

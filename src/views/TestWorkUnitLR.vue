@@ -127,8 +127,9 @@ export default {
             <!-- Iterar sobre cada resultado para crear una celda en la fila -->
             <td v-for="(result) in module.learningResults" :key="result.id">
               <!-- Colocar una 'X' si el result está presente en el ls -->
-              <!-- <span v-if="includesLearningResult(ls.ponderedLearningResults, result.id)">X</span> -->
-              {{ getPercentage(syllabus.learningSituations[indexLS].ponderedLearningResults, result.id) }}
+              <span class="fw-bold" v-if="includesLearningResult(ls.ponderedLearningResults, result.id)">
+                X<span class="fw-light text-muted">({{ getPercentage(syllabus.learningSituations[indexLS].ponderedLearningResults, result.id) }})</span>
+              </span>
             </td>
             <th>{{ sumOfLS(ls) }}%</th>
           </tr>

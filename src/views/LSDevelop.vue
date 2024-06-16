@@ -218,7 +218,7 @@ export default {
     <app-breadcrumb :actualStep="5" :done="true" :back="true"></app-breadcrumb>
     <div class="p-lg-4 p-1">
       <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
-      <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }}</h3>
+      <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }} - <span class= "fw-bold text-primary"> ({{learningSituation.hours}} Horas)</span></h3>
       <div>
         <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.1 Objectius</h4>
         <div class="bordered border-primary-subtle mt-0">

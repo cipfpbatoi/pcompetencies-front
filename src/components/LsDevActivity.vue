@@ -64,10 +64,10 @@ export default {
   async mounted() {
     if (this.type === 'marking') {
       try {
-        const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
-        this.syllabusMarkingActivities = response.data.filter(
-          (item) => item.learningSituation.id != this.learningSituation.id
+        this.syllabusMarkingActivities = this.learningSituation.activities.filter(
+          (item) => item.type === 'marking'
         )
+        console.log(this.syllabusMarkingActivities)
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -88,7 +88,7 @@ export default {
         columns.push({
           title: 'C.A.',
           hint: 'Criteris d\'avaluació associats',
-          func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
+          func: (x) => (x ? x?.map((item) => item.completeCode).join(', ') || '---' : '---'),
           param: 'evaluationCriterias'
         })
       }
@@ -238,7 +238,8 @@ export default {
         if (details.learningResults['RA' + ec.lr.number]) {
           details.learningResults['RA' + ec.lr.number].evaluationCriterias.push({
             code: ec.code,
-            description: ec.description
+            description: ec.description,
+            completeCode: ec.code + ',' + ec.lr.number
           })
         } else {
           details.learningResults['RA' + ec.lr.number] = {
@@ -246,7 +247,8 @@ export default {
             evaluationCriterias: [
               {
                 code: ec.code,
-                description: ec.description
+                description: ec.description,
+                completeCode: ec.code + ',' + ec.lr.number
               }
             ]
           }

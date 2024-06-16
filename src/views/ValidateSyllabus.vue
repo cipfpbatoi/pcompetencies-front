@@ -66,8 +66,8 @@ export default {
 <template>
   <main class="border shadow view-main">
     <app-breadcrumb :actualStep="10" :done="false"></app-breadcrumb>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>10. Validar i enviar la programació</h2>
       <div>
         <button @click="validate" class="btn btn-secondary" title="Validar" :disabled="isValid">

@@ -191,8 +191,8 @@ export default {
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>6. Qualificació de les Situacions d'Aprenentatge</h2>
       <div class="bg-danger m-1">
     </div>

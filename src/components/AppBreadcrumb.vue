@@ -80,7 +80,7 @@ export default {
 </script>
 
 <template>
-    <div class="bg-info text-center text-white p-1 px-3 mb-3 border-top border-bottom border-2 border-primary text-light shadow">
+    <div class="bg-info text-center text-white p-1 px-3 mb-2 border-top border-bottom border-2 border-primary text-light shadow">
       <template v-for="(step, index) in steps" :key="index">
         <span v-if="index > 0"> -> </span>
         <button class="btn btn-primary"

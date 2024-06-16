@@ -109,8 +109,8 @@ export default {
     </ModalComponent>
 
     <app-breadcrumb :actualStep="2" :done="done"></app-breadcrumb>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1">
-      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>2. Propostes de millora</h2>
       <div class="p-2">
         <div v-if="syllabus.currentImprovementProposal">

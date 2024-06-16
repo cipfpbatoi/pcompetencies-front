@@ -81,8 +81,8 @@ export default {
 <template>
   <main class="border shadow view-main">
     <app-breadcrumb :actualStep="4" :done="areAllLearningResultsInluded"></app-breadcrumb>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1">
-      <h2>{{ syllabus.module?.name }} ({{ syllabus.turn }}) - {{ syllabus.courseYear }}</h2>
       <h2>4. Comprovació dels R.A.</h2>
       <div class="bg-success m-1">
         <p class="text-light p-2 text-justify" v-if="areAllLearningResultsInluded">

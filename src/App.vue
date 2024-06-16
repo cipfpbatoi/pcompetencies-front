@@ -33,7 +33,6 @@ export default {
       </div>
     </header>
     <!-- <button @click="arregla" disabled>Arregla</button> -->
-
     <RouterView />
     <show-messages></show-messages>
   </div>

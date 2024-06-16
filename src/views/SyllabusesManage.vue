@@ -34,6 +34,7 @@ export default {
       cycleNameFilter: '',
       moduleFilter: '',
       statusFilter: '',
+      loading: false,
       page: 1,
       itemsPerPage: 25,
       // Modal
@@ -49,11 +50,13 @@ export default {
     ...mapActions(useDataStore, ['addMessage']),
     async getSyllabuses() {
       try {
+        this.loading = true;
         const response = await api.getSyllabusesPaginated(this.getFilter())
         this.syllabuses = response.data
       } catch (error) {
         this.addMessage('error', error)
       }
+      this.loading = false;
     },
     statusClass(status) {
       return statusClass(status)
@@ -251,16 +254,19 @@ export default {
                 <button
                   @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
                   type="button"
-                  class="btn btn-secondary"
-                >
+                  class="btn btn-secondary">
                   Veure
                 </button>
               </td>
             </tr>
           </tbody>
           <tfoot>
+
             <tr>
               <td colspan="9">
+                <div class="text-center p-2" :class="{ 'd-none' : !this.loading }">
+                  <span class="spinner-border text-primary m-auto"></span>
+                </div>
                 Programacions per pàgina:
                 <select @change="getSyllabuses" v-model="itemsPerPage">
                   <option>5</option>
@@ -272,7 +278,6 @@ export default {
             </tr>
           </tfoot>
         </table>
-
         <nav aria-label="Table navigation">
           <ul class="pagination justify-content-center">
             <li class="page-item">

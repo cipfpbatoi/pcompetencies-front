@@ -50,13 +50,12 @@ export const useDataStore = defineStore('data', {
       let text = ''
       if (message.response) {
         if (message.response.data?.title) {
-          text =
-            message.response.data.title +
+          text = message.response.data.title +
             ` (${message.response.data.status})` +
             message.response.data.detail
         } else {
           // token expired
-          text = message.name + ` (${message.response.data.code}): ` + message.response.data.message
+          text = ` (${message.response.data.code}): ` + message.response.data.message
         }
       } else {
         text = message

@@ -64,6 +64,7 @@ export default {
       moduleSelect: '',
       syllabuses: [],
       syllabusesToCopy: [],
+      isLoading: true,
       done: false,
       ImprovementModal: null,
       CopySyllabusModal: null,
@@ -136,6 +137,7 @@ export default {
       this.done = false
     },
     async getSyllabuses() {
+      this.isLoading = true;
       try {
         const [respSyl, respSylToCopy] = await Promise.all([
           api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect),
@@ -147,6 +149,7 @@ export default {
         this.syllabuses = []
         this.addMessage('error', error)
       }
+      this.isLoading = false;
     },
     async showCopyModal(turn) {
       this.errors = {}
@@ -295,7 +298,10 @@ export default {
       </div>
       <br />
       <div v-if="moduleSelect" class="form-group">
-        <ul>
+        <div class="text-center mt-5" :class="{ 'd-none' : !this.isLoading }">
+          <span class="spinner-border text-primary"></span>
+        </div>
+        <ul :class="{ 'd-none' : this.isLoading }">
           <template v-for="turn in cycle.availableTurns" :key="turn">
             <li>
               <h3>Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}</h3>

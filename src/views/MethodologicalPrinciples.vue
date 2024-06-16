@@ -40,22 +40,15 @@ export default {
       ]
     }
   },
-  async mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
-    try {
-      const [respMP, respSMP] = await Promise.all([
-        api.getMethodologicalPrinciples(),
-        api.getSyllabusMethodologicalPrinciples(this.syllabus.id)
-      ])
-      this.methodologicalPrinciples = respMP.data
-      this.syllabusMethodologicalPrinciples = respSMP.data
-    } catch (error) {
-      this.addMessage('error', error)
+  mounted() {
+    if (this.syllabus.id) {
+      this.loadData()
     }
     this.PrinciplesModal = new Modal(document.getElementById('methodologicalPrinciples'))
     this.MaterialsModal = new Modal(document.getElementById('materialsModal'))
+  },
+  watch: {
+    'syllabus.id': 'loadData'
   },
   data() {
     return {
@@ -77,6 +70,18 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
+    async loadData() {
+      try {
+        const [respMP, respSMP] = await Promise.all([
+          api.getMethodologicalPrinciples(),
+          api.getSyllabusMethodologicalPrinciples(this.syllabus.id)
+        ])
+        this.methodologicalPrinciples = respMP.data
+        this.syllabusMethodologicalPrinciples = respSMP.data
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
     showModal(type) {
       switch (type) {
         case 'principles':
@@ -182,7 +187,11 @@ export default {
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="9" :done="true"></app-breadcrumb>
-    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
+      {{ syllabus.module?.name }} ({{
+        syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
+      }}) - {{ syllabus.courseYear }}
+    </div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>9. Principis metodològics i recursos didàctics</h2>
       <h3>Principis metodològics</h3>
@@ -194,7 +203,12 @@ export default {
         >
         </show-table>
       </div>
-      <button type="button" class="btn btn-secondary" title="Afegir activitat" @click="showModal('principles')">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        title="Afegir activitat"
+        @click="showModal('principles')"
+      >
         Modificar els criteris metodològics
       </button>
       <br /><br />

@@ -1,6 +1,6 @@
 <script>
-import { useDataStore } from './stores/data';
-import { mapActions } from 'pinia';
+import { useDataStore } from './stores/data'
+import { mapActions } from 'pinia'
 import ShowMessages from './components/ShowMessages.vue'
 import AppNav from './components/AppNav.vue'
 
@@ -9,9 +9,13 @@ export default {
     ShowMessages,
     AppNav
   },
-  mounted() {
+  async mounted() {
     if (window.location.pathname !== '/login') {
-      this.loadData()
+      if (localStorage.token) {
+        await this.loadData()
+      } else {
+        this.$router.push('/login')
+      }
     }
   },
   methods: {
@@ -21,10 +25,14 @@ export default {
 </script>
 
 <template>
-
   <div class="container-fluid h-100 px-lg-5">
     <header class="input-group mt-3 justify-content-center container-fluid">
-      <img alt="CIP FP Batoi logo" class="logo m-lg-2 mx-auto d-none d-sm-block" src="/batoi_logo.png" height="100px" />
+      <img
+        alt="CIP FP Batoi logo"
+        class="logo m-lg-2 mx-auto d-none d-sm-block"
+        src="/batoi_logo.png"
+        height="100px"
+      />
       <div class="m-2 col-10">
         <h1 class="text-xl-end">Programacions per competències</h1>
         <div class="wrapper navbar-expand">

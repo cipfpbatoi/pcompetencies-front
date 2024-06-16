@@ -160,18 +160,16 @@ export default {
       return sPLR
     }
   },
-  async mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
-    try {
-      const response = await api.getFinalActivities(this.syllabus.id)
-      this.syllabusFinalActivities = response.data.activities || []
-      this.lsLoaded = true
-    } catch (error) {
-      this.addMessage('error', error)
+  mounted() {
+    if (this.syllabus.id) {
+      this.loadActivities()
     }
     this.GenericModal = new Modal(document.getElementById('finalActivities'))
+  },
+  watch: {
+    'syllabus.id'() {
+      this.loadActivities()
+    }
   },
   data() {
     return {
@@ -195,6 +193,15 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
+    async loadActivities() {
+      try {
+      const response = await api.getFinalActivities(this.syllabus.id)
+      this.syllabusFinalActivities = response.data.activities || []
+      this.lsLoaded = true
+    } catch (error) {
+      this.addMessage('error', error)
+    }
+    },
     showModal(activity) {
       this.errors = []
       if (activity.id) {

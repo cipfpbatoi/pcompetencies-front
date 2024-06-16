@@ -25,9 +25,6 @@ export default {
     ...mapState(useDataStore, ['syllabus'])
   },
   mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
     if (!this.syllabus.currentImprovementProposal) {
       this.done = true
     } else {

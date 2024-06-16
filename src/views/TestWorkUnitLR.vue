@@ -31,11 +31,6 @@ export default {
       return this.totalHours == this.syllabus.numberOfHours
     }
   },
-  mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
-  },
   data() {
     return {
       lRincluded: new Set()

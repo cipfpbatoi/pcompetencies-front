@@ -43,11 +43,6 @@ export default {
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module']),
   },
-  mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
-  },
   data() {
     return {
       itemToModify: '',

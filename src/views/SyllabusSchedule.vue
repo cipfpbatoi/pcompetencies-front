@@ -40,9 +40,6 @@ export default {
     }
   },
   mounted() {
-    if (!this.syllabus.id) {
-      this.$router.push('/')
-    }
     this.ScheduleModal = new Modal(document.getElementById('scheduleModal'))
     this.ActivitiesModal = new Modal(document.getElementById('complementaryActivitiesModal'))
   },

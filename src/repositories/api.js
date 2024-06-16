@@ -29,13 +29,13 @@ instance.interceptors.response.use(
     if (error.response?.status === 401) {
       let isExpiredJWT = error.response.data?.message && error.response.data.message === 'Expired JWT Token';
       if (isExpiredJWT && !localStorage.getItem('token')) {
-        return;
+         return;
       }
       localStorage.removeItem('token')
       if (!['login/', '/login'].includes(window.location.pathname)) {
         localStorage.redirect = JSON.stringify({
           path: window.location.pathname,
-          message: (isExpiredJWT) ? error.response.data?.message : 'La sessió ha caducat. Per favor, loguejat de nou'
+          message: (isExpiredJWT) ? 'La sessió ha caducat. Per favor, loguejat de nou' : error.response.data?.message
         })  
         window.location.replace('/login') // Redirigir a la página de inicio de sesión
       }

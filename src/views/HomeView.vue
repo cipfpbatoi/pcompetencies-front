@@ -266,7 +266,7 @@ export default {
         <p v-if="errors.selectedSyllabusToCopy" class="text-danger">Has de triar una programació</p>
       </div>
     </ModalComponent>
-    <h2 class="text-center fw-bold text-primary p-lg-2">Tria la programació</h2>
+    <h2 class="text-center fw-bold text-primary p-2">Tria la programació</h2>
     <div class="container-fluid px-lg-4">
       <div class="form-group">
         <label class="form-label fw-bold">Cicle</label>

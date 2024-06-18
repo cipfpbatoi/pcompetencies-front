@@ -204,7 +204,7 @@ export default {
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>6. Qualificació de les Situacions d'Aprenentatge</h2>
+      <h2>6. Qualificació Avaluació contínua</h2>
       <div class="bg-danger m-1"></div>
       <div class="text-center mt-5" :class="{ 'd-none': !this.loading }">
         <span class="spinner-border text-primary"></span>

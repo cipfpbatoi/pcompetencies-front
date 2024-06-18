@@ -47,6 +47,7 @@ export default {
             fundamental: item.fundamental,
             description: item.description,
             ecs: this.getRAData(item),
+            assessmentTool: item.assessmentTool,
             ras: ls.ponderedLearningResults.map((lr) => {
               return {
                 id: lr.learningResult.id,
@@ -231,7 +232,7 @@ export default {
                 :rowspan="ls.activities.length"
                 v-html="showRas(activity)"
               ></td>
-              <td>{{ activity.code }}</td>
+              <td><strong>{{ activity.code }}</strong> <cite>({{activity.assessmentTool.name}})</cite></td>
               <td v-html="showCes(activity)"></td>
               <td>{{ activity.percentageWeight }} %</td>
               <td>

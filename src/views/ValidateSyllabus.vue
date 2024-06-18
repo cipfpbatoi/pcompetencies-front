@@ -58,6 +58,26 @@ export default {
         this.addMessage('error', error)
         return
       }
+    },
+    async getExcel() {
+      try {
+        const response = await api.getExcel(this.syllabus.id)
+        console.log(response);
+        if (response.status !== 200) {
+          this.addMessage('error', response)
+          return;
+        }
+        const url = URL.createObjectURL(new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'quadern_programacio_'+ this.syllabus.id)
+        document.body.appendChild(link)
+        link.click()
+      } catch (error) {
+        this.addMessage('error', error)
+      }
     }
   }
 }
@@ -147,6 +167,11 @@ export default {
       <div>
         <button @click="showPdf" class="btn btn-secondary" title="Vore PDF">
           {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
+        </button>
+      </div>
+      <div class="m-1">
+        <button @click="getExcel" class="btn btn-secondary" title="Vore qüadern del professorat">
+          {{ isValid ? 'Qüadern del Professorat' : 'Esborrany qüadern Professorat' }}
         </button>
       </div>
       <br />

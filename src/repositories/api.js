@@ -123,6 +123,13 @@ export const api = {
     responseType: 'blob'
 }),
 
+  getExcel: (id) => axios.get(`${BASE_URL}syllabus/${id}/excel`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.token}`,
+    },
+    responseType: 'blob'
+  }),
+
   // Activities
   saveActivity: (lsId, type, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/activity/${type}`, data),

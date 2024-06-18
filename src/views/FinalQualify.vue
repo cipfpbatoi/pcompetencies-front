@@ -446,7 +446,7 @@ export default {
     <app-breadcrumb :actualStep="7" :done="true"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>7. Qualificació Final (C. Extraòrdinaria, A. Pèrdua Avaluació Contínua, Convocatòria de gràcia, Recuperació RA complets)</h2>
+      <h2>7. Qualificació Final <span class="text-secondary small">(C. Extraòrdinaria, A. Pèrdua Avaluació Contínua, Convocatòria de gràcia, Recuperació RA complets,...)</span></h2>
       <h3>Activitats de Qualificació</h3>
       <div class="border border-black">
         <show-table :data="syllabusFinalActivities" :columns="activityColumns">

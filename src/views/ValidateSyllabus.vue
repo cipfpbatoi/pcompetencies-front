@@ -169,11 +169,6 @@ export default {
           {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
         </button>
       </div>
-      <div class="m-1">
-        <button @click="getExcel" class="btn btn-secondary" title="Vore qüadern del professorat">
-          {{ isValid ? 'Qüadern del Professorat' : 'Esborrany qüadern Professorat' }}
-        </button>
-      </div>
       <br />
     </div>
   </main>

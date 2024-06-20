@@ -212,12 +212,14 @@ export default {
   }
 }
 </script>
-
 <template>
   <main class="border shadow view-main">
     <app-breadcrumb :actualStep="5" :done="true" :back="true"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
-    <div class="p-lg-4 p-1">
+    <div class="text-center mt-5" :class="{ 'd-none': this.lsLoaded }">
+      <span class="spinner-border text-primary"></span>
+    </div>
+    <div class="p-lg-4 p-1" :class="{ 'd-none': !this.lsLoaded }">
       <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }} - <span class= "fw-bold text-primary"> ({{learningSituation.hours}} Hores)</span></h3>
       <div>
         <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.1 Objectius</h4>

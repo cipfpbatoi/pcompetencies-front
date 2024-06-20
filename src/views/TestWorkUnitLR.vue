@@ -107,7 +107,6 @@ export default {
           <tr>
             <th>Situació d'aprenentatge</th>
             <th>Hores</th>
-            <!-- Encabezados de columnas para cada resultado -->
             <th v-for="result in module.learningResults" :key="result.id" :title="result.descriptor">
               R.A. {{ result.number }}
             </th>

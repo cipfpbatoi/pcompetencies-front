@@ -159,7 +159,7 @@ export default {
     showCes(activity) {
       return activity.ras
         .filter((ra) => ra.ecs.length)
-        .map((ra) => `RA${ra.number} ` + ra.ecs.map((ec) => ec.code).join(', '))
+        .map((ra) => `RA${ra.number} ` + ra.ecs.map((ec) => '<span title="'+ec.description+'">' + ec.code + '</span>').join(', '))
         .join('<br>')
     }
   }
@@ -221,7 +221,7 @@ export default {
             <th>R.A.</th>
             <th>Codi</th>
             <th>Criteri d'avaluació a utilitzar</th>
-            <th>S.A. (%)</th>
+            <th>S.A.(%)</th>
             <th>Fonamental</th>
             <th>Accions</th>
           </thead>

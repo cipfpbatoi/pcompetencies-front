@@ -385,7 +385,7 @@ export default {
         </div>
       </div>
       <div class="form-group row p-1">
-        <label class="col-sm-2 col-form-label fw-bold">Tècnica</label>
+        <label class="col-sm-3 col-form-label fw-bold">Técnica / Instrument Avaluació</label>
         <div class="col-4">
           <select class="form-control custom-select" v-model="modalFields.assessmentToolId">
             <option value="undefined">--- Selecciona ---</option>
@@ -405,7 +405,7 @@ export default {
         </div>
       </div>
       <div class="form-group row p-1">
-        <label class="col-sm-2 col-form-label fw-bold">Instrument</label>
+        <label class="col-sm-3 col-form-label fw-bold">Instrument Qualificació</label>
         <div class="col-auto col-4">
           <select class="form-control custom-select" v-model="modalFields.markingToolId">
             <option value="undefined">--- Selecciona ---</option>

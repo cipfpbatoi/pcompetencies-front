@@ -89,8 +89,8 @@ export default {
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>10. Validar i enviar la programació</h2>
-      <div>
-        <button @click="validate" class="btn btn-secondary" title="Validar" :disabled="isValid">
+      <div class="text-center">
+        <button @click="validate" class="btn btn-success" title="Validar" :disabled="isValid">
           Validar programació
         </button>
       </div>
@@ -164,8 +164,8 @@ export default {
         </div>
       </div>
       <br>
-      <div>
-        <button @click="showPdf" class="btn btn-secondary" title="Vore PDF">
+      <div class="text-center m-2">
+        <button @click="showPdf" class="btn btn-success" title="Vore PDF">
           {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
         </button>
       </div>

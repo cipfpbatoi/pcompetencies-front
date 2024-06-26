@@ -461,12 +461,12 @@ export default {
             </button>
           </template>
         </show-table>
-        <div v-if="showActivityDetails" class="bordered">
+        <div v-if="showActivityDetails" class="bordered text-center">
           <h5>
             Detalls de l'activitat {{ showActivityDetails.code }}
             <button
               @click="showActivityDetails = false"
-              class="btn btn-secondary"
+              class="btn btn-success"
               title="Amagar detalls"
             >
               <i class="bi bi-eye-slash"></i>
@@ -489,10 +489,11 @@ export default {
           </p>
         </div>
       </div>
-      <button type="button" class="btn btn-secondary" title="Afegir activitat" @click="showModal">
-        Afegir nova activitat
-      </button>
-      <br />
+      <div class="text-center m-2">
+        <button type="button" class="btn btn-success" title="Afegir activitat" @click="showModal">
+          Afegir nova activitat
+        </button>
+      </div>
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h4>Resum d'activitats</h4>

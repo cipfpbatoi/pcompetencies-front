@@ -203,14 +203,16 @@ export default {
         >
         </show-table>
       </div>
-      <button
-        type="button"
-        class="btn btn-secondary"
-        title="Afegir activitat"
-        @click="showModal('principles')"
-      >
-        Modificar els criteris metodològics
-      </button>
+      <div class="m-2 text-center">
+        <button
+          type="button"
+          class="btn btn-success"
+          title="Afegir activitat"
+          @click="showModal('principles')"
+        >
+          Modificar els criteris metodològics
+        </button>
+      </div>
       <br /><br />
       <h3>Materials i recursos didàctics</h3>
       <h4>Materials didàctics</h4>
@@ -232,14 +234,16 @@ export default {
       <div class="border border-black">
         <p v-html="syllabus.didacticResources"></p>
       </div>
-      <button
-        type="button"
-        class="btn btn-secondary"
-        title="Afegir activitat"
-        @click="showModal('materials')"
-      >
-        Modificar els materials i recursos didàctics
-      </button>
+      <div class="m-2 text-center">
+        <button
+          type="button"
+          class="btn btn-success"
+          title="Afegir activitat"
+          @click="showModal('materials')"
+        >
+          Modificar els materials i recursos didàctics
+        </button>
+      </div>
       <br />
     </div>
   </main>

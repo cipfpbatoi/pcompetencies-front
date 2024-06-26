@@ -88,7 +88,7 @@ export default {
         columns.push({
           title: 'C.A.',
           hint: 'Criteris d\'avaluació associats',
-          func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
+          func: (x) => (x ? x?.map((item) => this.getRaNumberFromId(item.learningResultId) +'.'+ item.code).join(', ') || '---' : '---'),
           param: 'evaluationCriterias'
         })
       }
@@ -255,6 +255,9 @@ export default {
         }
       })
       this.showActivityDetails = details
+    },
+    getRaNumberFromId(id) {
+        return this.module?.learningResults.find((element) => element.id = id).number;
     },
     showModal(activity) {
       this.errors = []

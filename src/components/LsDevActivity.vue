@@ -257,7 +257,7 @@ export default {
       this.showActivityDetails = details
     },
     getRaNumberFromId(id) {
-        return this.module?.learningResults.find((element) => element.id = id).number;
+        return this.module?.learningResults.find((element) => element.id === id).number;
     },
     showModal(activity) {
       this.errors = []

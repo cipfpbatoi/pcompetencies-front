@@ -392,8 +392,7 @@ export default {
             <option
               v-for="assessmentTool in activitiesData.assessmentTool"
               :key="assessmentTool.id"
-              :value="assessmentTool.id"
-            >
+              :value="assessmentTool.id">
               {{ assessmentTool.name }}
             </option>
           </select>

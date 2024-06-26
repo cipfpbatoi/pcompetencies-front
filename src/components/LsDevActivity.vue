@@ -88,7 +88,7 @@ export default {
         columns.push({
           title: 'C.A.',
           hint: 'Criteris d\'avaluació associats',
-          func: (x) => (x ? x?.map((item) => item.completeCode).join(', ') || '---' : '---'),
+          func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
           param: 'evaluationCriterias'
         })
       }

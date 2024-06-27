@@ -199,7 +199,7 @@ export default {
       this.syllabusFinalActivities = response.data.activities || []
       this.lsLoaded = true
     } catch (error) {
-      this.addMessage('error', error)
+      if (error.response.status !== 404) this.addMessage('error', error)
     }
     },
     showModal(activity) {

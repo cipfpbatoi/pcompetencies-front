@@ -64,9 +64,8 @@ export default {
   async mounted() {
     if (this.type === 'marking') {
       try {
-        this.syllabusMarkingActivities = this.learningSituation.activities.filter(
-          (item) => item.type === 'marking'
-        )
+        const response = await api.getSyllabusMarkingActivities(this.syllabus.id)
+        this.syllabusMarkingActivities = response.data
         console.log(this.syllabusMarkingActivities)
       } catch (error) {
         this.addMessage('error', error)

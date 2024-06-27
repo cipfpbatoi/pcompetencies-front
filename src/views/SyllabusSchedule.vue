@@ -209,7 +209,7 @@ export default {
       }
       try {
         const response = await api.saveComplementaryActivity(this.syllabus.id, this.modalFields)
-        if (this.modalFields.id) {
+        if (this.modalFields.activityId) {
           const index = this.syllabus.complementaryActivities.findIndex(
             (item) => item.id === response.data.id
           )

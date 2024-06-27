@@ -13,7 +13,7 @@ const validationSchema = object({
     .required('Has de posar el títol')
     .min(5, 'Ha de tenir 5 caracters o més'),
   hours: yup
-    .number()
+    .number("Has de posar un número postitiu")
     .required("Has d'indicar les hores")
     .min(1, "Al menys l'has de dedicar 1 hora"),
   position: yup.number().min(1, 'La posició ha de ser igual o major que 1'),
@@ -173,7 +173,7 @@ export default {
                   placeholder="Títol de l'unitat"
                   autofocus
                 />
-                <p v-if="errors.title" class="error p-2">{{ errors.title }}</p>
+                <p v-if="errors.title" class="text-danger p-2">{{ errors.title }}</p>
               </div>
               <div class="input-group cols-8 p-2">
                 <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Hores</label>

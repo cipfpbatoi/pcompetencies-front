@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 const instance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: BASE_URL
 })
 
 // Interceptor para adjuntar el token JWT a las solicitudes
@@ -25,18 +25,20 @@ instance.interceptors.response.use(
     return response
   },
   (error) => {
-
     if (error.response?.status === 401) {
-      let isExpiredJWT = error.response.data?.message && error.response.data.message === 'Expired JWT Token';
+      let isExpiredJWT =
+        error.response.data?.message && error.response.data.message === 'Expired JWT Token'
       if (isExpiredJWT && !localStorage.getItem('token')) {
-         return;
+        return
       }
       localStorage.removeItem('token')
       if (!['login/', '/login'].includes(window.location.pathname)) {
         localStorage.redirect = JSON.stringify({
           path: window.location.pathname,
-          message: (isExpiredJWT) ? 'La sessió ha caducat. Per favor, loguejat de nou' : error.response.data?.message
-        })  
+          message: isExpiredJWT
+            ? 'La sessió ha caducat. Per favor, loguejat de nou'
+            : error.response.data?.message
+        })
         window.location.replace('/login') // Redirigir a la página de inicio de sesión
       }
     }
@@ -75,15 +77,14 @@ export const api = {
   getLearningSituationsBySyllabusId: (id) => instance.get(`/syllabus/${id}/learningSituations`),
   saveLearningSituationContents: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/didacticContents`, data),
-    saveSchedule: (id, data) =>
-    instance.post(`/syllabus/${id}/schedule`, data),
-  deleteSchedule: (id, shId) =>
-    instance.delete(`/syllabus/${id}/schedule/${shId}`),
-  createTransversalObjective: (lsId, data) => instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
+  saveSchedule: (id, data) => instance.post(`/syllabus/${id}/schedule`, data),
+  deleteSchedule: (id, shId) => instance.delete(`/syllabus/${id}/schedule/${shId}`),
+  createTransversalObjective: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
   getTrasversalObjectives: () => instance.get('/transversal-objectives'),
   saveLearningSituationTransversalObjectives: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
-  
+
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),
   userCurrent: () => instance.get('/user/current'),
@@ -93,18 +94,20 @@ export const api = {
   getModuleByCode: (code) => instance.get(`/module/${code}`),
 
   // Syllabus
-  getSyllabusesPaginated: (filter) => instance.get('/syllabus?'+filter),
+  getSyllabusesPaginated: (filter) => instance.get('/syllabus?' + filter),
   getSyllabusByCycleAndModule: (cycleId, moduleCode) =>
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),
   createSyllabus: (data) => instance.post('/syllabus', data),
   createSyllabusCourseYear: (id) => instance.post(`/syllabus/${id}/currentCourseYear`, {}),
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
-  getSyllabusMarlingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
+  getSyllabusMarkingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
   saveSyllabusMarkingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
   getSyllabusInstructionalUnits: (id) => instance.get(`/syllabus/${id}/instructionalUnit`),
-  saveSyllabusInstructionalUnit: (id, data) => instance.post(`/syllabus/${id}/instructionalUnit`, data),
-  deleteSyllabusInstructionalUnit: (id, iUId) => instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
+  saveSyllabusInstructionalUnit: (id, data) =>
+    instance.post(`/syllabus/${id}/instructionalUnit`, data),
+  deleteSyllabusInstructionalUnit: (id, iUId) =>
+    instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
   saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
 
   // Syllabus status
@@ -116,19 +119,21 @@ export const api = {
   syllabusReject: (id, data) => instance.post(`${BASE_URL}syllabus/${id}/reject`, data),
   syllabusPending: (id) => instance.post(`${BASE_URL}syllabus/${id}/pending`, {}),
 
-  getPdf: (id) => axios.get(`${BASE_URL}syllabus/${id}/pdf`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.token}`,
-    },
-    responseType: 'blob'
-}),
+  getPdf: (id) =>
+    axios.get(`${BASE_URL}syllabus/${id}/pdf`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.token}`
+      },
+      responseType: 'blob'
+    }),
 
-  getExcel: (id) => axios.get(`${BASE_URL}syllabus/${id}/excel`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.token}`,
-    },
-    responseType: 'blob'
-  }),
+  getExcel: (id) =>
+    axios.get(`${BASE_URL}syllabus/${id}/excel`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.token}`
+      },
+      responseType: 'blob'
+    }),
 
   // Activities
   saveActivity: (lsId, type, data) =>
@@ -145,29 +150,24 @@ export const api = {
     instance.delete(`/syllabus/learningSituation/${lsId}/activity/${activityId}`),
 
   // Final Activities
-  getFinalActivities: (id) =>
-    instance.get(`/syllabus/${id}/final/activity`),
-  saveFinalActivity: (id, data) =>
-    instance.post(`/syllabus/${id}/final/activity`, data),
+  getFinalActivities: (id) => instance.get(`/syllabus/${id}/final/activity`),
+  saveFinalActivity: (id, data) => instance.post(`/syllabus/${id}/final/activity`, data),
   deleteFinalActivity: (id, activityId) =>
     instance.delete(`/syllabus/${id}/final/activity/${activityId}`),
 
   // Complementary Activities
-  getComplementaryActivities: (id) =>
-    instance.get(`/syllabus/${id}/complementaryActivities`),
+  getComplementaryActivities: (id) => instance.get(`/syllabus/${id}/complementaryActivities`),
   saveComplementaryActivity: (id, data) =>
     instance.post(`/syllabus/${id}/activity/complementary`, data),
   deleteComplementaryActivity: (id, activityId) =>
     instance.delete(`/syllabus/${id}/ComplementaryActivity/${activityId}`),
 
   // Methodological Principles
-  getMethodologicalPrinciples: () =>
-    instance.get(`/methodological-principles`),
+  getMethodologicalPrinciples: () => instance.get(`/methodological-principles`),
   getSyllabusMethodologicalPrinciples: (id) =>
     instance.get(`/syllabus/${id}/methodological-principles`),
   saveMethodologicalPrinciples: (id, data) =>
-    instance.post(`/syllabus/${id}/methodological-principles`, data),
-
-  }
+    instance.post(`/syllabus/${id}/methodological-principles`, data)
+}
 
 export default instance

@@ -98,7 +98,7 @@ export default {
     ...mapActions(useDataStore, ['addMessage']),
     async loadActivities() {
       try {
-        const response = await api.getSyllabusMarlingActivities(this.syllabus.id)
+        const response = await api.getSyllabusMarkingActivities(this.syllabus.id)
         this.sylMarkingActivities = response.data
       } catch (error) {
         this.addMessage('error', error)

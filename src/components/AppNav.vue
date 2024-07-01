@@ -5,8 +5,8 @@ import { mapState, mapActions } from 'pinia'
 export default {
   computed: {
     ...mapState(useDataStore, ['user']),
-    isAdmin() {
-      return this.user.info?.roles.includes('ROLE_ADMIN')
+    isAdminOrHeadOfDepartament() {
+      return this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT') || this.user.info?.roles.includes('ROLE_ADMIN');
     },
     isLogged() {
       return !!this.user.token
@@ -34,7 +34,7 @@ export default {
         <li class="nav-item">
           <RouterLink class="nav-link" to="/">Inici</RouterLink>
         </li>
-        <li class="nav-item" v-if="isAdmin">
+        <li class="nav-item" v-if="isAdminOrHeadOfDepartament">
           <RouterLink class="nav-link" to="/syl-manage">Gestionar programacions</RouterLink>
         </li>
         <li class="nav-item">

@@ -116,6 +116,7 @@ export const useDataStore = defineStore('data', {
               api.getSyllabusById(data.syllabusId)
             ])
             this.cycle = respCycle.data
+            this.cycle.modules = respCycle.data.modules.filter(item => item.department.id === this.user.info.department.id) 
             this.module = respMod.data
             this.syllabus = respSyl.data
           } catch (error) {
@@ -128,6 +129,7 @@ export const useDataStore = defineStore('data', {
       try {
         const response = await api.getCycleById(cycleId)
         this.cycle = response.data
+        this.cycle.modules = response.data.modules.filter(item => item.department.id === this.user.info.department.id)
       } catch (error) {
         this.cycle = {}
         this.addMessage('error', error)

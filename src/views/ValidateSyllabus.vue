@@ -169,12 +169,11 @@ export default {
           {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
         </button>
       </div>
-      <!--
       <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
         <button @click="getExcel" class="btn btn-success" title="Quadern del Professorat PDF">
           Obtindre Qüadern de Professorat
         </button>
-      </div>-->
+      </div>
       <br />
     </div>
   </main>

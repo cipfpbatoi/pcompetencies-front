@@ -109,34 +109,50 @@ export default {
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>1. Contextualització</h2>
-      <h3>Característiques del Centre i l'entorn</h3>
-      <p class="border border-black bg-secondary-subtle" v-html="centerContextualization"></p>
-      <span
-      ><button @click="toogleShowAll('center')" class="btn btn-link">
-        Mostrar {{ showAll.center ? 'menys' : 'tot' }}
-      </button></span
-      >
-      <h3>Característiques de l'alumnat</h3>
-      <p
-        class="border border-black bg-secondary-subtle"
-        v-if="syllabus.cycleCenterContext?.studentsProfile"
-        v-html="cycleContextualization"
-      ></p>
-      <p class="border border-black text-danger" v-else>
-        El departament ha d'establir una contextualització per al cicle
-      </p>
-      <span>
-        <button @click="toogleShowAll('cycle')" class="btn btn-link">
-        Mostrar {{ showAll.cycle ? 'menys' : 'tot' }}
-      </button></span>
-      <h3>Característiques del grup-classe</h3>
-      <div class="text-secondary fst-italic">
-        <p class="border border-black" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
-        <p class="" v-else>
-          Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles
-          dificultats amb l'idioma,...)
-        </p>
-        <div class="p-3 text-center">
+      <div class="card text-center">
+        <div class="card-header fw-bold bg-info text-uppercase text-white">
+          1.1 Característiques del Centre i l'entorn
+        </div>
+        <div class="card-body bg-secondary-subtle text-muted text-start">
+          <p v-html="centerContextualization"></p>
+        </div>
+        <div class="card-footer text-muted">
+          <button @click="toogleShowAll('center')" class="btn btn-link">
+            Mostrar {{ showAll.center ? 'menys' : 'tot' }}
+          </button>
+        </div>
+      </div>
+      <div class="card text-center">
+        <div class="card-header fw-bold bg-info text-uppercase text-white">
+          1.2 Característiques de l'alumnat
+        </div>
+        <div class="card-body bg-secondary-subtle text-muted">
+          <p class="text-start"
+            v-if="syllabus.cycleCenterContext?.studentsProfile"
+            v-html="cycleContextualization">
+          </p>
+          <p class="bg-secondary-subtle" v-else>
+            El departament ha d'establir una contextualització per al cicle
+          </p>
+        </div>
+        <div class="card-footer text-muted">
+          <button @click="toogleShowAll('cycle')" class="btn btn-link">
+            Mostrar {{ showAll.cycle ? 'menys' : 'tot' }}
+          </button>
+        </div>
+      </div>
+      <div class="card text-center">
+        <div class="card-header fw-bold bg-info text-uppercase text-white">
+          1.3 Característiques del grup-classe
+        </div>
+        <div class="card-body">
+          <p class="text-start" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
+          <p v-else>
+            Ha d'indicar les característiques generals del grup-clase (Número de alumnes, posibles
+            dificultats amb l'idioma,...)
+          </p>
+        </div>
+        <div class="card-footer text-muted">
           <button @click="showModal()" class="btn btn-success" title=" Afegir/Modificar característiques del grup-classe">
             Afegir/Modificar característiques del grup-classe
           </button>

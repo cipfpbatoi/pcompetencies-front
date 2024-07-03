@@ -89,23 +89,20 @@ export default {
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>10. Validar i enviar la programació</h2>
-      <div class="text-center">
-        <button @click="validate" class="btn btn-success" title="Validar" :disabled="isValid">
+      <div v-if="!isValid && !errors">
+        <div class="alert alert-info p-2 col-sm-12 col-12 mx-auto text-center">
+          <strong>Atenció! </strong>Has de validar la programació abans d'enviar-la
+        </div>
+      </div>
+      <div class="text-center m-2">
+        <button @click="validate" class="btn btn-info col-sm-5 col-12" title="Validar" :disabled="isValid">
+          <i class="bi bi-check-circle px-2"></i>
           Validar programació
         </button>
       </div>
-      <div v-if="!isValid">
-        <div class="bg-danger m-1">
-          <p class="text-white">
-            {{
-              errors
-                ? "La programació te errors i has de corregir-los abans d'enviar-la"
-                : "Has de validar la programació abans d'enviar-la"
-            }}
-          </p>
-        </div>
-        <div v-if="errors" class="bg-danger-subtle">
-          <h4>Errors detectats</h4>
+      <div v-if="!isValid && errors">
+        <div class="alert alert-danger">
+          <h4 class="text-center">Atenció! La programació te errors i has de corregir-los abans d'enviar-la </h4>
           <ul>
             <li v-if="errors.totalHours">{{ errors.totalHours }}</li>
             <li v-if="errors.groupContext">{{ errors.groupContext }}</li>
@@ -149,28 +146,25 @@ export default {
           </div>
         </div>
       </div>
-      <div v-else>
-        <button
-          @click="sendSyllabus"
-          class="btn btn-secondary"
-          title="Enviar programació"
-        >
+      <div v-if="isValid" class="text-center m-2 row">
+        <div class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
+          <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar
+        </div>
+        <button @click="sendSyllabus" class="btn btn-success col-sm-5 col-12 mx-auto" title="Enviar programació">
+          <i class="bi bi-send mx-2"></i>
           Enviar programació al Departament
         </button>
-        <div class="bg-danger m-1">
-          <p class="text-white">
-            ATENCIÓ: Un cop enviada la programació ja no es pot modificar
-          </p>
-        </div>
       </div>
-      <br>
+      <h2>11. Documents</h2>
       <div class="text-center m-2">
-        <button @click="showPdf" class="btn btn-success" title="Vore PDF">
+        <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
+          <i class="bi bi-file-earmark-pdf"></i>
           {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
         </button>
       </div>
       <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
-        <button @click="getExcel" class="btn btn-success" title="Quadern del Professorat PDF">
+        <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
+          <i class="bi bi-file-earmark-excel"></i>
           Obtindre Qüadern de Professorat
         </button>
       </div>

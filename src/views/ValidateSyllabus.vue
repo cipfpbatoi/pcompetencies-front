@@ -167,7 +167,7 @@ export default {
       <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
         <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
           <i class="bi bi-file-earmark-excel"></i>
-          Obtindre Qüadern de Professorat
+            Obtindre quadern de Professorat
         </button>
       </div>
       <br />

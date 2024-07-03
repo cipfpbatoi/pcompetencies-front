@@ -109,7 +109,7 @@ export default {
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>1. Contextualització</h2>
-      <div class="card text-center">
+      <div class="card text-center mb-2">
         <div class="card-header fw-bold bg-info text-uppercase text-white">
           1.1 Característiques del Centre i l'entorn
         </div>
@@ -117,12 +117,12 @@ export default {
           <p v-html="centerContextualization"></p>
         </div>
         <div class="card-footer text-muted">
-          <button @click="toogleShowAll('center')" class="btn btn-link">
+          <button @click="toogleShowAll('center')" class="btn btn-outline-primary">
             Mostrar {{ showAll.center ? 'menys' : 'tot' }}
           </button>
         </div>
       </div>
-      <div class="card text-center">
+      <div class="card text-center mb-2">
         <div class="card-header fw-bold bg-info text-uppercase text-white">
           1.2 Característiques de l'alumnat
         </div>
@@ -136,12 +136,12 @@ export default {
           </p>
         </div>
         <div class="card-footer text-muted">
-          <button @click="toogleShowAll('cycle')" class="btn btn-link">
+          <button @click="toogleShowAll('cycle')" class="btn btn-outline-primary">
             Mostrar {{ showAll.cycle ? 'menys' : 'tot' }}
           </button>
         </div>
       </div>
-      <div class="card text-center">
+      <div class="card text-center mb-2">
         <div class="card-header fw-bold bg-info text-uppercase text-white">
           1.3 Característiques del grup-classe
         </div>

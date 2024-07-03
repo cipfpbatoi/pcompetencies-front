@@ -94,6 +94,11 @@ export default {
           <strong>Atenció! </strong>Has de validar la programació abans d'enviar-la
         </div>
       </div>
+      <div v-if="isValid" class="text-center m-2 row">
+        <div class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
+          <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar
+        </div>
+      </div>
       <div class="text-center m-2">
         <button @click="validate" class="btn btn-info col-sm-5 col-12" title="Validar" :disabled="isValid">
           <i class="bi bi-check-circle px-2"></i>
@@ -147,9 +152,6 @@ export default {
         </div>
       </div>
       <div v-if="isValid" class="text-center m-2 row">
-        <div class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
-          <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar
-        </div>
         <button @click="sendSyllabus" class="btn btn-success col-sm-5 col-12 mx-auto" title="Enviar programació">
           <i class="bi bi-send mx-2"></i>
           Enviar programació al Departament

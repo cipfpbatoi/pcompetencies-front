@@ -88,7 +88,7 @@ export default {
     <app-breadcrumb :actualStep="10" :done="false"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>10. Validar i enviar la programació</h2>
+      <h2>10a. Validar i enviar la programació</h2>
       <div v-if="!isValid && !errors">
         <div class="alert alert-info p-2 col-sm-12 col-12 mx-auto text-center">
           <strong>Atenció! </strong>Has de validar la programació abans d'enviar-la
@@ -157,7 +157,7 @@ export default {
           Enviar programació al Departament
         </button>
       </div>
-      <h2>11. Documents</h2>
+      <h2>10b. Documents</h2>
       <div class="text-center m-2">
         <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
           <i class="bi bi-file-earmark-pdf"></i>

@@ -110,20 +110,20 @@ export default {
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>1. Contextualització</h2>
       <div class="card text-center mb-2">
-        <div class="card-header fw-bold bg-info text-uppercase text-white">
+        <div class="card-header fw-bold bg-info text-uppercase text-white text-start">
           1.1 Característiques del Centre i l'entorn
         </div>
         <div class="card-body bg-secondary-subtle text-muted text-start">
           <p v-html="centerContextualization"></p>
         </div>
         <div class="card-footer text-muted">
-          <button @click="toogleShowAll('center')" class="btn btn-outline-primary">
+          <button @click="toogleShowAll('center')" class="btn btn-primary btn-sm">
             Mostrar {{ showAll.center ? 'menys' : 'tot' }}
           </button>
         </div>
       </div>
       <div class="card text-center mb-2">
-        <div class="card-header fw-bold bg-info text-uppercase text-white">
+        <div class="card-header fw-bold bg-info text-uppercase text-white text-start">
           1.2 Característiques de l'alumnat
         </div>
         <div class="card-body bg-secondary-subtle text-muted">
@@ -136,13 +136,13 @@ export default {
           </p>
         </div>
         <div class="card-footer text-muted">
-          <button @click="toogleShowAll('cycle')" class="btn btn-outline-primary">
+          <button @click="toogleShowAll('cycle')" class="btn btn-primary btn-sm">
             Mostrar {{ showAll.cycle ? 'menys' : 'tot' }}
           </button>
         </div>
       </div>
       <div class="card text-center mb-2">
-        <div class="card-header fw-bold bg-info text-uppercase text-white">
+        <div class="card-header fw-bold bg-info text-uppercase text-white text-start">
           1.3 Característiques del grup-classe
         </div>
         <div class="card-body">

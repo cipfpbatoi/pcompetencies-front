@@ -154,7 +154,7 @@ export default {
       <div v-if="isValid" class="text-center m-2 row">
         <button @click="sendSyllabus" class="btn btn-success col-sm-5 col-12 mx-auto" title="Enviar programació">
           <i class="bi bi-send mx-2"></i>
-          Enviar programació al Departament
+          Enviar programació al departament
         </button>
       </div>
       <h2>10b. Documents</h2>

@@ -3,6 +3,7 @@ import ShowTable from '@/components/ShowTable.vue'
 import { mapState } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
+import LrTable from '@/components/LrTable.vue'
 
 const learningSituationsColumns = [
 {
@@ -14,31 +15,37 @@ const learningSituationsColumns = [
     value: 'title'
   },
   {
-    title: 'Objectius',
-    func: (x) => x ? x.substr(0, 80) + (x.length>80 ? '...':'') : '',
+    title: 'Objectius didàctics',
+    func: (x) => x ? x.substr(0, 50) + (x.length>50 ? '...':'') : '',
     param: 'didacticObjectives',
     html: true,
   },
   {
-    title: 'Coneix. previs',
-    func: (x) => x ? x.substr(0, 80) + (x.length>80 ? '...':'') : '',
-    param: 'priorKnowledge'
+    title: 'Hores',
+    value: 'hours',
+    class: 'text-center'
   },
-  // {
-  //   title: 'Continguts (num.)',
-  //   func: (x) => x ? x.length : 0,
-  //   param: 'didacticContents'
-  // },
-  // {
-  //   title: 'Activitats (num.)',
-  //   value: 'priorKnowledge'
-  // },
+  {
+    title: 'R.A.',
+    class: 'text-center',
+    func: (x) => {
+      if (!x || !x.length) return ''
+      return x
+        .map(
+          (item) =>
+            (item.learningResultId || item.learningResult.number) + ` (${item.percentageWeight} %)`
+        )
+        .join(', ')
+    },
+    param: 'ponderedLearningResults'
+  }
 ]
 
 export default {
   components: {
     AppBreadcrumb,
-    ShowTable
+    ShowTable,
+    LrTable,
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module']),
@@ -58,7 +65,7 @@ export default {
     <app-breadcrumb :actualStep="5" :done="true"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1">
-      <h2>5.a. Desenvolupament de les Situacions d'Aprenentatge</h2>
+      <h2>5. Desenvolupament de les Situacions d'Aprenentatge</h2>
       <p>Des d'ací pots desenvolupar cada situació d'aprenentatge.</p>
       <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
         <template v-slot="{ item }">
@@ -69,5 +76,9 @@ export default {
         </template>
       </show-table>
     </div>
+    <div class="border bg-light p-2">
+        <h3>Resultats d'aprenentatge</h3>
+        <Lr-Table class="border border-black" :learningResults="module.learningResults"></Lr-Table>
+      </div>
   </main>
 </template>

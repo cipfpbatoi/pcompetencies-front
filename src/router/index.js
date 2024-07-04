@@ -36,7 +36,7 @@ const router = createRouter({
       component: LoginView
     },
     {
-      path: '/login-intranet',
+      path: '/login/auth/:token',
       name: 'loginIntranet',
       component: LoginIntranet
     },

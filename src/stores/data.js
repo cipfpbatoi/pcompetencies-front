@@ -92,6 +92,10 @@ export const useDataStore = defineStore('data', {
         this.cycle.modules = this.cycle.modules.filter(item => item.department.id === this.user.info?.department.id) 
       }
     },
+    setCycleAndModule(cycleId, moduleCode) {
+      this.cicle = {id: cycleId}
+      this.module = { code: moduleCode}
+    },
     async loadData() {
       if (localStorage.token) {
         this.user.token = localStorage.token

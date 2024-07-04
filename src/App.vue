@@ -10,8 +10,7 @@ export default {
     AppNav
   },
   async mounted() {
-    if (window.location.pathname !== '/login'
-    && window.location.pathname !== '/login-intranet') {
+    if (!window.location.pathname.startsWith('/login')) {
       if (localStorage.token) {
         await this.loadData()
       } else {

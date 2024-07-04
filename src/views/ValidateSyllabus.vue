@@ -31,32 +31,30 @@ export default {
     async sendSyllabus() {
       if (confirm('Una vegada enviada ja no es pot modificar la programació. Vols continuar?')) {
         try {
-        await api.syllabusSend(this.syllabus.id)
-        this.addMessage('success', 'Programació enviada correctament')
-        this.$router.push({ name: 'selectSyllabus' })
-      } catch (error) {
-        this.addMessage('error', error)
-      }      }
+          await api.syllabusSend(this.syllabus.id)
+          this.addMessage('success', 'Programació enviada correctament')
+          this.$router.push({ name: 'selectSyllabus' })
+        } catch (error) {
+          this.addMessage('error', error)
+        }      }
     },
     async showPdf() {
       try {
         const response = await api.getPdf(this.syllabus.id)
-        if (!response.ok) {
+        if (!response) {
           this.addMessage('error', response)
+          return;
         }
-        const url = URL.createObjectURL(response.data)
-        const pdfWindow = window.open()
-        if (pdfWindow) {
-          pdfWindow.document.write(`<iframe src="${url}" width="100%" height="100%"></iframe>`)
-        } else {
-          this.addMessage(
-            'error',
-            "No s'ha pogut obrir la nova finestra. Configura les Preferències del teu navegador"
-          )
-        }
+        const url = URL.createObjectURL(new Blob([response.data], {
+          type: 'application/pdf'
+        }))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'syllabus_'+ this.syllabus.id)
+        document.body.appendChild(link)
+        link.click()
       } catch (error) {
-        this.addMessage('error', error)
-        return
+          this.addMessage('error', error)
       }
     },
     async getExcel() {
@@ -129,7 +127,7 @@ export default {
             <h5>Resultats d'aprenentatge</h5>
             <ul>
               <li v-for="error in errors.ponderedRA" :key="error">
-               {{ error }}
+                {{ error }}
               </li>
             </ul>
           </div>
@@ -145,7 +143,7 @@ export default {
             <h5>Avaluació Final</h5>
             <ul>
               <li v-for="error in errors.finalEvaluation" :key="error">
-               {{ error }}
+                {{ error }}
               </li>
             </ul>
           </div>
@@ -167,7 +165,7 @@ export default {
       <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
         <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
           <i class="bi bi-file-earmark-excel"></i>
-            Obtindre quadern de Professorat
+          Obtindre quadern de Professorat
         </button>
       </div>
       <br />

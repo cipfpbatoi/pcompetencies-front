@@ -209,23 +209,22 @@ export default {
     },
     async showPdf(turn) {
       try {
-        const response = await api.getPdf(this.getSyllabusByTurn(turn).id)
-        if (response.status !== 200) {
+        let syllabus = this.getSyllabusByTurn(turn)
+        const response = await api.getPdf(syllabus.id)
+        if (!response) {
           this.addMessage('error', response)
+          return;
         }
-        const url = URL.createObjectURL(response.data)
-        const pdfWindow = window.open()
-        if (pdfWindow) {
-          pdfWindow.document.write(`<iframe src="${url}" width="100%" height="100%"></iframe>`)
-        } else {
-          this.addMessage(
-            'error',
-            "No s'ha pogut obrir la nova finestra. Configura les Preferències del teu navegador"
-          )
-        }
+        const url = URL.createObjectURL(new Blob([response.data], {
+          type: 'application/pdf'
+        }))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'syllabus_'+ syllabus.id)
+        document.body.appendChild(link)
+        link.click()
       } catch (error) {
         this.addMessage('error', error)
-        return
       }
     },
     statusClass(status) {

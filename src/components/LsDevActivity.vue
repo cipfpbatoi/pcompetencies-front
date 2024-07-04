@@ -29,10 +29,6 @@ const activityBaseColumns = [
     value: 'description',
     html: true
   },
-  {
-    title: 'Hores',
-    value: 'hours'
-  }
 ]
 
 const didacticContentsColumns = [
@@ -82,6 +78,10 @@ export default {
           func: (x) => (x ? x?.map((item) => item.code).join(', ') || '---' : '---'),
           param: 'didacticContents'
         })
+        columns.push({
+          title: 'Hores',
+          value: 'hours'
+        })
       }
       if (this.type === 'marking') {
         columns.push({
@@ -89,6 +89,10 @@ export default {
           hint: 'Criteris d\'avaluació associats',
           func: (x) => (x ? x?.map((item) => this.getRaNumberFromId(item.learningResultId) +'.'+ item.code).join(', ') || '---' : '---'),
           param: 'evaluationCriterias'
+        })
+        columns.push({
+          title: 'Hores',
+          value: 'hours'
         })
       }
       return columns

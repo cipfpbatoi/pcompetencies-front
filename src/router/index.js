@@ -5,6 +5,7 @@ import LSDevelop from '../views/LSDevelop.vue'
 import LSsDevelopment from '../views/LSsDevelopment.vue'
 import TestWorkUnitLR from '../views/TestWorkUnitLR.vue'
 import LoginView from '../views/LoginView.vue'
+import LoginIntranet from '../views/LoginIntranet.vue'
 import ImprovementProposal from '../views/ImprovementProposal.vue'
 import ContextSyllabus from '../views/ContextSyllabus.vue'
 import SyllabusSchedule from '../views/SyllabusSchedule.vue'
@@ -33,6 +34,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView
+    },
+    {
+      path: '/login-intranet',
+      name: 'loginIntranet',
+      component: LoginIntranet
     },
     {
       path: '/context',

@@ -316,8 +316,7 @@ export default {
     <div class="p-lg-4 p-1">
       <div>
         <h2>3.1 Definir Situacions d'Aprenentatge</h2>
-        <div class="text-center">
-            <show-table
+        <show-table
           class="border border-black p-2 text-center"
           :data="this.syllabus.learningSituations"
           :columns="this.learningSituationsColumns"
@@ -362,7 +361,6 @@ export default {
             </th>
           </template>
         </show-table>
-        </div>
         <div class="text-center">
           <button class="btn btn-success mt-2" @click="showLSModal()">
             Afegir Situació d'Aprenentatge

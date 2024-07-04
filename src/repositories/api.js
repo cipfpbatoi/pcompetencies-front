@@ -88,6 +88,7 @@ export const api = {
   // Login Check
   loginCheck: (userData) => instance.post('/login_check', userData),
   userCurrent: () => instance.get('/user/current'),
+  loginIntranet: (token) => instance.post('/token', { userToken: token }),
 
   // Module
   getModules: () => instance.get('/module'),

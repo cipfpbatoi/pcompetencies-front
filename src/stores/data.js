@@ -87,9 +87,31 @@ export const useDataStore = defineStore('data', {
       const index = this.messages.findIndex((item) => item.id === id)
       this.messages.splice(index, 1)
     },
+    filterModules() {
+      if (this.user.info && !this.user.info.roles.includes('ROLE_ADMIN')) {
+        this.cycle.modules = this.cycle.modules.filter(item => item.department.id === this.user.info?.department.id) 
+      }
+    },
     async loadData() {
       if (localStorage.token) {
         this.user.token = localStorage.token
+        if (localStorage.data) {
+          const data = JSON.parse(localStorage.data)
+          this.syllabus = { id: data.syllabusId }
+          try {
+            const [respCycle, respMod, respSyl] = await Promise.all([
+              api.getCycleById(data.cycleId),
+              api.getModuleByCode(data.moduleCode),
+              api.getSyllabusById(data.syllabusId)
+            ])
+            this.cycle = respCycle.data
+            this.filterModules()
+            this.module = respMod.data
+            this.syllabus = respSyl.data
+          } catch (error) {
+            this.addMessage('error', error)
+          }
+        }
         try {
           const [respActAsmt, respActMark, respTransversals, respUser] = await Promise.all([
             await api.getAsessmentTool(),
@@ -106,30 +128,13 @@ export const useDataStore = defineStore('data', {
         } catch (error) {
           this.addMessage('error', error)
         }
-        if (localStorage.data) {
-          const data = JSON.parse(localStorage.data)
-          this.syllabus = { id: data.syllabusId }
-          try {
-            const [respCycle, respMod, respSyl] = await Promise.all([
-              api.getCycleById(data.cycleId),
-              api.getModuleByCode(data.moduleCode),
-              api.getSyllabusById(data.syllabusId)
-            ])
-            this.cycle = respCycle.data
-            this.cycle.modules = respCycle.data.modules.filter(item => item.department.id === this.user.info.department.id) 
-            this.module = respMod.data
-            this.syllabus = respSyl.data
-          } catch (error) {
-            this.addMessage('error', error)
-          }
-        }
       }
     },
     async fetchCycle(cycleId) {
       try {
         const response = await api.getCycleById(cycleId)
         this.cycle = response.data
-        this.cycle.modules = response.data.modules.filter(item => item.department.id === this.user.info.department.id)
+        this.filterModules()
       } catch (error) {
         this.cycle = {}
         this.addMessage('error', error)

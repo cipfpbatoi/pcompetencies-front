@@ -317,7 +317,7 @@ export default {
       <div>
         <h2>3.1 Definir Situacions d'Aprenentatge</h2>
         <show-table
-          class="border border-black p-2"
+          class="border border-black p-2 text-center"
           :data="this.syllabus.learningSituations"
           :columns="this.learningSituationsColumns"
         >

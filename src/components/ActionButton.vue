@@ -36,7 +36,7 @@ export default {
     {{ title }}
     <span
       v-if="status"
-      class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+      class="position-absolute top-0 start-100 translate-middle badge rounded-pill border"
       :class="statusClass(status)"
     >
       {{ status }}

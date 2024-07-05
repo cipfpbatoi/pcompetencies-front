@@ -161,7 +161,7 @@ export default {
     </ModalComponent>
     <div class="p-lg-4 p-1 overflow-auto">
       <h2 class="fw-bold">Gestió de les programacions</h2>
-      <div class="bg-primary-subtle p-2">
+      <div class="p-3 alert alert-primary">
         <div class="row mb-3">
           <div class="col-lg-12 d-flex align-items-center">
             <label class="p-2 fw-bold">Cicle:</label>
@@ -267,13 +267,15 @@ export default {
                 <div class="text-center p-2" :class="{ 'd-none' : !this.loading }">
                   <span class="spinner-border text-primary m-auto"></span>
                 </div>
-                Programacions per pàgina:
-                <select @change="getSyllabuses" v-model="itemsPerPage">
-                  <option>5</option>
-                  <option>10</option>
-                  <option>25</option>
-                  <option>50</option>
-                </select>
+                <div class="mt-2">
+                  <strong class="p-2">Programacions per pàgina:</strong>
+                  <select @change="getSyllabuses" v-model="itemsPerPage">
+                    <option>5</option>
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                  </select>
+                </div>
               </td>
             </tr>
           </tfoot>

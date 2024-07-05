@@ -209,10 +209,12 @@ export default {
     },
     async showPdf(turn) {
       try {
+        this.isLoading = true;
         let syllabus = this.getSyllabusByTurn(turn)
         const response = await api.getPdf(syllabus.id)
         if (!response) {
           this.addMessage('error', response)
+          this.isLoading = false;
           return;
         }
         const url = URL.createObjectURL(new Blob([response.data], {
@@ -226,6 +228,7 @@ export default {
       } catch (error) {
         this.addMessage('error', error)
       }
+      this.isLoading = false;
     },
     statusClass(status) {
       return statusClass(status)
@@ -303,7 +306,7 @@ export default {
         <div :class="{ 'd-none' : this.isLoading }">
           <template v-for="turn in cycle.availableTurns" :key="turn">
             <div class="card m-2">
-              <div class="card-header bg-info text-white">
+              <div class="card-header bg-info text-white text-uppercase fw-bold">
                   Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}
               </div>
               <div class="card-body text-center">
@@ -315,7 +318,7 @@ export default {
                       @clicked="editSyllabus(turn)"
                       :status="getSyllabusByTurn(turn).status"
                       title="Editar programació"
-                      buttonClass="btn-warning col-12 col-sm-4"
+                      buttonClass="btn-success col-12 col-sm-4 text-white"
                       iconClass="bi bi-pencil-fill"
                     ></ActionButton>
                     <ActionButton

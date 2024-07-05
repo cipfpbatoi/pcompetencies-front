@@ -14,6 +14,7 @@ export default {
   data() {
     return {
       isValid: false,
+      isLoading: false,
       errors: false
     }
   },
@@ -40,7 +41,9 @@ export default {
     },
     async showPdf() {
       try {
+        this.isLoading = true
         const response = await api.getPdf(this.syllabus.id)
+        this.isLoading = false
         if (!response) {
           this.addMessage('error', response)
           return;
@@ -54,13 +57,14 @@ export default {
         document.body.appendChild(link)
         link.click()
       } catch (error) {
-          this.addMessage('error', error)
+        this.addMessage('error', error)
       }
     },
     async getExcel() {
       try {
+        this.isLoading = true
         const response = await api.getExcel(this.syllabus.id)
-        console.log(response);
+        this.isLoading = false
         if (response.status !== 200) {
           this.addMessage('error', response)
           return;
@@ -147,6 +151,14 @@ export default {
               </li>
             </ul>
           </div>
+          <div v-if="errors.assessmentsToolRestrictions">
+            <h5>Projecte Funcional - Instruments d'avaluació</h5>
+            <ul>
+              <li v-for="error in errors.assessmentsToolRestrictions" :key="error">
+                {{ error }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <div v-if="isValid" class="text-center m-2 row">
@@ -156,17 +168,22 @@ export default {
         </button>
       </div>
       <h2>10.2. Documents</h2>
-      <div class="text-center m-2">
-        <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
-          <i class="bi bi-file-earmark-pdf"></i>
-          {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
-        </button>
+      <div class="text-center mt-5" v-if="isLoading">
+        <span class="spinner-border text-primary"></span>
       </div>
-      <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
-        <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
-          <i class="bi bi-file-earmark-excel"></i>
-          Obtindre quadern de Professorat
-        </button>
+      <div v-else>
+        <div class="text-center m-2">
+          <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
+            <i class="bi bi-file-earmark-pdf"></i>
+            {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
+          </button>
+        </div>
+        <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
+          <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
+            <i class="bi bi-file-earmark-excel"></i>
+            Obtindre quadern de Professorat
+          </button>
+        </div>
       </div>
       <br />
     </div>

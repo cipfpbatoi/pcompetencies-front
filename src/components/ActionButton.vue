@@ -12,6 +12,10 @@ export default {
     buttonClass: {
       type: String,
       default: 'btn-primary'
+    },
+    iconClass: {
+      type: String,
+      default: null
     }
   },
   methods: {
@@ -27,6 +31,8 @@ export default {
 
 <template>
   <button @click="handleClick" class="btn btn-primary position-relative" :class="buttonClass">
+    <i v-if="iconClass"
+       :class="iconClass"></i>
     {{ title }}
     <span
       v-if="status"

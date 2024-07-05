@@ -300,62 +300,67 @@ export default {
         <div class="text-center mt-5" :class="{ 'd-none' : !this.isLoading }">
           <span class="spinner-border text-primary"></span>
         </div>
-        <ul :class="{ 'd-none' : this.isLoading }">
+        <div :class="{ 'd-none' : this.isLoading }">
           <template v-for="turn in cycle.availableTurns" :key="turn">
-            <li>
-              <h3>Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}</h3>
-              <div v-if="canEdit">
-                <div v-if="getSyllabusByTurn(turn).id">
-                  <ActionButton
-                    v-if="isSyllabusOfCurrentYear(turn)"
-                    :disabled="!['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)"
-                    @clicked="editSyllabus(turn)"
-                    :status="getSyllabusByTurn(turn).status"
-                    title="Editar programació"
-                    buttonClass="btn-primary"
-                  ></ActionButton>
-                  <ActionButton
-                    v-else
-                    @clicked="copySyllabusFromLastYear(turn)"
-                    title="Crear programació a partir de la del curs anterior"
-                    buttonClass="btn-primary"
-                  ></ActionButton>
-                  <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
+            <div class="card m-2">
+              <div class="card-header bg-info text-white">
+                  Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}
+              </div>
+              <div class="card-body text-center">
+                <div v-if="canEdit">
+                  <div v-if="getSyllabusByTurn(turn).id">
+                    <ActionButton
+                      v-if="isSyllabusOfCurrentYear(turn)"
+                      :disabled="!['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)"
+                      @clicked="editSyllabus(turn)"
+                      :status="getSyllabusByTurn(turn).status"
+                      title="Editar programació"
+                      buttonClass="btn-warning col-12 col-sm-4"
+                      iconClass="bi bi-pencil-fill"
+                    ></ActionButton>
+                    <ActionButton
+                      v-else
+                      @clicked="copySyllabusFromLastYear(turn)"
+                      title="Crear programació a partir de la del curs anterior"
+                      buttonClass="btn-primary col-12 col-sm-4"
+                      iconClass="bi bi-plus-circle-fill"
+                    ></ActionButton>
+                    <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
+                  </div>
+                  <div v-else>
+                    <ActionButton
+                      @clicked="createSyllabus(turn)"
+                      title="Crear programació"
+                      buttonClass="btn-success col-12 col-sm-4"
+                      iconClass="bi bi-plus-circle-fill"
+                    ></ActionButton>
+                    <div v-if="syllabusesToCopy.length > 0" class="mt-3">
+                      <ActionButton
+                        @clicked="showCopyModal(turn)"
+                        title="Crear a partir d'altra programació"
+                        buttonClass="btn-primary mt-2 mt-sm-0 col-12 col-sm-4"
+                        iconClass="bi bi-node-plus-fill"></ActionButton></div>
+                  </div>
                 </div>
                 <div v-else>
                   <ActionButton
-                    @clicked="createSyllabus(turn)"
-                    title="Crear programació"
-                    buttonClass="btn-primary"
-                  ></ActionButton>
-                  &nbsp;
-                  <ActionButton
-                    v-if="syllabusesToCopy.length > 0"
-                    @clicked="showCopyModal(turn)"
-                    title="Crear a partir d'altra programació"
-                    buttonClass="btn-primary mt-2 mt-sm-0"
-                  ></ActionButton>
+                    @clicked="showModal(turn)"
+                    buttonClass="btn btn-secondary col-12 col-sm-4"
+                    title="Veure/Modificar propostes de millora"
+                  >
+                  </ActionButton>
                 </div>
-              </div>
-              <div v-else>
                 <ActionButton
-                  @clicked="showModal(turn)"
-                  buttonClass="btn btn-secondary"
-                  title="Veure/Modificar propostes de millora"
-                >
-                </ActionButton>
+                  v-if="getSyllabusByTurn(turn).id"
+                  @click="showPdf(turn)"
+                  buttonClass="btn btn-danger col-12 col-sm-4"
+                  title="Veure PDF"
+                  icon-class="bi bi-file-earmark-pdf-fill"
+                ></ActionButton>
               </div>
-              <ActionButton
-                v-if="getSyllabusByTurn(turn).id"
-                @click="showPdf(turn)"
-                buttonClass="btn btn-secondary"
-                title="Veure PDF"
-              ></ActionButton>
-              <strong v-else>No hi ha programació</strong>
-            </li>
-            <br />
+            </div>
           </template>
-        </ul>
+        </div>
       </div>
     </div>
   </main>

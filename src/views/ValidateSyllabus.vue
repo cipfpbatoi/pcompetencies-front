@@ -159,6 +159,10 @@ export default {
               </li>
             </ul>
           </div>
+          <div v-if="errors.methodologicalsPrinciples">
+            <h5>Projecte Funcional - Instruments d'avaluació</h5>
+            <p>{{ errors.methodologicalsPrinciples }}</p>
+          </div>
         </div>
       </div>
       <div v-if="isValid" class="text-center m-2 row">

@@ -115,6 +115,7 @@ export default {
             <li v-if="errors.groupContext">{{ errors.groupContext }}</li>
             <li v-if="errors.improvementsProposals">{{ errors.improvementsProposals }}</li>
             <li v-if="errors.didacticResources">{{ errors.didacticResources }}</li>
+            <li v-if="errors.methodologicalPrinciples">{{ errors.methodologicalPrinciples }}</li>
           </ul>
           <div v-if="errors.learningSituations">
             <h5>Situacions d'aprenentatge</h5>
@@ -158,10 +159,6 @@ export default {
                 {{ error }}
               </li>
             </ul>
-          </div>
-          <div v-if="errors.methodologicalsPrinciples">
-            <h5>Projecte Funcional - Instruments d'avaluació</h5>
-            <p>{{ errors.methodologicalsPrinciples }}</p>
           </div>
         </div>
       </div>

@@ -14,6 +14,7 @@ import FinalQualify from '../views/FinalQualify.vue'
 import MethodologicalPrinciples from '../views/MethodologicalPrinciples.vue'
 import ValidateSyllabus from '../views/ValidateSyllabus.vue'
 import SyllabusesManage from '../views/SyllabusesManage.vue'
+import ViewSyllabus from '../views/ViewSyllabus.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +40,11 @@ const router = createRouter({
       path: '/login/auth/:token',
       name: 'loginIntranet',
       component: LoginIntranet
+    },
+    {
+      path: '/public/syllabus/:collegeCode/:cycleId/:moduleCode/:turn',
+      name: 'viewSyllabus',
+      component: ViewSyllabus
     },
     {
       path: '/context',

@@ -3,10 +3,13 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
+import { Modal } from 'bootstrap'
+import ModalComponent from '../components/ModalComponent.vue'
 
 export default {
   components: {
-    AppBreadcrumb
+    AppBreadcrumb,
+    ModalComponent,
   },
   computed: {
     ...mapState(useDataStore, ['syllabus'])
@@ -15,7 +18,12 @@ export default {
     return {
       isValid: false,
       isLoading: false,
-      errors: false
+      errors: false,
+            // Modal generic
+            GenericModal: null,
+      modalFields: {
+        studentsCsv: '',
+      },
     }
   },
   methods: {
@@ -60,11 +68,18 @@ export default {
         this.addMessage('error', error)
       }
     },
+    showModal() {
+      this.modalFields.studentsCsv = ''
+      this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
+      this.GenericModal.show()
+    },
     async getExcel() {
       try {
         this.isLoading = true
-        const response = await api.getExcel(this.syllabus.id)
+        const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv)
         this.isLoading = false
+        this.GenericModal.hide()
+        console.log(response);
         if (response.status !== 200) {
           this.addMessage('error', response)
           return;
@@ -179,15 +194,23 @@ export default {
             {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
           </button>
         </div>
-        <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
-          <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
-            <i class="bi bi-file-earmark-excel"></i>
+      <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
+        <button @click="showModal" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
+          <i class="bi bi-file-earmark-excel"></i>
             Obtindre quadern de Professorat
           </button>
         </div>
       </div>
       <br />
     </div>
+    <ModalComponent @save="getExcel" title="Quadern del professorat">
+      <div class="row p-1 align-items-center">
+        <p>Pega la llista d'alumnes separats per coma:</p>
+        <div>
+          <textarea class="form-control border-secondary" v-model="modalFields.studentsCsv" rows="3"></textarea>
+        </div>
+      </div>
+    </ModalComponent>
   </main>
 </template>
 

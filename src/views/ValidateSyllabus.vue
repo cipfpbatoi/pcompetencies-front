@@ -198,9 +198,6 @@ export default {
             {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
           </button>
         </div>
-        <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
-          <button @click="getExcel" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
-            <i class="bi bi-file-earmark-excel"></i>
       <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
         <button @click="showModal" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
           <i class="bi bi-file-earmark-excel"></i>

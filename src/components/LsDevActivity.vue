@@ -506,6 +506,7 @@ export default {
             :actions="false"
             :learningResults="learningResultsCheckeables"
           ></lr-table>
+          <p v-if="errors.evaluationCriterias" class="error">{{ errors.evaluationCriterias }}</p>
         </div>
       </div>
     </ModalComponent>

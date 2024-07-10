@@ -76,10 +76,9 @@ export default {
     async getExcel() {
       try {
         this.isLoading = true
-        const response = await api.getExcel(this.syllabus.id)
+        const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv)
         this.isLoading = false
         this.GenericModal.hide()
-        const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv)
         console.log(response);
         if (response.status !== 200) {
           this.addMessage('error', response)

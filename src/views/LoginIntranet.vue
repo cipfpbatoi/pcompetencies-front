@@ -12,6 +12,7 @@ export default {
     try {
       const response = await api.loginIntranet(token)
       localStorage.token = response.data.jwt
+      await this.loadCurrentUser()
       this.$router.push({
         name: 'selectedSyllabus',
         params: {
@@ -30,7 +31,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['addMessage']),
+    ...mapActions(useDataStore, ['addMessage', 'loadCurrentUser']),
     login() {
       this.error = ''
       if (this.email === 'admin' && this.password === 'admin') {

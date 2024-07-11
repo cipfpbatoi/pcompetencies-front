@@ -96,6 +96,14 @@ export const useDataStore = defineStore('data', {
       this.cicle = {id: cycleId}
       this.module = { code: moduleCode}
     },
+    async loadCurrentUser() {
+      try {
+        const response = api.userCurrent()
+        this.user.info = response.data
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
     async loadData() {
       if (localStorage.token) {
         this.user.token = localStorage.token
@@ -116,19 +124,18 @@ export const useDataStore = defineStore('data', {
             this.addMessage('error', error)
           }
         }
+        await this.loadCurrentUser()
         try {
-          const [respActAsmt, respActMark, respTransversals, respUser] = await Promise.all([
+          const [respActAsmt, respActMark, respTransversals] = await Promise.all([
             await api.getAsessmentTool(),
             api.getMarkingTool(),
             api.getTrasversalObjectives(),
-            api.userCurrent()
           ])
           this.activitiesData = {
             assessmentTool: respActAsmt.data,
             markingTool: respActMark.data
           }
           this.transversalObjectives = respTransversals.data
-          this.user.info = respUser.data
         } catch (error) {
           this.addMessage('error', error)
         }

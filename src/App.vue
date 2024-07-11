@@ -12,7 +12,7 @@ export default {
   async mounted() {
     if (
       !window.location.pathname.startsWith('/login') &&
-      !window.location.pathname.startsWith('/public')
+      !window.location.pathname.startsWith('/public/syllabus')
     ) {
       if (localStorage.token) {
         await this.loadData()

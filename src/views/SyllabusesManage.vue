@@ -117,6 +117,25 @@ export default {
       }
       this.RejectSyllabusModal.show()
     },
+    async setPending(syllabus) {
+      if (
+        confirm(
+          'Vas a posar la programació "' +
+            syllabus.module.name +
+            '" del cicle"' +
+            syllabus.cycle.shortName +
+            '" com a pendent'
+        )
+      ) {
+        try {
+          await api.syllabusPending(syllabus.id)
+          this.addMessage('success', 'Programació posada com a pendent')
+          this.syllabuses.find((syl) => syl.id === syllabus.id).status = 'pendent'
+        } catch (error) {
+          this.addMessage('error', error)
+        }
+      }
+    },
     async reject() {
       if (this.modalFields.reason.length < 8) {
         this.errors.reason = 'El motiu és obligatori i ha de tindre al menys 8 caràcters'
@@ -250,6 +269,14 @@ export default {
                   class="btn btn-danger"
                 >
                   Rebutja</button
+                >&nbsp;
+                <button
+                  @click="setPending(syl)"
+                  :hidden="syl.status !== 'pendent'"
+                  type="button"
+                  class="btn btn-success"
+                >
+                  Posa pendent</button
                 >&nbsp;
                 <button
                   @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"

@@ -98,7 +98,7 @@ export const useDataStore = defineStore('data', {
     },
     async loadCurrentUser() {
       try {
-        const response = api.userCurrent()
+        const response = await api.userCurrent()
         this.user.info = response.data
       } catch (error) {
         this.addMessage('error', error)

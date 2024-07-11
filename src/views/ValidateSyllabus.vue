@@ -111,6 +111,11 @@ export default {
           <strong>Atenció! </strong>Has de validar la programació abans d'enviar-la
         </div>
       </div>
+      <div v-if="isValid">
+        <div class="alert alert-success p-2 col-sm-12 col-12 mx-auto text-center">
+          <strong>Validada! </strong> La programació està preparada per a ser enviada per a la seva aprovació.
+        </div>
+      </div>
       <div v-if="isValid" class="text-center m-2 row">
         <div class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
           <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar

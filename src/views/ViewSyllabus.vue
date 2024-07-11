@@ -6,17 +6,25 @@ import { useDataStore } from '../stores/data'
 export default {
   async mounted() {
     try {
-      const response = await api.getPublicPdf(
-        this.$route.params.collegeCode,
-        this.$route.params.cycleId,
-        this.$route.params.moduleCode,
-        this.$route.params.turn
-      )
+      const collegeCode = this.$route.params.collegeCode;
+      const cycleId = this.$route.params.cycleId;
+      const moduleCode = this.$route.params.moduleCode;
+      const turn = this.$route.params.turn;
+      const response = await api.getPublicPdf(collegeCode, cycleId, moduleCode, turn)
       if (response.status !== 200) {
         this.addMessage('error', response)
+        return
       }
-      const url = URL.createObjectURL(response.data)
-      document.write(`<iframe src="${url}" width="100%" height="100%"></iframe>`)
+      const url = URL.createObjectURL(new Blob([response.data], {
+        type: 'application/pdf'
+      }))
+      this.msg = 'Programació oberta en una altra Pestanya del navegador'
+      this.title = 'Programació Publicada'
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('open', 'syllabus_'+ collegeCode + '_' + cycleId + '_' + moduleCode + '_' + turn + '.pdf')
+      document.body.appendChild(link)
+      link.click()
     } catch (error) {
       const responseObj = await error.response.data.text();
       const errorJSON = JSON.parse(responseObj);

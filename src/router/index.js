@@ -44,7 +44,8 @@ const router = createRouter({
     {
       path: '/public/syllabus/:collegeCode/:cycleId/:moduleCode/:turn',
       name: 'viewSyllabus',
-      component: ViewSyllabus
+      component: ViewSyllabus,
+      meta: { requiresAuth: false }
     },
     {
       path: '/context',

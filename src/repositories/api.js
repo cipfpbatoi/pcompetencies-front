@@ -128,7 +128,7 @@ export const api = {
       responseType: 'blob'
     }),
   getPublicPdf: (collegeCode, cycleId, moduleCode, turn) =>
-    axios.get(`${BASE_URL}syllabus/${collegeCode}/${cycleId}/${moduleCode}/${turn}`, {
+    axios.get(`${BASE_URL}public/syllabus/${collegeCode}/${cycleId}/${moduleCode}/${turn}`, {
       responseType: 'blob'
     }),
 

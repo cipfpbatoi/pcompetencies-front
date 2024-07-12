@@ -156,34 +156,43 @@ export default {
     </ModalComponent>
     <ModalComponent
       @save="saveMaterials"
-      title="Materials i recursos didàctics"
+      title=" Materials i recursos didàctics"
       modalId="materialsModal"
     >
-      <div class="row">
+      <div>
         <h5>Materials didàctics</h5>
-        <p>
-          Són aquells que s'han el·laborat exclusivament amb l'intenció de facilitar els processos
-          d'ensenyament-aprenentatge. Ex.- llibres, documentació propia, enunciats del problemes,
-          quaderns de pràctiques, presentacions...
-        </p>
-        <ckeditor
-          :editor="editor"
-          v-model="modalFields.didacticMaterial"
-          :config="editorConfig"
-        ></ckeditor>
-        <p v-if="errors.didacticMaterial" class="error">{{ errors.didacticMaterial }}</p>
+        <div class="alert-info alert m-1 p-1 mb-2">
+          <p class="m-2"> <i class="bi bi-eye-fill m-1"></i>
+            Són aquells que s'han el·laborat exclusivament amb l'intenció de facilitar els processos
+            d'ensenyament-aprenentatge. Ex.- llibres, documentació propia, enunciats del problemes,
+            quaderns de pràctiques, presentacions...
+          </p>
+        </div>
+        <div class="col-12">
+          <ckeditor
+            :editor="editor"
+            v-model="modalFields.didacticMaterial"
+            :config="editorConfig"
+          ></ckeditor>
+          <p v-if="errors.didacticMaterial" class="error">{{ errors.didacticMaterial }}</p>
+        </div>
+      </div>
+      <div class="mt-2">
         <h5>Recursos didàctics</h5>
-        <p>
-          Són els materials i eines utilitzats en el context educatiu per a facilitar el
-          desenvolupament de les activitats formatives. Ex.- plataforma Aules, ordinadors del
-          centre, software...
-        </p>
-        <ckeditor
-          :editor="editor"
-          v-model="modalFields.didacticResources"
-          :config="editorConfig"
-        ></ckeditor>
-        <p v-if="errors.didacticResources" class="error">{{ errors.didacticResources }}</p>
+        <div class="alert-info alert m-1 p-1 mb-2">
+          <p class="m-2"> <i class="bi bi-eye-fill m-1"></i> Són els materials i eines utilitzats en el context educatiu per a facilitar el
+            desenvolupament de les activitats formatives. Ex.- plataforma Aules, ordinadors del
+            centre, software...
+          </p>
+        </div>
+        <div class="col-12">
+          <ckeditor
+            :editor="editor"
+            v-model="modalFields.didacticResources"
+            :config="editorConfig"
+          ></ckeditor>
+          <p v-if="errors.didacticResources" class="error">{{ errors.didacticResources }}</p>
+        </div>
       </div>
     </ModalComponent>
     <app-breadcrumb :actualStep="9" :done="true"></app-breadcrumb>

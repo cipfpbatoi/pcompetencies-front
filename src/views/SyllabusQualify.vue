@@ -190,9 +190,9 @@ export default {
           errors.percentageWeight
         }}</span>
       </div>
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" v-model="modalFields.fundamental" />
-        <label class="form-check-label" for="flexCheckDefault">
+      <div class="form-check alert-info alert overflow-auto">
+        <input class="form-check-input mx-auto" type="checkbox" v-model="modalFields.fundamental" />
+        <label class="form-check-label mx-2" for="flexCheckDefault">
           Ha d'aprovar-se per a aprovar el RA
         </label>
         <p v-if="errors.fundamental" class="error">{{ errors.fundamental }}</p>

@@ -76,7 +76,7 @@ export default {
     async getExcel() {
       try {
         this.isLoading = true
-        const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv)
+        const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv.split(';'))
         this.isLoading = false
         this.GenericModal.hide()
         console.log(response);
@@ -210,7 +210,7 @@ export default {
     </div>
     <ModalComponent @save="getExcel" title="Quadern del professorat">
       <div class="row p-1 align-items-center">
-        <p>Pega la llista d'alumnes separats per coma:</p>
+        <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>
         <div>
           <textarea class="form-control border-secondary" v-model="modalFields.studentsCsv" rows="3"></textarea>
         </div>

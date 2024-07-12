@@ -272,9 +272,9 @@ export default {
                 >&nbsp;
                 <button
                   @click="setPending(syl)"
-                  :hidden="syl.status !== 'pendent'"
+                  :hidden="syl.status === 'pendent'"
                   type="button"
-                  class="btn btn-success"
+                  class="btn btn-warning"
                 >
                   Posa pendent</button
                 >&nbsp;

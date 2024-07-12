@@ -6,8 +6,7 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
-import { validateFormErrors, makeCheckeableArray, getObjectsIds } from '../utils/utils.js'
+import { validateFormErrors, makeCheckeableArray } from '../utils/utils.js'
 import LrTable from '@/components/LrTable.vue'
 import * as yup from 'yup'
 import { object } from 'yup'
@@ -180,11 +179,6 @@ export default {
       modalId: '',
       modalFields: {},
       modalTitle: '',
-      // CKEditor
-      editor: ClassicEditor,
-      editorConfig: {
-        // The configuration of the editor.
-      }
     }
   },
   methods: {
@@ -372,11 +366,11 @@ export default {
       <div class="row p-1 align-items-center form-group mb-3">
         <label class="col-sm-12 col-form-label fw-bold">Descripció de l'Activitat</label>
         <div class="col-sm-12">
-          <ckeditor
-            :editor="editor"
+          <textarea
+            class="form-control"
             v-model="modalFields.description"
-            :config="editorConfig"
-          ></ckeditor>
+            rows="3"
+            placeholder="Descripció de l'activitat"></textarea>
           <p class="text-danger" v-if="errors.description">{{ errors.description }}</p>
         </div>
       </div>

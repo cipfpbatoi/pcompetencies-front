@@ -65,7 +65,7 @@ export default {
       <p class="text-danger fw-semibold text-center" v-html="$route.query.message"></p>
       <form @submit.prevent="handleForm">
         <div class="mb-3">
-          <label class="form-label fw-bold">Email per a loguejarse</label>
+          <label class="form-label fw-bold">Usuari</label>
           <input
             type="email"
             class="form-control"

@@ -60,12 +60,12 @@ export default {
 
 <template>
   <div>
-    <div class="col-md-5 mx-auto border p-3">
-      <h2 class="text-center p-lg-3 text-primary">Inicia sessió</h2>
+    <div class="col-12 col-sm-5 mx-auto border p-4 border-info rounded mt-3 bg-primary-subtle">
+      <h2 class="text-center p-lg-3 text-primary"><i class="bi bi-emoji-smile"></i><br>Inicia sessió</h2>
       <p class="text-danger fw-semibold text-center" v-html="$route.query.message"></p>
       <form @submit.prevent="handleForm">
         <div class="mb-3">
-          <label class="form-label">Email per a loguejarse</label>
+          <label class="form-label fw-bold">Email per a loguejarse</label>
           <input
             type="email"
             class="form-control"
@@ -75,7 +75,7 @@ export default {
           <p v-if="errors.email" class="error">{{ errors.email }}</p>
         </div>
         <div class="mb-3">
-          <label class="form-label">Contrasenya</label>
+          <label class="form-label fw-bold text-center">Contrasenya</label>
           <div v-if="showPassword" class="input-group">
             <span class="input-group-text" @click="showPassword = !showPassword">
               <svg
@@ -130,9 +130,6 @@ export default {
             />
           </div>
           <p v-if="errors.password" class="error">{{ errors.password }}</p>
-          <div class="mt-2 text-end">
-            <a href="#">He oblidat la contrasenya</a>
-          </div>
         </div>
         <div class="text-center">
           <span class="spinner-border text-primary" :class="{ 'd-none' : !this.isLogging }"></span>

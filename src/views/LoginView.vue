@@ -45,7 +45,7 @@ export default {
         } else {
           this.$router.push('/')
           if (this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT')
-              || this.user.info?.roles.includes('ROLE_ADMIN')) {
+            || this.user.info?.roles.includes('ROLE_ADMIN')) {
             this.$router.push('/syl-manage')
           } else {
             this.$router.push('/')
@@ -60,23 +60,26 @@ export default {
 
 <template>
   <div>
-    <div class="col-12 col-sm-5 mx-auto border p-4 border-info rounded mt-3 bg-primary-subtle">
-      <h2 class="text-center p-lg-3 text-primary"><i class="bi bi-emoji-smile p-2"></i>¡Hola!</h2>
-      <p class="text-danger fw-semibold text-center" v-html="$route.query.message"></p>
-      <form @submit.prevent="handleForm">
-        <div class="mb-3">
-          <label class="form-label fw-bold">Usuari</label>
-          <input
-            type="email"
-            class="form-control"
-            v-model="credentials.email"
-            placeholder="email de l'usuari que gestionarà el compte"
-          />
-          <p v-if="errors.email" class="error">{{ errors.email }}</p>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold text-center">Contrasenya</label>
-          <div v-if="showPassword" class="input-group">
+    <div class="col-12 col-sm-5 mx-auto card mt-5 border-info">
+      <div class="card-header border-info bg-info">
+        <h2 class="text-center p-lg-3 text-white h1">¡Hola!<i class="bi bi-emoji-smile p-2"></i></h2>
+      </div>
+      <div class="card-body">
+        <p class="text-danger fw-semibold text-center" v-html="$route.query.message"></p>
+        <form @submit.prevent="handleForm">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Usuari</label>
+            <input
+              type="email"
+              class="form-control"
+              v-model="credentials.email"
+              placeholder="email de l'usuari que gestionarà el compte"
+            />
+            <p v-if="errors.email" class="error">{{ errors.email }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-center">Contrasenya</label>
+            <div v-if="showPassword" class="input-group">
             <span class="input-group-text" @click="showPassword = !showPassword">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -97,14 +100,14 @@ export default {
                 ></path>
               </svg>
             </span>
-            <input
-              type="text"
-              class="form-control"
-              v-model="credentials.password"
-              placeholder="Mínim 7 caracters"
-            />
-          </div>
-          <div v-else class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                v-model="credentials.password"
+                placeholder="Mínim 7 caracters"
+              />
+            </div>
+            <div v-else class="input-group">
             <span class="input-group-text" @click="showPassword = !showPassword">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -122,20 +125,21 @@ export default {
                 ></path>
               </svg>
             </span>
-            <input
-              type="password"
-              class="form-control"
-              v-model="credentials.password"
-              placeholder="Mínim 7 caracters"
-            />
+              <input
+                type="password"
+                class="form-control"
+                v-model="credentials.password"
+                placeholder="Mínim 7 caracters"
+              />
+            </div>
+            <p v-if="errors.password" class="error">{{ errors.password }}</p>
           </div>
-          <p v-if="errors.password" class="error">{{ errors.password }}</p>
-        </div>
-        <div class="text-center">
-          <span class="spinner-border text-primary" :class="{ 'd-none' : !this.isLogging }"></span>
-          <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Iniciar Sessió</button>
-        </div>
-      </form>
+          <div class="text-center">
+            <span class="spinner-border text-primary" :class="{ 'd-none' : !this.isLogging }"></span>
+            <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Iniciar Sessió</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>

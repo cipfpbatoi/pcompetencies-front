@@ -61,7 +61,7 @@ export default {
 <template>
   <div>
     <div class="col-12 col-sm-5 mx-auto border p-4 border-info rounded mt-3 bg-primary-subtle">
-      <h2 class="text-center p-lg-3 text-primary"><i class="bi bi-emoji-smile"></i><br>Inicia sessió</h2>
+      <h2 class="text-center p-lg-3 text-primary"><i class="bi bi-emoji-smile p-2"></i>¡Hola!</h2>
       <p class="text-danger fw-semibold text-center" v-html="$route.query.message"></p>
       <form @submit.prevent="handleForm">
         <div class="mb-3">
@@ -133,7 +133,7 @@ export default {
         </div>
         <div class="text-center">
           <span class="spinner-border text-primary" :class="{ 'd-none' : !this.isLogging }"></span>
-          <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Enviar</button>
+          <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Iniciar Sessió</button>
         </div>
       </form>
     </div>

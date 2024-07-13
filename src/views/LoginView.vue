@@ -60,7 +60,7 @@ export default {
 
 <template>
   <div>
-    <div class="col-12 col-md-5 mx-auto card mt-2 mt-sm-5 border-info">
+    <div class="col-12 col-md-5 mx-auto card mt-2 mt-sm-5 border-info shadow">
       <div class="card-header border-info bg-info">
         <h2 class="text-center p-lg-3 text-white h1">¡Hola!<i class="bi bi-emoji-smile p-2"></i></h2>
       </div>
@@ -136,7 +136,7 @@ export default {
           </div>
           <div class="text-center">
             <span class="spinner-border text-primary" :class="{ 'd-none' : !this.isLogging }"></span>
-            <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Iniciar Sessió</button>
+            <button type="submit" class="btn btn-primary" :class="{ 'd-none' : this.isLogging }">Entrar</button>
           </div>
         </form>
       </div>

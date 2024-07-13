@@ -136,6 +136,7 @@ export default {
             <li v-if="errors.improvementsProposals">{{ errors.improvementsProposals }}</li>
             <li v-if="errors.didacticResources">{{ errors.didacticResources }}</li>
             <li v-if="errors.methodologicalPrinciples">{{ errors.methodologicalPrinciples }}</li>
+            <li v-if="errors.technologicalModuleProcess">{{ errors.technologicalModuleProcess }}</li>
           </ul>
           <div v-if="errors.learningSituations">
             <h5>Situacions d'aprenentatge</h5>

@@ -247,9 +247,9 @@ export default {
               <td>{{ syl.cycle.shortName }}</td>
               <td>{{ syl.module.code }}</td>
               <td :title="syl.module.code">{{ syl.module.name }}</td>
-              <td>{{ syl.turn }}</td>
+              <td>{{ (syl.turn === 'presential' ? 'Presencial' : 'Semi-presencial') }}</td>
               <td class="align-middle">
-                <span class="text-white p-1" :class="statusClass(syl.status)">{{
+                <span :class="statusClass(syl.status)">{{
                   syl.status
                 }}</span>
               </td>

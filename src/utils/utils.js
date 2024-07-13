@@ -42,15 +42,15 @@ async function validateFormErrors(validationSchema, data) {
 function statusClass(status) {
   switch (status) {
     case 'pendent':
-      return 'bg-warning'
+      return 'badge bg-warning'
     case 'enviada':
-      return 'bg-info'
+      return 'badge bg-info'
     case 'rebutjada':
-      return 'bg-danger'
+      return 'badge bg-danger'
     case 'aprovada':
-      return 'bg-success'
+      return 'badge bg-success'
     default:
-      return 'bg-dark'
+      return 'badge bg-dark'
   }
 }
 

@@ -201,7 +201,7 @@ export default {
           </div>
         </div>
         <div class="row align-items-center m-2">
-          <div class="col-lg-5 text-center col-sm-12">
+          <div class="col-lg-5 text-center col-12 m-1">
             <label class="p-2 fw-bold col-6">Codi del Mòdul:</label>
             <input
               @input="getSyllabuses"
@@ -221,8 +221,8 @@ export default {
               <option v-for="state in status" :value="state" :key="state">{{ state }}</option>
             </select>
           </div>
-          <div class="col-lg text-center col-sm-12">
-            <button @click="clear" type="button" class="btn btn-secondary btn-sm">
+          <div class="col-lg text-center col-sm-12 m-1">
+            <button @click="clear" type="button" class="btn btn-secondary">
               Borrar filtres
             </button>
           </div>

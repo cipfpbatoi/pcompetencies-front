@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-5 border shadow view-main p-5">
+  <div class="mt-2 mt-sm-5 border shadow view-main p-2 p-sm-5">
     <h2>Sobre Nosaltres</h2>
     <p>Benvinguts a l'aplicació del CIP FP Batoi per a gestionar les programacions didàctiques. Som una institució compromesa amb l'excel·lència educativa i dedicada a proporcionar una formació integral i de qualitat als nostres estudiants.</p>
 

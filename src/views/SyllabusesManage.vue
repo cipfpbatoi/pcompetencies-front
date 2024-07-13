@@ -180,7 +180,7 @@ export default {
     </ModalComponent>
     <div class="p-lg-4 p-1 overflow-auto">
       <h2 class="fw-bold">Gestió de les programacions</h2>
-      <div class="p-3 alert alert-primary">
+      <div class="p-3 alert bg-info border-primary border text-white">
         <div class="row mb-3">
           <div class="col-lg-12 d-flex align-items-center">
             <label class="p-2 fw-bold">Cicle:</label>

@@ -9,7 +9,10 @@ export default {
       return this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT') || this.user.info?.roles.includes('ROLE_ADMIN');
     },
     isLogged() {
-      return !!this.user.token
+      return this.user.token
+    },
+    isloginPage() {
+      return window.location.pathname.startsWith('/login')
     }
   },
   methods: {
@@ -30,10 +33,10 @@ export default {
 <template>
   <nav class="navbar navbar-expand-lg justify-content-lg-end justify-content-center">
     <ul class="nav justify-content-end">
+      <li class="nav-item">
+        <RouterLink class="nav-link" to="/">Inici</RouterLink>
+      </li>
       <template v-if="isLogged">
-        <li class="nav-item">
-          <RouterLink class="nav-link" to="/">Inici</RouterLink>
-        </li>
         <li class="nav-item" v-if="isAdminOrHeadOfDepartament">
           <RouterLink class="nav-link" to="/syl-manage">Gestionar programacions</RouterLink>
         </li>
@@ -42,7 +45,7 @@ export default {
         </li>
       </template>
       <template v-else>
-        <li class="nav-item">
+        <li class="nav-item" v-if="!isloginPage">
           <RouterLink class="nav-link" to="/login">Entrar</RouterLink>
         </li>
       </template>

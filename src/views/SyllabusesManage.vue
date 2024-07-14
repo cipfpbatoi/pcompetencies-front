@@ -157,6 +157,7 @@ export default {
 </script>
 
 <template>
+  <div class="border-bottom border-3 border-info"></div>
   <main class="border shadow view-main">
     <ModalComponent
       @save="reject"

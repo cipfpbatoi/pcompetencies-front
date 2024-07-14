@@ -311,7 +311,8 @@ export default {
               </div>
               <div class="card-body text-center">
                 <div v-if="canEdit">
-                  <div v-if="getSyllabusByTurn(turn).id">
+                  <div class="m-2" v-if="getSyllabusByTurn(turn).id">
+                    <p v-if="['rebutjada'].includes(getSyllabusByTurn(turn).status)" class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start"><strong>Rebutjada!</strong> Raó: {{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
                     <ActionButton
                       v-if="isSyllabusOfCurrentYear(turn)"
                       :disabled="!['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)"
@@ -328,7 +329,6 @@ export default {
                       buttonClass="btn-primary col-12 col-sm-4"
                       iconClass="bi bi-plus-circle-fill"
                     ></ActionButton>
-                    <p class="bg-danger-subtle">{{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
                   </div>
                   <div v-else>
                     <ActionButton

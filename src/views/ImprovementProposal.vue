@@ -25,13 +25,13 @@ export default {
     ...mapState(useDataStore, ['syllabus'])
   },
   mounted() {
-    if (!this.syllabus.currentImprovementProposal) {
+    if (!this.syllabus.lastYearImprovementProposal) {
       this.done = true
     } else {
       if (this.syllabus.currentImprovementProposal.comments) {
         this.done = true
-        this.modalFields.accepted = this.syllabus.currentImprovementProposal.status == 2
-        this.modalFields.comments = this.syllabus.currentImprovementProposal.comments
+        this.modalFields.accepted = this.syllabus.lastYearImprovementProposal.status == 2
+        this.modalFields.comments = this.syllabus.lastYearImprovementProposal.comments
       }
     }
     this.modalFields.groupContext = this.syllabus.groupContext
@@ -53,9 +53,8 @@ export default {
     showModal() {
       this.GenericModal.show()
     },
-    hasPendingImprovementProposals(syllabus) {
-      return (syllabus.currentImprovementProposal
-        && !syllabus.currentImprovementProposal.schoolYear.effective)
+    hasLastYearImprovementProposals(syllabus) {
+      return (syllabus.lastYearImprovementProposal);
     },
     getProposalTextStatus(syllabusStatus) {
       if (syllabusStatus === 1) {
@@ -121,19 +120,19 @@ export default {
     <div class="p-lg-4 p-1">
       <h2>2. Propostes de millora</h2>
       <div class="p-2">
-        <div v-if="hasPendingImprovementProposals(syllabus)">
+        <div v-if="hasLastYearImprovementProposals(syllabus)">
           <div class="card m-2">
             <div class="card-header bg-info text-white text-uppercase fw-bold">
                  Propostes de millora per al Curs - <i>{{ syllabus.courseYear }}</i>
             </div>
             <div class="card-body">
-              <p class="h5"><strong>Propostes del Curs: </strong>{{ syllabus.currentImprovementProposal.courseYear }}</p>
-              <p class="border rounded bg-light p-3" v-html="syllabus.currentImprovementProposal.proposals"></p>
+              <p class="h5"><strong>Propostes del Curs: </strong>{{ syllabus.lastYearImprovementProposal.courseYear }}</p>
+              <p class="border rounded bg-light p-3" v-html="syllabus.lastYearImprovementProposal.proposals"></p>
               <h4>Resposta Aplicació de les Propostes</h4>
               <div class="border p-2">
-                <p>{{ getProposalTextStatus(syllabus.currentImprovementProposal.status) }}
+                <p>{{ getProposalTextStatus(syllabus.lastYearImprovementProposal.status) }}
                 </p>
-                <p class="bg-light-subtle fw-bold">{{ syllabus.currentImprovementProposal.comments }}</p>
+                <p class="bg-light-subtle fw-bold">{{ syllabus.lastYearImprovementProposal.comments }}</p>
             </div>
               <div class="text-center">
                 <button

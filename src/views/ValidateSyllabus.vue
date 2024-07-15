@@ -79,7 +79,6 @@ export default {
         const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv.split(';'))
         this.isLoading = false
         this.GenericModal.hide()
-        console.log(response);
         if (response.status !== 200) {
           this.addMessage('error', response)
           return;

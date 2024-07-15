@@ -93,7 +93,7 @@ export default {
       this.ImprovementModal.show()
     },
     isSyllabusOfCurrentYear(turn) {
-      return this.getSyllabusByTurn(turn).courseYear == this.currentData.currentSchoolYear.course
+      return this.getSyllabusByTurn(turn).courseYear === this.currentData.currentSchoolYear.course
     },
     editButtonText(turn) {
       const syllabus = this.getSyllabusByTurn(turn)

@@ -187,7 +187,7 @@ export const useDataStore = defineStore('data', {
     async evaluateImprovement(id, data) {
       try {
         const response = await api.evaluateImprovement(id, data)
-        this.syllabus.currentImprovementProposal = response.data.improvementProposal
+        this.syllabus.currentImprovementProposal = response.data
         this.addMessage('success', 'Avaluació de propostes guardada')
         return 'ok'
       } catch (error) {

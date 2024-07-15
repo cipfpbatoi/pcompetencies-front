@@ -53,6 +53,19 @@ export default {
     showModal() {
       this.GenericModal.show()
     },
+    hasPendingImprovementProposals(syllabus) {
+      return (syllabus.currentImprovementProposal &&
+        syllabus.currentImprovementProposal.courseYear !== syllabus.courseYear )
+    },
+    getProposalTextStatus(syllabusStatus) {
+      if (syllabusStatus === 1) {
+          return "Encara no s'ha donat resposta"
+      } else if(syllabusStatus === 2)  {
+          return "S'aplicaran les propostes de millora o part d'elles:"
+      }  else {
+         return "NO s'aplicaran les propostes de millora: "
+      }
+    },
     async saveData() {
       if (!this.modalFields.accepted) {
         if (
@@ -69,11 +82,9 @@ export default {
       const response = await this.evaluateImprovement(this.syllabus.id, this.modalFields)
       if (response === 'ok') {
         this.done = true
-        this.syllabus.currentImprovementProposal.status = this.modalFields.accepted ? 2 : 3
-        this.syllabus.currentImprovementProposal.comments = this.modalFields.comments
         this.GenericModal.hide()
       } else {
-        if (response.response?.status == 422) {
+        if (response.response?.status === 422) {
           const serverError = response.response.data.detail.split(': ')
           this.errors[serverError[0]] = serverError[1]
           return
@@ -98,7 +109,7 @@ export default {
             class="form-control"
             v-model="modalFields.comments"
             rows="3"
-            placeholder="Justificació"
+            placeholder="Has de d'indicar les millores que vas a aplicar i, si és el cas, les que no justificant perqué no vas a aplicarles..."
           ></textarea>
           <p v-if="errors.comments" class="error">{{ errors.comments }}</p>
         </div>
@@ -110,33 +121,43 @@ export default {
     <div class="p-lg-4 p-1">
       <h2>2. Propostes de millora</h2>
       <div class="p-2">
-        <div v-if="syllabus.currentImprovementProposal">
-          <p class="border p-2" v-html="syllabus.currentImprovementProposal.proposals"></p>
-          <h4><i>Feedback</i> de la proposta</h4>
-          <div class="border bg-light p-2">
-            <p>
-              {{
-                syllabus.currentImprovementProposal.status == 2
-                  ? "S'aplicaran les propostes de millora o part d'elles:"
-                  : "NO s'aplicaran les propostes de millora: "
-              }}
-            </p>
-            <p class="bg-light-subtle fw-bold">{{ syllabus.currentImprovementProposal.comments }}</p>
+        <div v-if="hasPendingImprovementProposals(syllabus)">
+          <div class="card m-2">
+            <div class="card-header bg-info text-white text-uppercase fw-bold">
+                 Propostes de millora per al Curs - <i>{{ syllabus.courseYear }}</i>
+            </div>
+            <div class="card-body">
+              <p class="h5"><strong>Propostes del Curs: </strong>{{ syllabus.currentImprovementProposal.courseYear }}</p>
+              <p class="border rounded bg-light p-3" v-html="syllabus.currentImprovementProposal.proposals"></p>
+              <h4>Resposta Aplicació de les Propostes</h4>
+              <div class="border p-2">
+                <p>{{ getProposalTextStatus(syllabus.currentImprovementProposal.status) }}
+                </p>
+                <p class="bg-light-subtle fw-bold">{{ syllabus.currentImprovementProposal.comments }}</p>
+            </div>
+              <div class="text-center">
+                <button
+                  @click="showModal()"
+                  class="btn btn-success mt-2 mx-auto"
+                  title="Establir objectiu"
+                >
+                  Modificar/Donar Resposta a les propostes de millora
+                </button>
+              </div>
           </div>
-          <div class="text-center">
-            <button
-              @click="showModal()"
-              class="btn btn-success mt-2 mx-auto"
-              title="Establir objectiu"
-            >
-              Modificar/Donar Resposta a les propostes de millora
-            </button>
-          </div>
-        </div>
-        <div v-else>
-          <p>No hi ha propostes de millora</p>
         </div>
       </div>
+      <div v-else>
+        <div class="card m-2">
+          <div class="card-header bg-info text-white text-uppercase fw-bold">
+            Propostes de millora per al Curs <i>{{ syllabus.courseYear }}</i>
+          </div>
+          <div class="card-body">
+              <p>No hi ha propostes de millora del curs anterior</p>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   </main>
 </template>

@@ -54,8 +54,8 @@ export default {
       this.GenericModal.show()
     },
     hasPendingImprovementProposals(syllabus) {
-      return (syllabus.currentImprovementProposal &&
-        syllabus.currentImprovementProposal.courseYear !== syllabus.courseYear )
+      return (syllabus.currentImprovementProposal
+        && !syllabus.currentImprovementProposal.schoolYear.effective)
     },
     getProposalTextStatus(syllabusStatus) {
       if (syllabusStatus === 1) {

@@ -100,10 +100,12 @@ export default {
         )
       ) {
         try {
+          this.loading = true
           await api.syllabusApprove(syllabus.id)
           this.addMessage('success', 'Programació aprovada')
           this.RejectSyllabusModal.hide()
-          this.syllabuses.find((syl) => syl.id === this.modalFields.id).status = 'aprovada'
+          this.syllabuses.find((syl) => syl.id === syllabus.id).status = 'aprovada'
+          this.loading = false
         } catch (error) {
           this.addMessage('error', error)
         }
@@ -240,7 +242,7 @@ export default {
             <th>Estat</th>
             <th>Accions</th>
           </thead>
-          <tbody>
+          <tbody :class="{ 'd-none' : this.loading }">
             <tr v-for="syl in syllabuses" :key="syl.id">
               <td v-if="checkeable" class="text-center align-middle">
                 <input type="checkbox" v-model="item.checked" />
@@ -289,7 +291,6 @@ export default {
             </tr>
           </tbody>
           <tfoot>
-
             <tr>
               <td colspan="9">
                 <div class="text-center p-2" :class="{ 'd-none' : !this.loading }">

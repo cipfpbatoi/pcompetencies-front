@@ -93,10 +93,10 @@ export default {
       if (
         confirm(
           'Vas a aprovar la programació "' +
-            syllabus.module.name +
-            '" del cicle"' +
-            syllabus.cycle.shortName +
-            '"'
+          syllabus.module.name +
+          '" del cicle"' +
+          syllabus.cycle.shortName +
+          '"'
         )
       ) {
         try {
@@ -123,10 +123,10 @@ export default {
       if (
         confirm(
           'Vas a posar la programació "' +
-            syllabus.module.name +
-            '" del cicle"' +
-            syllabus.cycle.shortName +
-            '" com a pendent'
+          syllabus.module.name +
+          '" del cicle"' +
+          syllabus.cycle.shortName +
+          '" com a pendent'
         )
       ) {
         try {
@@ -185,31 +185,33 @@ export default {
       <h2 class="fw-bold">Gestió de les programacions</h2>
       <div class="p-3 alert bg-info border-primary border text-white">
         <div class="row mb-3">
-          <div class="col-lg-12 d-flex align-items-center">
-            <label class="p-2 fw-bold">Cicle:</label>
+          <div class="row align-items-center">
+            <label class="col-12 col-lg-1 p-2 fw-bold">Cicle:</label>
             <input
               @input="getSyllabuses"
               size="10"
               type="text"
               v-model="cycleNameFilter"
-              class="form-input col-5 p-2"
+              class="form-input col-12 col-lg-5 p-2 m-lg-0 m-2"
               placeholder="Escriu el nom del cicle"
             />
-            <select @change="getSyllabuses" v-model="cycleFilter" class="form-select p-2 mx-2">
-              <option value="0">--- o tria un cicle ---</option>
-              <option v-for="cycle in cycles" :value="cycle.id" :key="cycle.id">
-                {{ cycle.shortName }}
-              </option>
-            </select>
+            <div class="col-12 col-lg-6 p-0">
+              <select @change="getSyllabuses" v-model="cycleFilter" class="d-inline mx-2 form-select fw-bold">
+                <option value="0">--- o tria un cicle ---</option>
+                <option v-for="cycle in cycles" :value="cycle.id" :key="cycle.id">
+                  {{ cycle.shortName }}
+                </option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="row align-items-center m-2">
-          <div class="col-lg-5 text-center col-12 m-1">
-            <label class="p-2 fw-bold col-6">Codi del Mòdul:</label>
+        <div class="row align-items-center">
+          <div class="col-lg-5 col-12">
+            <label class="fw-bold col-12 col-lg-4">Codi del Mòdul:</label>
             <input
               @input="getSyllabuses"
               v-model="moduleFilter"
-              class="form-input p-2 col-6"
+              class="form-input p-2 col-12 col-lg-8 m-lg-0 my-1"
               placeholder="Ex. 03012..."
             />
           </div>
@@ -234,79 +236,79 @@ export default {
       <div style="overflow: auto">
         <table class="table table-striped col-lg-12 text-center">
           <thead>
-            <th v-if="checkeable" title="Selecciona" class="text-center">Sel.</th>
-            <th>Cicle</th>
-            <th>Codi</th>
-            <th>Mòdul</th>
-            <th>Torn</th>
-            <th>Estat</th>
-            <th>Accions</th>
+          <th v-if="checkeable" title="Selecciona" class="text-center">Sel.</th>
+          <th>Cicle</th>
+          <th>Codi</th>
+          <th>Mòdul</th>
+          <th>Torn</th>
+          <th>Estat</th>
+          <th>Accions</th>
           </thead>
           <tbody :class="{ 'd-none' : this.loading }">
-            <tr v-for="syl in syllabuses" :key="syl.id">
-              <td v-if="checkeable" class="text-center align-middle">
-                <input type="checkbox" v-model="item.checked" />
-              </td>
-              <td>{{ syl.cycle.shortName }}</td>
-              <td>{{ syl.module.code }}</td>
-              <td :title="syl.module.code">{{ syl.module.name }}</td>
-              <td>{{ (syl.turn === 'presential' ? 'Presencial' : 'Semi-presencial') }}</td>
-              <td class="align-middle">
+          <tr v-for="syl in syllabuses" :key="syl.id">
+            <td v-if="checkeable" class="text-center align-middle">
+              <input type="checkbox" v-model="item.checked" />
+            </td>
+            <td>{{ syl.cycle.shortName }}</td>
+            <td>{{ syl.module.code }}</td>
+            <td :title="syl.module.code">{{ syl.module.name }}</td>
+            <td>{{ (syl.turn === 'presential' ? 'Presencial' : 'Semi-presencial') }}</td>
+            <td class="align-middle">
                 <span :class="statusClass(syl.status)">{{
-                  syl.status
-                }}</span>
-              </td>
-              <td>
-                <button
-                  @click="accept(syl)"
-                  :hidden="syl.status != 'enviada'"
-                  type="button"
-                  class="btn btn-success"
-                >
-                  Aprova</button
-                >&nbsp;
-                <button
-                  @click="showRejectModal(syl)"
-                  :hidden="syl.status !== 'enviada'"
-                  type="button"
-                  class="btn btn-danger"
-                >
-                  Rebutja</button
-                >&nbsp;
-                <button
-                  @click="setPending(syl)"
-                  :hidden="syl.status === 'pendent'"
-                  type="button"
-                  class="btn btn-warning"
-                >
-                  Posa pendent</button
-                >&nbsp;
-                <button
-                  @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
-                  type="button"
-                  class="btn btn-secondary">
-                  Veure
-                </button>
-              </td>
-            </tr>
+                    syl.status
+                  }}</span>
+            </td>
+            <td>
+              <button
+                @click="accept(syl)"
+                :hidden="syl.status != 'enviada'"
+                type="button"
+                class="btn btn-success"
+              >
+                Aprova</button
+              >&nbsp;
+              <button
+                @click="showRejectModal(syl)"
+                :hidden="syl.status !== 'enviada'"
+                type="button"
+                class="btn btn-danger"
+              >
+                Rebutja</button
+              >&nbsp;
+              <button
+                @click="setPending(syl)"
+                :hidden="syl.status === 'pendent'"
+                type="button"
+                class="btn btn-warning"
+              >
+                Posa pendent</button
+              >&nbsp;
+              <button
+                @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
+                type="button"
+                class="btn btn-secondary">
+                Veure
+              </button>
+            </td>
+          </tr>
           </tbody>
           <tfoot>
-            <tr>
-              <td colspan="9">
-                <div class="text-center p-2" :class="{ 'd-none' : !this.loading }">
-                  <span class="spinner-border text-primary m-auto"></span>
-                </div>
-                <div class="mt-2">
-                  <strong class="p-2">Programacions per pàgina:</strong>
-                  <select @change="getSyllabuses" v-model="itemsPerPage">
-                    <option>5</option>
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
-                  </select>
-                </div>
-              </td>
-            </tr>
+          <tr>
+            <td colspan="9">
+              <div class="text-center p-2" :class="{ 'd-none' : !this.loading }">
+                <span class="spinner-border text-primary m-auto"></span>
+              </div>
+              <div class="mt-2">
+                <strong class="p-2">Programacions per pàgina:</strong>
+                <select @change="getSyllabuses" v-model="itemsPerPage">
+                  <option>5</option>
+                  <option>10</option>
+                  <option>25</option>
+                  <option>50</option>
+                </select>
+              </div>
+            </td>
+          </tr>
           </tfoot>
         </table>
         <nav aria-label="Table navigation">
@@ -317,7 +319,7 @@ export default {
                 :class="{ disabled: page == 1 }"
                 @click.prevent="setPage(page - 1)"
                 href="#"
-                >Anterior</a
+              >Anterior</a
               >
             </li>
             <li class="page-item" :class="{ disabled: page == n }" v-for="n in page" :key="n">
@@ -329,7 +331,7 @@ export default {
                 :class="{ disabled: syllabuses.length < itemsPerPage }"
                 @click.prevent="setPage(page + 1)"
                 href="#"
-                >Següent</a
+              >Següent</a
               >
             </li>
           </ul>

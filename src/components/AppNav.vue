@@ -31,8 +31,8 @@ export default {
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-lg justify-content-lg-end justify-content-center">
-    <ul class="nav justify-content-end">
+  <nav class="navbar justify-content-lg-end justify-content-center">
+    <ul class="nav">
       <li class="nav-item">
         <RouterLink class="nav-link" to="/">Inici</RouterLink>
       </li>

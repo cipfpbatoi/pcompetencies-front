@@ -305,13 +305,13 @@ export default {
         </div>
         <div :class="{ 'd-none' : this.isLoading }">
           <template v-for="turn in cycle.availableTurns" :key="turn">
-            <div class="card m-2">
+            <div class="card my-2">
               <div class="card-header bg-info text-white text-uppercase fw-bold">
                   Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}
               </div>
               <div class="card-body text-center">
                 <div v-if="canEdit">
-                  <div class="m-2" v-if="getSyllabusByTurn(turn).id">
+                  <div class="my-2" v-if="getSyllabusByTurn(turn).id">
                     <p v-if="['rebutjada'].includes(getSyllabusByTurn(turn).status)" class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start"><strong>Rebutjada!</strong> Raó: {{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
                     <ActionButton
                       v-if="isSyllabusOfCurrentYear(turn)"

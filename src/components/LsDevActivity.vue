@@ -98,7 +98,7 @@ export default {
       return columns
     },
     moduleEcWithLr() {
-      return this.module?.learningResults.reduce(
+      return this.module?.learningResults?.reduce(
         (lRs, lr) =>
           lRs.concat(
             lr.evaluationCriterias.map((ec) => {
@@ -260,7 +260,7 @@ export default {
       this.showActivityDetails = details
     },
     getRaNumberFromId(id) {
-        return this.module?.learningResults.find((element) => element.id === id).number;
+        return this.module?.learningResults?.find((element) => element.id === id).number;
     },
     showModal(activity) {
       this.errors = []

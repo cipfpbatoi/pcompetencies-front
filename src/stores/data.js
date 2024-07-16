@@ -301,12 +301,7 @@ export const useDataStore = defineStore('data', {
     },
     async saveLSTransversalObjectives(lsId, data) {
       try {
-        const response = await api.saveLearningSituationTransversalObjectives(lsId, data)
-        this.syllabus.learningSituations.splice(
-          this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
-          1,
-          response.data
-        )
+        await api.saveLearningSituationTransversalObjectives(lsId, data)
       } catch (error) {
         if (error.response?.status != 422) {
           this.addMessage('error', error)

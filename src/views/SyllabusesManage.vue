@@ -259,36 +259,43 @@ export default {
                   }}</span>
             </td>
             <td>
-              <button
-                @click="accept(syl)"
-                :hidden="syl.status != 'enviada'"
-                type="button"
-                class="btn btn-success"
-              >
-                Aprova</button
-              >&nbsp;
-              <button
-                @click="showRejectModal(syl)"
-                :hidden="syl.status !== 'enviada'"
-                type="button"
-                class="btn btn-danger"
-              >
-                Rebutja</button
-              >&nbsp;
-              <button
-                @click="setPending(syl)"
-                :hidden="syl.status === 'pendent'"
-                type="button"
-                class="btn btn-warning"
-              >
-                Posa pendent</button
-              >&nbsp;
-              <button
-                @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
-                type="button"
-                class="btn btn-secondary">
-                Veure
-              </button>
+              <div class="btn-group">
+                <button
+                  @click="accept(syl)"
+                  :hidden="syl.status != 'enviada'"
+                  type="button"
+                  class="btn btn-success btn-sm"
+                  title="Aprovar"
+                >
+                  <i class="bi bi-check2-circle"></i></button
+                >&nbsp;
+                <button
+                  @click="showRejectModal(syl)"
+                  :hidden="syl.status !== 'enviada'"
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  title="Rebutjar"
+                >
+                  <i class="bi bi-x"></i></button
+                >&nbsp;
+                <button
+                  @click="setPending(syl)"
+                  :hidden="syl.status === 'pendent'"
+                  type="button"
+                  class="btn btn-warning btn-sm"
+                  title="Posar Pendent"
+                >
+                  <i class="bi bi-unlock-fill"></i></button
+                >&nbsp;
+                <button
+                  @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
+                  type="button"
+                  class="btn btn-info btn-sm"
+                  title="Veure"
+                >
+                  <i class="bi bi-eye-fill"></i>
+                </button>
+              </div>
             </td>
           </tr>
           </tbody>

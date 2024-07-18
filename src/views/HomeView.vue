@@ -137,7 +137,7 @@ export default {
       this.done = false
     },
     async getSyllabuses() {
-      this.isLoading = true;
+      this.isLoading = true
       try {
         const [respSyl, respSylToCopy] = await Promise.all([
           api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect),
@@ -149,7 +149,7 @@ export default {
         this.syllabuses = []
         this.addMessage('error', error)
       }
-      this.isLoading = false;
+      this.isLoading = false
     },
     async showCopyModal(turn) {
       this.errors = {}
@@ -207,28 +207,49 @@ export default {
       await this.fetchData(this.moduleSelect, syllabus.id)
       this.$router.push('/context')
     },
+    openPdf(turn) {
+      const syllabus = this.getSyllabusByTurn(turn)
+      const centerId = "03012165"
+      window.open(
+        `https://pcompetencies.cipfpbatoi.es/public/syllabus/${centerId}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
+        '_blank'
+      )
+    },
+    async copySyllabusUrl(turn) {
+      const syllabus = this.getSyllabusByTurn(turn)
+      const centerId = "03012165"
+      const url = `https://pcompetencies.cipfpbatoi.es/public/syllabus/${centerId}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
+      try {
+        await navigator.clipboard.writeText(url)
+        this.addMessage('success', 'Enllaç copiat al portapapers')
+      } catch (err) {
+        this.addMessage('error', 'Error al copiar: ' + err)
+      }
+    },
     async showPdf(turn) {
       try {
-        this.isLoading = true;
+        this.isLoading = true
         let syllabus = this.getSyllabusByTurn(turn)
         const response = await api.getPdf(syllabus.id)
         if (!response) {
           this.addMessage('error', response)
-          this.isLoading = false;
-          return;
+          this.isLoading = false
+          return
         }
-        const url = URL.createObjectURL(new Blob([response.data], {
-          type: 'application/pdf'
-        }))
+        const url = URL.createObjectURL(
+          new Blob([response.data], {
+            type: 'application/pdf'
+          })
+        )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'syllabus_'+ syllabus.id)
+        link.setAttribute('download', 'syllabus_' + syllabus.id)
         document.body.appendChild(link)
         link.click()
       } catch (error) {
         this.addMessage('error', error)
       }
-      this.isLoading = false;
+      this.isLoading = false
     },
     statusClass(status) {
       return statusClass(status)
@@ -239,25 +260,33 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <ModalComponent @save="saveImprovementProposals" title="Propostes de millora" modalId="improvementModal">
+    <ModalComponent
+      @save="saveImprovementProposals"
+      title="Propostes de millora"
+      modalId="improvementModal"
+    >
       <div class="row">
         <div v-show="modalFields.editable">
           <ckeditor
-          :editor="editor"
-          v-model="modalFields.currentImprovementProposal"
-          :config="editorConfig"
-        ></ckeditor>
+            :editor="editor"
+            v-model="modalFields.currentImprovementProposal"
+            :config="editorConfig"
+          ></ckeditor>
         </div>
         <div v-show="!modalFields.editable">
           <p v-html="modalFields.currentImprovementProposal || 'No hi ha cap proposta'"></p>
-          <button @click="modalFields.editable=true" class="btn btn-secondary">Editar</button>
+          <button @click="modalFields.editable = true" class="btn btn-secondary">Editar</button>
         </div>
         <p v-if="errors.currentImprovementProposal" class="error">
           {{ errors.currentImprovementProposal }}
         </p>
       </div>
     </ModalComponent>
-    <ModalComponent @save="copySyllabusFromOther" title="Tria quina programació vols copiar" modalId="copySylModal">
+    <ModalComponent
+      @save="copySyllabusFromOther"
+      title="Tria quina programació vols copiar"
+      modalId="copySylModal"
+    >
       <div class="row p-4">
         <select v-model="modalFields.selectedSyllabusToCopy">
           <option value="">--- Selecciona la programació ---</option>
@@ -268,7 +297,9 @@ export default {
         <p v-if="errors.selectedSyllabusToCopy" class="text-danger">Has de triar una programació</p>
       </div>
     </ModalComponent>
-    <h2 class="text-center fw-bold p-2 text-primary"><i class="bi bi-hand-index mx-2"></i>Tria la programació</h2>
+    <h2 class="text-center fw-bold p-2 text-primary">
+      <i class="bi bi-hand-index mx-2"></i>Tria la programació
+    </h2>
     <div class="container-fluid px-lg-4">
       <div class="form-group">
         <label class="form-label fw-bold">Cicle</label>
@@ -300,19 +331,26 @@ export default {
       </div>
       <br />
       <div v-if="moduleSelect" class="form-group">
-        <div class="text-center mt-5" :class="{ 'd-none' : !this.isLoading }">
+        <div class="text-center mt-5" :class="{ 'd-none': !this.isLoading }">
           <span class="spinner-border text-primary"></span>
         </div>
-        <div :class="{ 'd-none' : this.isLoading }">
+        <div :class="{ 'd-none': this.isLoading }">
           <template v-for="turn in cycle.availableTurns" :key="turn">
             <div class="card my-2">
               <div class="card-header bg-info text-white text-uppercase fw-bold">
-                  Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}
+                Modalitat {{ turn == 'presential' ? 'Presencial' : 'Semi-presencial' }}
               </div>
               <div class="card-body text-center">
+                <!-- Està obert el periode de modificació de programacions? -->
                 <div v-if="canEdit">
                   <div class="my-2" v-if="getSyllabusByTurn(turn).id">
-                    <p v-if="['rebutjada'].includes(getSyllabusByTurn(turn).status)" class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start"><strong>Rebutjada!</strong> Raó: {{ getSyllabusByTurn(turn).rejectedMessage?.reason }}</p>
+                    <p
+                      v-if="['rebutjada'].includes(getSyllabusByTurn(turn).status)"
+                      class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start"
+                    >
+                      <strong>Rebutjada!</strong> Raó:
+                      {{ getSyllabusByTurn(turn).rejectedMessage?.reason }}
+                    </p>
                     <ActionButton
                       v-if="isSyllabusOfCurrentYear(turn)"
                       :disabled="!['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)"
@@ -342,7 +380,9 @@ export default {
                         @clicked="showCopyModal(turn)"
                         title="Crear a partir d'altra programació"
                         buttonClass="btn-primary mt-2 mt-sm-0 col-12 col-sm-4"
-                        iconClass="bi bi-node-plus-fill"></ActionButton></div>
+                        iconClass="bi bi-node-plus-fill"
+                      ></ActionButton>
+                    </div>
                   </div>
                 </div>
                 <div v-else>
@@ -353,11 +393,32 @@ export default {
                   >
                   </ActionButton>
                 </div>
-                <ActionButton
+                <div v-if="getSyllabusByTurn(turn)?.status == 'aprovada'">
+                  <ActionButton
+                    v-if="getSyllabusByTurn(turn).id"
+                    @click="openPdf(turn)"
+                    buttonClass="btn btn-danger col-12 col-sm-4"
+                    title="Veure PDF"
+                    icon-class="bi bi-file-earmark-pdf-fill"
+                  ></ActionButton>
+                  <p>
+                    Aquesta programació ja està aprovada i per tant és pública. Pots copiar l'enllaç
+                    per a pasar-li-ho als alumnes.
+                    <button
+                      @click="copySyllabusUrl(turn)"
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      title="Copiar enllaç"
+                    >
+                      <i class="bi bi-copy"></i>
+                    </button>
+                  </p>
+                </div>
+                <ActionButton v-else
                   v-if="getSyllabusByTurn(turn).id"
                   @click="showPdf(turn)"
                   buttonClass="btn btn-danger col-12 col-sm-4"
-                  title="Veure PDF"
+                  title="Veure esborrany"
                   icon-class="bi bi-file-earmark-pdf-fill"
                 ></ActionButton>
               </div>

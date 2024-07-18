@@ -232,7 +232,7 @@ export default {
                 :rowspan="ls.activities.length"
                 v-html="showRas(activity)"
               ></td>
-              <td><strong>{{ activity.code }}</strong> <cite>({{activity.assessmentTool.name}})</cite></td>
+              <td :title="activity.description"><strong>{{ activity.code }}</strong> <cite>({{activity.assessmentTool.name}})</cite></td>
               <td v-html="showCes(activity)"></td>
               <td>{{ activity.percentageWeight }} %</td>
               <td>

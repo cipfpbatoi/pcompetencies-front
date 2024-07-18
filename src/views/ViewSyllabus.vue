@@ -31,7 +31,7 @@ export default {
       const msgError = errorJSON.detail || errorJSON.message;
       this.addMessage('error', msgError)
       this.msg = msgError
-      this.title = 'Programació no encontrada'
+      this.title = 'Programació no Publicada'
     }
   },
   data() {

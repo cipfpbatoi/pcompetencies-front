@@ -74,7 +74,7 @@ export default {
       editor: ClassicEditor,
       editorConfig: {
         // The configuration of the editor.
-      }
+      },
     }
   },
   methods: {
@@ -210,13 +210,13 @@ export default {
     openPdf(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
       window.open(
-        `https://pcompetencies.cipfpbatoi.es/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
+        window.location.origin+`/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
         '_blank'
       )
     },
     async copySyllabusUrl(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
-      const url = `https://pcompetencies.cipfpbatoi.es/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
+      const url = window.location.origin + `/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
       try {
         await navigator.clipboard.writeText(url)
         this.addMessage('success', 'Enllaç copiat al portapapers')
@@ -399,9 +399,8 @@ export default {
                     title="Veure PDF"
                     icon-class="bi bi-file-earmark-pdf-fill"
                   ></ActionButton>
-                  <p>
-                    Aquesta programació ja està aprovada i per tant és pública. Pots copiar l'enllaç
-                    per a pasar-li-ho als alumnes.
+                  <p class="alert alert-info col-12 col-lg-10 text-center m-auto mt-2">
+                    Esta programació ja està aprovada i, per tant, és pública. Pots copiar l'enllaç per a passar-li-ho als alumnes.
                     <button
                       @click="copySyllabusUrl(turn)"
                       type="button"

@@ -209,16 +209,14 @@ export default {
     },
     openPdf(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
-      const centerId = "03012165"
       window.open(
-        `https://pcompetencies.cipfpbatoi.es/public/syllabus/${centerId}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
+        `https://pcompetencies.cipfpbatoi.es/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
         '_blank'
       )
     },
     async copySyllabusUrl(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
-      const centerId = "03012165"
-      const url = `https://pcompetencies.cipfpbatoi.es/public/syllabus/${centerId}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
+      const url = `https://pcompetencies.cipfpbatoi.es/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
       try {
         await navigator.clipboard.writeText(url)
         this.addMessage('success', 'Enllaç copiat al portapapers')
@@ -414,13 +412,15 @@ export default {
                     </button>
                   </p>
                 </div>
-                <ActionButton v-else
+                <div v-else>
+                  <ActionButton 
                   v-if="getSyllabusByTurn(turn).id"
                   @click="showPdf(turn)"
                   buttonClass="btn btn-danger col-12 col-sm-4"
                   title="Veure esborrany"
                   icon-class="bi bi-file-earmark-pdf-fill"
                 ></ActionButton>
+                </div>
               </div>
             </div>
           </template>

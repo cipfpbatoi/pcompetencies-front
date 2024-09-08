@@ -28,7 +28,7 @@ export default {
     if (!this.syllabus.lastYearImprovementProposal) {
       this.done = true
     } else {
-      if (this.syllabus.currentImprovementProposal.comments) {
+      if (this.syllabus.currentImprovementProposal?.comments) {
         this.done = true
         this.modalFields.accepted = this.syllabus.lastYearImprovementProposal.status == 2
         this.modalFields.comments = this.syllabus.lastYearImprovementProposal.comments

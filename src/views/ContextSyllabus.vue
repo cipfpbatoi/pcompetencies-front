@@ -96,7 +96,7 @@ export default {
 <template>
   <main class="border shadow view-main">
     <ModalComponent @save="saveData" title="Característiques del grup-classe">
-      <div class="row">
+      <div class="row p-2 text-center">
         <ckeditor
           :editor="editor"
           v-model="modalFields.groupContext"

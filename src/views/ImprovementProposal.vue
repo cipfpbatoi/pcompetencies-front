@@ -13,7 +13,7 @@ const validationSchema = object({
     .string()
     .trim()
     .required('La justificació és obligatòria')
-    .min(2, 'Al menys han de tindre 20 caracters')
+    .min(5, 'Al menys han de tindre 5 caracters')
 })
 
 export default {
@@ -104,15 +104,15 @@ export default {
         </div>
         <div class="form-check m-1 p-2 bg-info-subtle h5">
           <input class="form-check-input mx-3" type="checkbox" v-model="modalFields.accepted" />
-          <label class="form-check-label"> Vaig a aplicar aquestes propostes o part d'elles </label>
+          <label class="form-check-label"> Vaig a aplicar les propostes de millora o part d'elles </label>
         </div>
         <div class="mb-3">
-          <label class="form-label"><strong>Justificació</strong></label>
+          <label class="form-label"><strong>Resposta</strong></label>
           <textarea
             class="form-control"
             v-model="modalFields.comments"
             rows="3"
-            placeholder="Has de d'indicar les millores que vas a aplicar i, si és el cas, les que no justificant perqué no vas a aplicarles..."
+            placeholder="Has de d'indicar les propostes de millora que vas a aplicar i, si és el cas, les que no, justificant perqué no vas a aplicarles. Si vas a aplicarles totes fica 'totes'"
           ></textarea>
           <p v-if="errors.comments" class="error">{{ errors.comments }}</p>
         </div>

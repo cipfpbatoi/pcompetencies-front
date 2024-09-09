@@ -58,11 +58,11 @@ export default {
     },
     getProposalTextStatus(syllabusStatus) {
       if (syllabusStatus === 1) {
-          return "Encara no s'ha donat resposta"
+        return "Encara no s'ha donat resposta"
       } else if(syllabusStatus === 2)  {
-          return "S'aplicaran les propostes de millora o part d'elles:"
+        return "S'aplicaran les propostes de millora o part d'elles:"
       }  else {
-         return "NO s'aplicaran les propostes de millora: "
+        return "NO s'aplicaran les propostes de millora: "
       }
     },
     async saveData() {
@@ -98,6 +98,10 @@ export default {
   <main class="border shadow view-main">
     <ModalComponent @save="saveData" title="Aplicació de les propostes de millora">
       <div class="row m-2 m-md-4 bg-light border">
+        <div v-if="hasLastYearImprovementProposals(syllabus)" class="p-0 m-0">
+          <p class="h5 m-0 p-2 text-center bg-info text-white"><strong>Propostes del Curs: </strong>{{ syllabus.lastYearImprovementProposal.courseYear }}</p>
+          <p class="bg-light-subtle p-2">{{ syllabus.lastYearImprovementProposal.proposals }}</p>
+        </div>
         <div class="form-check m-1 p-2 bg-info-subtle h5">
           <input class="form-check-input mx-3" type="checkbox" v-model="modalFields.accepted" />
           <label class="form-check-label"> Vaig a aplicar aquestes propostes o part d'elles </label>
@@ -123,7 +127,7 @@ export default {
         <div v-if="hasLastYearImprovementProposals(syllabus)">
           <div class="card m-2">
             <div class="card-header bg-info text-white text-uppercase fw-bold">
-                 Propostes de millora per al Curs - <i>{{ syllabus.courseYear }}</i>
+              Propostes de millora per al Curs - <i>{{ syllabus.courseYear }}</i>
             </div>
             <div class="card-body">
               <p class="h5"><strong>Propostes del Curs: </strong>{{ syllabus.lastYearImprovementProposal.courseYear }}</p>
@@ -133,7 +137,7 @@ export default {
                 <p>{{ getProposalTextStatus(syllabus.lastYearImprovementProposal.status) }}
                 </p>
                 <p class="bg-light-subtle fw-bold">{{ syllabus.lastYearImprovementProposal.comments }}</p>
-            </div>
+              </div>
               <div class="text-center">
                 <button
                   @click="showModal()"
@@ -143,20 +147,20 @@ export default {
                   Modificar/Donar Resposta a les propostes de millora
                 </button>
               </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div v-else>
-        <div class="card m-2">
-          <div class="card-header bg-info text-white text-uppercase fw-bold">
-            Propostes de millora per al Curs <i>{{ syllabus.courseYear }}</i>
-          </div>
-          <div class="card-body">
+        <div v-else>
+          <div class="card m-2">
+            <div class="card-header bg-info text-white text-uppercase fw-bold">
+              Propostes de millora per al Curs <i>{{ syllabus.courseYear }}</i>
+            </div>
+            <div class="card-body">
               <p>No hi ha propostes de millora del curs anterior</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   </main>
 </template>

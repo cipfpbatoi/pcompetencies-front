@@ -7,11 +7,13 @@ import ModalComponent from '../components/ModalComponent.vue'
 import ActionButton from '../components/ActionButton.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import { statusClass } from '../utils/utils.js'
+import BtnGetExcel from '../components/BtnGetExcel.vue'
 
 export default {
   components: {
     ModalComponent,
-    ActionButton
+    ActionButton,
+    BtnGetExcel
   },
   async mounted() {
     this.syllabuses = []
@@ -74,7 +76,7 @@ export default {
       editor: ClassicEditor,
       editorConfig: {
         // The configuration of the editor.
-      },
+      }
     }
   },
   methods: {
@@ -210,13 +212,16 @@ export default {
     openPdf(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
       window.open(
-        window.location.origin+`/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
+        window.location.origin +
+          `/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
         '_blank'
       )
     },
     async copySyllabusUrl(turn) {
       const syllabus = this.getSyllabusByTurn(turn)
-      const url = window.location.origin + `/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
+      const url =
+        window.location.origin +
+        `/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`
       try {
         await navigator.clipboard.writeText(url)
         this.addMessage('success', 'Enllaç copiat al portapapers')
@@ -400,7 +405,8 @@ export default {
                     icon-class="bi bi-file-earmark-pdf-fill"
                   ></ActionButton>
                   <p class="alert alert-info col-12 col-lg-10 text-center m-auto mt-2">
-                    Esta programació ja està aprovada i, per tant, és pública. Pots copiar l'enllaç per a passar-li-ho als alumnes.
+                    Esta programació ja està aprovada i, per tant, és pública. Pots copiar l'enllaç
+                    per a passar-li-ho als alumnes.
                     <button
                       @click="copySyllabusUrl(turn)"
                       type="button"
@@ -412,13 +418,16 @@ export default {
                   </p>
                 </div>
                 <div v-else>
-                  <ActionButton 
-                  v-if="getSyllabusByTurn(turn).id"
-                  @click="showPdf(turn)"
-                  buttonClass="btn btn-danger col-12 col-sm-4"
-                  title="Veure esborrany"
-                  icon-class="bi bi-file-earmark-pdf-fill"
-                ></ActionButton>
+                  <ActionButton
+                    v-if="getSyllabusByTurn(turn).id"
+                    @click="showPdf(turn)"
+                    buttonClass="btn btn-danger col-12 col-sm-4"
+                    title="Veure esborrany"
+                    icon-class="bi bi-file-earmark-pdf-fill"
+                  ></ActionButton>
+                </div>
+                <div v-if="getSyllabusByTurn(turn)?.status !== 'pendent'">
+                  <BtnGetExcel :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
                 </div>
               </div>
             </div>

@@ -9,7 +9,7 @@ import ModalComponent from '../components/ModalComponent.vue'
 export default {
   components: {
     AppBreadcrumb,
-    ModalComponent,
+    ModalComponent
   },
   computed: {
     ...mapState(useDataStore, ['syllabus'])
@@ -19,11 +19,11 @@ export default {
       isValid: false,
       isLoading: false,
       errors: false,
-            // Modal generic
-            GenericModal: null,
+      // Modal generic
+      GenericModal: null,
       modalFields: {
-        studentsCsv: '',
-      },
+        studentsCsv: ''
+      }
     }
   },
   methods: {
@@ -45,7 +45,8 @@ export default {
           this.$router.push({ name: 'selectSyllabus' })
         } catch (error) {
           this.addMessage('error', error)
-        }      }
+        }
+      }
     },
     async showPdf() {
       try {
@@ -54,14 +55,16 @@ export default {
         this.isLoading = false
         if (!response) {
           this.addMessage('error', response)
-          return;
+          return
         }
-        const url = URL.createObjectURL(new Blob([response.data], {
-          type: 'application/pdf'
-        }))
+        const url = URL.createObjectURL(
+          new Blob([response.data], {
+            type: 'application/pdf'
+          })
+        )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'syllabus_'+ this.syllabus.id)
+        link.setAttribute('download', 'syllabus_' + this.syllabus.id)
         document.body.appendChild(link)
         link.click()
       } catch (error) {
@@ -76,19 +79,24 @@ export default {
     async getExcel() {
       try {
         this.isLoading = true
-        const response = await api.getExcel(this.syllabus.id, this.modalFields.studentsCsv.split(';'))
+        const response = await api.getExcel(
+          this.syllabus.id,
+          this.modalFields.studentsCsv.split(';')
+        )
         this.isLoading = false
         this.GenericModal.hide()
         if (response.status !== 200) {
           this.addMessage('error', response)
-          return;
+          return
         }
-        const url = URL.createObjectURL(new Blob([response.data], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }))
+        const url = URL.createObjectURL(
+          new Blob([response.data], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          })
+        )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'quadern_programacio_'+ this.syllabus.id)
+        link.setAttribute('download', 'quadern_programacio_' + this.syllabus.id)
         document.body.appendChild(link)
         link.click()
       } catch (error) {
@@ -102,7 +110,11 @@ export default {
 <template>
   <main class="border shadow view-main">
     <app-breadcrumb :actualStep="10" :done="false"></app-breadcrumb>
-    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
+      {{ syllabus.module?.name }} ({{
+        syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
+      }}) - {{ syllabus.courseYear }}
+    </div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>10.1. Validar i enviar la programació</h2>
       <div v-if="!isValid && !errors">
@@ -112,7 +124,8 @@ export default {
       </div>
       <div v-if="isValid">
         <div class="alert alert-success p-2 col-sm-12 col-12 mx-auto text-center">
-          <strong>Validada! </strong> La programació està preparada per a ser enviada per a la seva aprovació.
+          <strong>Validada! </strong> La programació està preparada per a ser enviada per a la seva
+          aprovació.
         </div>
       </div>
       <div v-if="isValid" class="text-center m-2 row">
@@ -121,21 +134,30 @@ export default {
         </div>
       </div>
       <div class="text-center m-2">
-        <button @click="validate" class="btn btn-info col-sm-5 col-12" title="Validar" :disabled="isValid">
+        <button
+          @click="validate"
+          class="btn btn-info col-sm-5 col-12"
+          title="Validar"
+          :disabled="isValid"
+        >
           <i class="bi bi-check-circle px-2"></i>
           Validar programació
         </button>
       </div>
       <div v-if="!isValid && errors">
         <div class="alert alert-danger">
-          <h4 class="text-center">Atenció! La programació te errors i has de corregir-los abans d'enviar-la </h4>
+          <h4 class="text-center">
+            Atenció! La programació te errors i has de corregir-los abans d'enviar-la
+          </h4>
           <ul>
             <li v-if="errors.totalHours">{{ errors.totalHours }}</li>
             <li v-if="errors.groupContext">{{ errors.groupContext }}</li>
             <li v-if="errors.improvementsProposals">{{ errors.improvementsProposals }}</li>
             <li v-if="errors.didacticResources">{{ errors.didacticResources }}</li>
             <li v-if="errors.methodologicalPrinciples">{{ errors.methodologicalPrinciples }}</li>
-            <li v-if="errors.technologicalModuleProcess">{{ errors.technologicalModuleProcess }}</li>
+            <li v-if="errors.technologicalModuleProcess">
+              {{ errors.technologicalModuleProcess }}
+            </li>
           </ul>
           <div v-if="errors.learningSituations">
             <h5>Situacions d'aprenentatge</h5>
@@ -183,7 +205,11 @@ export default {
         </div>
       </div>
       <div v-if="isValid" class="text-center m-2 row">
-        <button @click="sendSyllabus" class="btn btn-success col-sm-5 col-12 mx-auto" title="Enviar programació">
+        <button
+          @click="sendSyllabus"
+          class="btn btn-success col-sm-5 col-12 mx-auto"
+          title="Enviar programació"
+        >
           <i class="bi bi-send mx-2"></i>
           Enviar programació al departament
         </button>
@@ -199,9 +225,13 @@ export default {
             {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
           </button>
         </div>
-      <div class="text-center m-2" :class="{ 'd-none' : !isValid }">
-        <button @click="showModal" class="btn btn-primary col-sm-5 col-12" title="Quadern del Professorat PDF">
-          <i class="bi bi-file-earmark-excel"></i>
+        <div class="text-center m-2" :class="{ 'd-none': !isValid }">
+          <button
+            @click="showModal"
+            class="btn btn-primary col-sm-5 col-12"
+            title="Quadern del Professorat PDF"
+          >
+            <i class="bi bi-file-earmark-excel"></i>
             Obtindre quadern de Professorat
           </button>
         </div>
@@ -212,13 +242,15 @@ export default {
       <div class="row p-1 align-items-center">
         <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>
         <div>
-          <textarea class="form-control border-secondary" v-model="modalFields.studentsCsv" rows="3"></textarea>
+          <textarea
+            class="form-control border-secondary"
+            v-model="modalFields.studentsCsv"
+            rows="3"
+          ></textarea>
         </div>
       </div>
     </ModalComponent>
   </main>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -182,7 +182,7 @@ export default {
       let syllabusToCopyFrom = this.syllabusesToCopy[this.modalFields.selectedSyllabusToCopy]
       try {
         await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
-          destinationCycleId: this.cycleSelect,
+          destinationCycleId: parseInt(this.cycleSelect),
           destinationTurn: this.modalFields.turn
         })
         this.addMessage('success', 'Programació creada')

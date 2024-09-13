@@ -8,7 +8,7 @@ export default {
   async mounted() {
     this.isLoading = true;
     const token = this.$route.params.token
-    localStorage.removeItem('token')
+    this.logoutUser()
     try {
       const response = await api.loginIntranet(token)
       localStorage.token = response.data.jwt
@@ -35,7 +35,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['addMessage', 'loadCurrentUser', 'loadData']),
+    ...mapActions(useDataStore, ['addMessage', 'logoutUser', 'loadCurrentUser', 'loadData']),
     login() {
       this.error = ''
       if (this.email === 'admin' && this.password === 'admin') {

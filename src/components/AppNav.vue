@@ -37,18 +37,19 @@ export default {
   <p class="text-center text-lg-end text-secondary" v-if="getUserInfo">Hola
     <span class="fw-bold m-0 p-0">{{getUserInfo.name + ' ' + getUserInfo.surname}}</span>
     <span class=text-secondary> ({{getUserInfo.department.shortName}})</span>
+    ·
+    <span class="link-primary">
+      <RouterLink @click.prevent="logout" to="/login">Eixir</RouterLink>
+    </span>
   </p>
   <nav class="navbar justify-content-lg-end justify-content-center">
-    <ul class="nav">
+    <ul class="nav text-center justify-content-lg-end justify-content-center">
       <li class="nav-item">
         <RouterLink class="nav-link" to="/">Inici</RouterLink>
       </li>
       <template v-if="isLogged">
         <li class="nav-item" v-if="isAdminOrHeadOfDepartament">
           <RouterLink class="nav-link" to="/syl-manage">Gestionar programacions</RouterLink>
-        </li>
-        <li class="nav-item">
-          <RouterLink @click.prevent="logout" class="nav-link" to="/login">Eixir</RouterLink>
         </li>
       </template>
       <template v-else>

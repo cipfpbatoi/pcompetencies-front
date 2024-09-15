@@ -42,7 +42,7 @@ export default {
     this.CopySyllabusModal = new Modal(document.getElementById('copySylModal'))
   },
   computed: {
-    ...mapState(useDataStore, ['cycle', 'module']),
+    ...mapState(useDataStore, ['cycle', 'module', 'user']),
     selectedModule() {
       return this.cycle.modules.find((item) => item.code == this.moduleSelect) || {}
     },
@@ -426,7 +426,7 @@ export default {
                     icon-class="bi bi-file-earmark-pdf-fill"
                   ></ActionButton>
                 </div>
-                <div v-if="getSyllabusByTurn(turn)?.status !== 'pendent'">
+                <div v-if="getSyllabusByTurn(turn)?.status && getSyllabusByTurn(turn)?.status !== 'pendent'">
                   <BtnGetExcel :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
                 </div>
               </div>

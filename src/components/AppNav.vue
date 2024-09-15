@@ -11,6 +11,9 @@ export default {
     isLogged() {
       return this.user.token
     },
+    getUserInfo() {
+      return this.user.info;
+    },
     isloginPage() {
       return window.location.pathname.startsWith('/login')
     }
@@ -26,11 +29,15 @@ export default {
         ev.stopPropagation()
       }
     }
-  }
+  },
 }
 </script>
 
 <template>
+  <p class="text-center text-lg-end text-secondary" v-if="getUserInfo">Hola
+    <span class="fw-bold m-0 p-0">{{getUserInfo.name + ' ' + getUserInfo.surname}}</span>
+    <span class=text-secondary> ({{getUserInfo.department.shortName}})</span>
+  </p>
   <nav class="navbar justify-content-lg-end justify-content-center">
     <ul class="nav">
       <li class="nav-item">

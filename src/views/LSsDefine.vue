@@ -33,6 +33,10 @@ const learningSituationsColumns = [
     value: 'title'
   },
   {
+    title: 'FCT',
+    value: 'inCompanyTraining',
+  },
+  {
     title: 'Hores',
     value: 'hours',
     class: 'text-center'

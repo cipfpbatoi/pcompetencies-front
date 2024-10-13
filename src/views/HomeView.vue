@@ -5,6 +5,7 @@ import { useDataStore } from '../stores/data'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import ActionButton from '../components/ActionButton.vue'
+import ShowPdfButton from '../components/ShowPdfButton.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import { statusClass } from '../utils/utils.js'
 import BtnGetExcel from '../components/BtnGetExcel.vue'
@@ -13,6 +14,7 @@ export default {
   components: {
     ModalComponent,
     ActionButton,
+    ShowPdfButton,
     BtnGetExcel
   },
   async mounted() {
@@ -229,31 +231,7 @@ export default {
         this.addMessage('error', 'Error al copiar: ' + err)
       }
     },
-    async showPdf(turn) {
-      try {
-        this.isLoading = true
-        let syllabus = this.getSyllabusByTurn(turn)
-        const response = await api.getPdf(syllabus.id)
-        if (!response) {
-          this.addMessage('error', response)
-          this.isLoading = false
-          return
-        }
-        const url = URL.createObjectURL(
-          new Blob([response.data], {
-            type: 'application/pdf'
-          })
-        )
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', 'syllabus_' + syllabus.id)
-        document.body.appendChild(link)
-        link.click()
-      } catch (error) {
-        this.addMessage('error', error)
-      }
-      this.isLoading = false
-    },
+
     statusClass(status) {
       return statusClass(status)
     }
@@ -418,13 +396,11 @@ export default {
                   </p>
                 </div>
                 <div v-else>
-                  <ActionButton
+                  <ShowPdfButton
                     v-if="getSyllabusByTurn(turn).id"
-                    @click="showPdf(turn)"
+                    :syllabus="getSyllabusByTurn(turn)" 
                     buttonClass="btn btn-danger col-12 col-sm-4"
-                    title="Veure esborrany"
-                    icon-class="bi bi-file-earmark-pdf-fill"
-                  ></ActionButton>
+                    @waiting="isLoading = $event" />
                 </div>
                 <div v-if="getSyllabusByTurn(turn)?.status && getSyllabusByTurn(turn)?.status !== 'pendent'">
                   <BtnGetExcel :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>

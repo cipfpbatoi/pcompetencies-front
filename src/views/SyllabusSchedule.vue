@@ -20,7 +20,20 @@ const complementaryActivColumns = [
     param: 'contentDescriptors'
   }
 ]
-
+const inCompanyTrainingColumns = [
+  {
+    title: "Situació d'aprenentatge",
+    value: 'title'
+  },
+  {
+    title: 'Data inici',
+    value: 'startDate'
+  },
+  {
+    title: 'Data fi',
+    value: 'endDate'
+  }
+]
 export default {
   components: {
     AppBreadcrumb,
@@ -41,23 +54,52 @@ export default {
   },
   mounted() {
     this.ScheduleModal = new Modal(document.getElementById('scheduleModal'))
+    this.ScheduleModalInCompanyTraining = new Modal(
+      document.getElementById('scheduleModalInCompanyTraining')
+    )
     this.ActivitiesModal = new Modal(document.getElementById('complementaryActivitiesModal'))
   },
   data() {
     return {
       errors: {},
       ScheduleModal: null,
+      ScheduleModalInCompanyTraining: null,
       ActivitiesModal: null,
-      modalFields: {},
+      modalFields: { inCompanyTraining: {} },
       modalTitle: '',
       DAYS_NAME,
       complementaryActivColumns,
+      inCompanyTrainingColumns,
       newContent: ''
     }
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
-    showModal(type, data) {
+    lsToScheduleInCompanyTraining(schedule) {
+      return this.syllabus.learningSituations
+        .filter((item) => item.inCompanyTraining)
+        .map((ls) => {
+          const lsIndexInCompanyTrainingEntries = schedule.inCompanyTrainingEntries.findIndex(
+            (item) => item.id === ls.id
+          )
+          return {
+            id: ls.id,
+            title: ls.title,
+            position: ls.position,
+            startDate:
+              lsIndexInCompanyTrainingEntries === -1
+                ? ''
+                : schedule.inCompanyTrainingEntries[lsIndexInCompanyTrainingEntries].startDate,
+            endDate:
+              lsIndexInCompanyTrainingEntries === -1
+                ? ''
+                : schedule.inCompanyTrainingEntries[lsIndexInCompanyTrainingEntries].endDate,
+            index: lsIndexInCompanyTrainingEntries,
+            schedule: schedule
+          }
+        })
+    },
+    showModal(type, data, group) {
       this.errors = {}
       switch (type) {
         case 'schedule':
@@ -71,6 +113,18 @@ export default {
           this.modalFields.entries = this.daysWithData(data)
 
           this.ScheduleModal.show()
+          break
+        case 'scheduleInCompanyTraining':
+          this.modalFields = { ...data }
+          this.modalTitle = "Temporalització per al grup '" + data.schedule.nameGroup + "'"
+          if (group) {
+            this.modalFields.inCompanyTraining = group
+            this.modalFields.adding = false
+          } else {
+            this.modalFields.inCompanyTraining = {}
+            this.modalFields.adding = true
+          }
+          this.ScheduleModalInCompanyTraining.show()
           break
         case 'activity':
           if (data) {
@@ -121,9 +175,9 @@ export default {
       }
     },
     async saveSchedule() {
+      this.errors = {}
       if (this.totalHours !== this.syllabus.weekHours) {
-        this.errors.hours =
-          'Les hores totals setmanals han de ser ' + this.syllabus.weekHours
+        this.errors.hours = 'Les hores totals setmanals han de ser ' + this.syllabus.weekHours
       }
       const findScheduleGroup = this.syllabus.schedules.find(
         (item) => item.nameGroup === this.modalFields.nameGroup
@@ -156,6 +210,56 @@ export default {
         } else {
           this.syllabus.schedules.push(response.data)
         }
+        this.addMessage('success', 'Temporalització guardada')
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    async saveInCompanyTraining() {
+      this.errors = {}
+      if (!this.modalFields.startDate) {
+        this.errors.startDate = "'Has d'indicar una data d'inici de la S.A."
+      }
+      if (!this.modalFields.endDate) {
+        this.errors.endDate = "'Has d'indicar una data de finalització de la S.A."
+      }
+      if (this.modalFields.startDate > this.modalFields.endDate) {
+        this.errors.endDate = "La data de finalització ha de ser posterior a la d'inici"
+      }
+      if (Object.keys(this.errors).length) return
+
+      if (this.modalFields.index === -1) {
+        this.modalFields.schedule.inCompanyTrainingEntries.push({
+          id: this.modalFields.id,
+          startDate: this.modalFields.startDate,
+          endDate: this.modalFields.endDate
+        })
+      } else {
+        this.modalFields.schedule.inCompanyTrainingEntries[index] = {
+          id: this.modalFields.id,
+          startDate: this.modalFields.startDate,
+          endDate: this.modalFields.endDate
+        }
+      }
+
+      try {
+        const data = {
+          nameGroup: this.modalFields.schedule.nameGroup,
+          scheduleId: this.modalFields.schedule.id,
+          inCompanyTrainingEntries: this.modalFields.schedule.inCompanyTrainingEntries,
+          entries: this.modalFields.schedule.entries
+            .filter((item) => item.hours > 0)
+            .map((item) => {
+              return {
+                day: item.day,
+                hours: item.hours
+              }
+            })
+        }
+        const response = await api.saveSchedule(this.syllabus.id, data)
+        this.ScheduleModalInCompanyTraining.hide()
+        const index = this.syllabus.schedules.findIndex((item) => item.id === response.data.id)
+        this.syllabus.schedules.splice(index, 1, response.data)
         this.addMessage('success', 'Temporalització guardada')
       } catch (error) {
         this.addMessage('error', error)
@@ -267,6 +371,41 @@ export default {
         <p v-if="errors.hours" class="error">{{ errors.hours }}</p>
       </div>
     </ModalComponent>
+    <ModalComponent
+      @save="saveInCompanyTraining"
+      :title="modalTitle"
+      modalId="scheduleModalInCompanyTraining"
+    >
+      <div class="row p-2">
+        <div class="input-group cols-8 p-2">
+          <label class="form-label p-2 fw-bold"
+            >SA {{ modalFields.position }}: {{ modalFields.title }}</label
+          >
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-group cols-8 p-2">
+          <label class="form-label p-2 fw-bold col-sm-6 col-lg-3">Data d'inici de la S.A.</label>
+          <input
+            type="date"
+            v-model="modalFields.startDate"
+            class="form-control p-2 col-sm-2 col-lg-1"
+          />
+          <p v-if="errors.startDate" class="error p-2">{{ errors.startDate }}</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-group cols-8 p-2">
+          <label class="form-label p-2 fw-bold col-sm-6 col-lg-3">Data de fi de la S.A.</label>
+          <input
+            type="date"
+            v-model="modalFields.endDate"
+            class="form-control p-2 col-sm-2 col-lg-1"
+          />
+          <p v-if="errors.endDate" class="error p-2">{{ errors.endDate }}</p>
+        </div>
+      </div>
+    </ModalComponent>
     <ModalComponent @save="saveContents" :title="modalTitle" modalId="complementaryActivitiesModal">
       <div class="row p-2">
         <div class="input-group cols-8 p-2">
@@ -308,7 +447,11 @@ export default {
     </ModalComponent>
 
     <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
-    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
+    <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
+      {{ syllabus.module?.name }} ({{
+        syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
+      }}) - {{ syllabus.courseYear }}
+    </div>
     <div class="p-lg-4 p-1 mt-2">
       <h2>8.a Temporalització</h2>
       <div class="container">
@@ -342,12 +485,29 @@ export default {
               </td>
             </tbody>
           </table>
+          <div>
+            <h5>Temporalització de les pràctiques en empresa</h5>
+            <show-table
+              :data="lsToScheduleInCompanyTraining(schedule)"
+              :columns="inCompanyTrainingColumns"
+            >
+              <template #default="{ item }">
+                <button
+                  @click="showModal('scheduleInCompanyTraining', item)"
+                  class="btn btn-secondary"
+                  title="Editar"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </template>
+            </show-table>
+          </div>
         </div>
         <div class="text-center">
           <button
             @click="showModal('schedule')"
             class="btn btn-success mt-2 mx-auto"
-            title="Establir objectiu"
+            title="Afegir temporalització"
           >
             Afegir temporalització d'un nou grup
           </button>

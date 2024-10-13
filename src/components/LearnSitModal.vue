@@ -13,7 +13,7 @@ const validationSchema = object({
     .required('Has de posar el títol')
     .min(5, 'Ha de tenir 5 caracters o més'),
   hours: yup
-    .number("Has de posar un número postitiu")
+    .number('Has de posar un número postitiu')
     .required("Has d'indicar les hores")
     .min(1, "Al menys l'has de dedicar 1 hora"),
   position: yup.number().min(1, 'La posició ha de ser igual o major que 1'),
@@ -23,7 +23,7 @@ const validationSchema = object({
 export default {
   emits: ['saved'],
   props: {
-    unit: Object,
+    unit: Object
   },
   components: {
     LrTable
@@ -58,7 +58,7 @@ export default {
     return {
       editedUnit: { ponderedLearningResults: [] }, // { ...this.unit },
       newLearningResult: {},
-      errors: {},
+      errors: {}
     }
   },
   watch: {
@@ -67,9 +67,9 @@ export default {
         this.editedUnit = JSON.parse(JSON.stringify(newValue))
         this.simplifyPLR(newValue)
       } else {
-        this.editedUnit = { 
+        this.editedUnit = {
           position: this.syllabus.learningSituations?.length + 1,
-          ponderedLearningResults: [] 
+          ponderedLearningResults: []
         }
       }
       this.$forceUpdate()
@@ -124,14 +124,15 @@ export default {
           id: this.editedUnit.id,
           title: this.editedUnit.title,
           hours: this.editedUnit.hours,
+          inCompanyTraining: this.editedUnit.inCompanyTraining,
           position: this.editedUnit.position,
           ponderedLearningResults: this.editedUnit.ponderedLearningResults
         })
       ) {
         this.$emit('saved', this.editedUnit.id ? 0 : this.editedUnit.position)
-        this.editedUnit = { 
+        this.editedUnit = {
           position: this.syllabus.learningSituations?.length + 1,
-          ponderedLearningResults: [] 
+          ponderedLearningResults: []
         }
       }
     }
@@ -152,7 +153,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
           <h1 class="modal-title fs-5" id="unit-modal">
-            {{ editing ? 'Editar' : 'Afegir' }} Situació d'Aprenentatge
+            {{ editing ? 'Editar' : 'Afegir' }} Situació d'AprenentatgeASD
           </h1>
           <button
             type="button"
@@ -178,18 +179,23 @@ export default {
               <div class="input-group cols-8 p-2">
                 <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Hores</label>
                 <div class="col-sm-4">
-
-                <input
-                  size="2"
-                  type="number"
-                  class="form-control p-2 col-4"
-                  v-model="editedUnit.hours"
-                  placeholder="Nombre d'hores"
-                />
-              </div>
-              <div class="col-auto">
+                  <input
+                    size="2"
+                    type="number"
+                    class="form-control p-2 col-4"
+                    v-model="editedUnit.hours"
+                    placeholder="Nombre d'hores"
+                  />
+                </div>
+                <div class="col-auto">
                   <span v-if="errors.hours" class="text-danger">{{ errors.hours }}</span>
                 </div>
+              </div>
+              <div class="form-check form-switch">
+                <label class="form-check-label" for="flexSwitchCheckDefault"
+                  >Aquesta S.A. s'imparteix en l'empresa</label
+                >
+                <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" v-model="editedUnit.inCompanyTraining" />
               </div>
               <div v-if="!editing" class="input-group cols-8 p-2">
                 <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Posició</label>
@@ -278,4 +284,3 @@ export default {
     </div>
   </div>
 </template>
-

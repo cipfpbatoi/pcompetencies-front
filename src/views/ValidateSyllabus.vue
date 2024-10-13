@@ -5,11 +5,13 @@ import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
+import ShowPdfButton from '../components/ShowPdfButton.vue'
 
 export default {
   components: {
     AppBreadcrumb,
-    ModalComponent
+    ModalComponent,
+    ShowPdfButton
   },
   computed: {
     ...mapState(useDataStore, ['syllabus'])
@@ -64,7 +66,11 @@ export default {
         )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'syllabus_' + this.syllabus.id)
+        link.setAttribute('download', this.syllabus.center.code 
+          + '-' + this.syllabus.cycle.shortName.split(' ').join('_')
+          + '-' + this.syllabus.module.code
+          + '-' + this.syllabus.courseYear
+          + '-' + this.syllabus.turn + '.pdf')
         document.body.appendChild(link)
         link.click()
       } catch (error) {
@@ -223,7 +229,12 @@ export default {
           <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
             <i class="bi bi-file-earmark-pdf"></i>
             {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
-          </button>
+          </button><br>
+<!--           <ShowPdfButton
+            :syllabus="syllabus"
+            :title="isValid ? 'Vore PDF' : 'Vore esborrany'"
+            @waiting="isLoading = $event"
+          ></ShowPdfButton> -->
         </div>
         <div class="text-center m-2" :class="{ 'd-none': !isValid }">
           <button

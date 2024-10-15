@@ -385,6 +385,7 @@ export default {
           <label class="form-label p-2 fw-bold"
             >SA {{ modalFields.position }}: {{ modalFields.title }}</label
           >
+          <p>Les dades de formació en empresa han d'estar entre el {{ (new Date(restrictions.data[0].startDate)).toLocaleDateString() }} i el {{ (new Date(restrictions.data[0].endDate)).toLocaleDateString() }}</p>
         </div>
       </div>
       <div class="row">

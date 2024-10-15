@@ -79,6 +79,7 @@ export const api = {
     instance.post(`/syllabus/learningSituation/${lsId}/didacticContents`, data),
   saveSchedule: (id, data) => instance.post(`/syllabus/${id}/schedule`, data),
   deleteSchedule: (id, shId) => instance.delete(`/syllabus/${id}/schedule/${shId}`),
+  getInCompanyTrainingRestrictions: (id) => instance.get(`/syllabus/${id}/restrictions/InCompanyTraining`),
   createTransversalObjective: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
   getTrasversalObjectives: () => instance.get('/transversal-objectives'),

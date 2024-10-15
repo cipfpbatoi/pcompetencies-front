@@ -52,7 +52,12 @@ export default {
       return this.totalHours === this.syllabus.weekHours ? 'text-success' : 'text-danger'
     }
   },
-  mounted() {
+  async mounted() {
+    try {
+      this.restrictions = await api.getInCompanyTrainingRestrictions(this.syllabus.id)
+    } catch (error) {
+      this.addMessage('error', error)
+    }
     this.ScheduleModal = new Modal(document.getElementById('scheduleModal'))
     this.ScheduleModalInCompanyTraining = new Modal(
       document.getElementById('scheduleModalInCompanyTraining')
@@ -70,7 +75,8 @@ export default {
       DAYS_NAME,
       complementaryActivColumns,
       inCompanyTrainingColumns,
-      newContent: ''
+      newContent: '',
+      restrictions: {}
     }
   },
   methods: {
@@ -110,6 +116,7 @@ export default {
         case 'scheduleInCompanyTraining':
           this.modalFields = { ...data }
           this.modalTitle = "Temporalització per al grup '" + data.schedule.nameGroup + "'"
+          this.modalFields.restrictions = this.restrictions
           if (group) {
             this.modalFields.inCompanyTraining = group
             this.modalFields.adding = false
@@ -238,28 +245,29 @@ export default {
         }
       }
 
+      const data = {
+        nameGroup: this.modalFields.schedule.nameGroup,
+        scheduleId: this.modalFields.schedule.id,
+        inCompanyTrainingEntries: this.modalFields.schedule.inCompanyTrainingEntries,
+        entries: this.modalFields.schedule.entries
+          .filter((item) => item.hours > 0)
+          .map((item) => {
+            return {
+              day: item.day,
+              hours: item.hours
+            }
+          })
+      }
       try {
-        const data = {
-          nameGroup: this.modalFields.schedule.nameGroup,
-          scheduleId: this.modalFields.schedule.id,
-          inCompanyTrainingEntries: this.modalFields.schedule.inCompanyTrainingEntries,
-          entries: this.modalFields.schedule.entries
-            .filter((item) => item.hours > 0)
-            .map((item) => {
-              return {
-                day: item.day,
-                hours: item.hours
-              }
-            })
-        }
         const response = await api.saveSchedule(this.syllabus.id, data)
-        this.ScheduleModalInCompanyTraining.hide()
         const index = this.syllabus.schedules.findIndex((item) => item.id === response.data.id)
         this.syllabus.schedules.splice(index, 1, response.data)
-        this.addMessage('success', 'Temporalització guardada')
       } catch (error) {
-        this.addMessage('error', error)
+        this.errors.otherErrors = error?.response?.data?.detail || error
+        return
       }
+      this.ScheduleModalInCompanyTraining.hide()
+      this.addMessage('success', 'Temporalització guardada')
     },
     async deleteComplementaryActivity(activity) {
       if (
@@ -400,6 +408,9 @@ export default {
           />
           <p v-if="errors.endDate" class="error p-2">{{ errors.endDate }}</p>
         </div>
+      </div>
+      <div class="row">
+        <p v-if="errors.otherErrors" class="error p-2">{{ errors.otherErrors }}</p>
       </div>
     </ModalComponent>
     <ModalComponent @save="saveContents" :title="modalTitle" modalId="complementaryActivitiesModal">

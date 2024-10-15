@@ -33,7 +33,7 @@ const learningSituationsColumns = [
     value: 'title'
   },
   {
-    title: 'FCT',
+    title: 'F. Empresa',
     value: 'inCompanyTraining',
   },
   {

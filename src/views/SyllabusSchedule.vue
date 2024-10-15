@@ -482,7 +482,7 @@ export default {
             </tbody>
           </table>
           <div>
-            <h5>Temporalització de les pràctiques en empresa</h5>
+            <h5>Temporalització de la Formació en Empresa</h5>
             <show-table
               :data="lsToScheduleInCompanyTraining(schedule)"
               :columns="inCompanyTrainingColumns"

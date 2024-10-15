@@ -79,22 +79,15 @@ export default {
       return this.syllabus.learningSituations
         .filter((item) => item.inCompanyTraining)
         .map((ls) => {
-          const lsIndexInCompanyTrainingEntries = schedule.inCompanyTrainingEntries.findIndex(
-            (item) => item.id === ls.id
+          const lsInCompanyTrainingEntries = schedule.inCompanyTrainingEntries.find(
+            (item) => item.learningSituationId === ls.id
           )
           return {
             id: ls.id,
             title: ls.title,
             position: ls.position,
-            startDate:
-              lsIndexInCompanyTrainingEntries === -1
-                ? ''
-                : schedule.inCompanyTrainingEntries[lsIndexInCompanyTrainingEntries].startDate,
-            endDate:
-              lsIndexInCompanyTrainingEntries === -1
-                ? ''
-                : schedule.inCompanyTrainingEntries[lsIndexInCompanyTrainingEntries].endDate,
-            index: lsIndexInCompanyTrainingEntries,
+            startDate: lsInCompanyTrainingEntries?.startDate || '',
+            endDate: lsInCompanyTrainingEntries?.endDate || '',
             schedule: schedule
           }
         })
@@ -228,15 +221,18 @@ export default {
       }
       if (Object.keys(this.errors).length) return
 
-      if (this.modalFields.index === -1) {
+      const lsIndex = this.modalFields.schedule.inCompanyTrainingEntries.findIndex(
+        (item) => item.learningSituationId === this.modalFields.id
+      )
+      if (lsIndex === -1) {
         this.modalFields.schedule.inCompanyTrainingEntries.push({
-          id: this.modalFields.id,
+          learningSituationId: this.modalFields.id,
           startDate: this.modalFields.startDate,
           endDate: this.modalFields.endDate
         })
       } else {
-        this.modalFields.schedule.inCompanyTrainingEntries[index] = {
-          id: this.modalFields.id,
+        this.modalFields.schedule.inCompanyTrainingEntries[lsIndex] = {
+          learningSituationId: this.modalFields.id,
           startDate: this.modalFields.startDate,
           endDate: this.modalFields.endDate
         }

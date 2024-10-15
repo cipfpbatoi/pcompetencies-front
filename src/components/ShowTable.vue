@@ -31,7 +31,7 @@ export default {
       return col?.value
         ? item[col.value] 
         : col.func ?
-        col.func(item[col.param])
+        col.func(item[col.param], item)
         : item
     }
   }

@@ -30,11 +30,9 @@ const learningSituationsColumns = [
   },
   {
     title: 'Títol',
-    value: 'title'
-  },
-  {
-    title: 'F. Empresa',
-    value: 'inCompanyTraining',
+    html: true,
+    func: (x, y) => { return (y.inCompanyTraining) ? x + '<strong class="badge bg-primary m-1 p-1">(F. Empresa)</strong>' : x},
+    param: 'title',
   },
   {
     title: 'Hores',

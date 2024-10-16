@@ -381,12 +381,19 @@ export default {
       modalId="scheduleModalInCompanyTraining"
     >
       <div class="row p-2">
-        <div class="input-group cols-8 p-2">
-          <label class="form-label p-2 fw-bold"
-            >SA {{ modalFields.position }}: {{ modalFields.title }}</label
+          <p class="form-label p-2 fw-bold"
+            >SA {{ modalFields.position }}: {{ modalFields.title }}</p
           >
-          <p>Les dades de formació en empresa han d'estar entre el {{ (new Date(restrictions.data[0].startDate)).toLocaleDateString() }} i el {{ (new Date(restrictions.data[0].endDate)).toLocaleDateString() }}</p>
-        </div>
+          <div v-if="restrictions?.data?.length">
+            <p>Les dades de formació en empresa han d'estar entre:</p>
+            <ul>
+              <li v-for="restriction in restrictions.data" :key="restriction.id">
+                el {{ (new Date(restriction.startDate)).toLocaleDateString() }} 
+                i el {{ (new Date(restriction.endDate)).toLocaleDateString() }}
+                ({{ restriction.stage?.description }})
+              </li>
+            </ul>
+          </div>
       </div>
       <div class="row">
         <div class="input-group cols-8 p-2">

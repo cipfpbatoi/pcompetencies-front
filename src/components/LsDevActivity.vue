@@ -50,6 +50,10 @@ export default {
       type: Object,
       required: true
     },
+    inCompanyTraing: {
+      type: Boolean,
+      default: false
+    },
     type: String
   },
   components: {
@@ -431,7 +435,12 @@ export default {
       <div class="row p-1 align-items-center">
         <label class="col-sm-3 col-form-label fw-bold">Descripció del tipus d'activitat</label>
         <div class="col-md-9 col-sm-12">
-          <textarea class="form-control border-secondary" v-model="modalFields.description" rows="3"></textarea>
+          <textarea
+            :disabled="inCompanyTraing"
+            class="form-control border-secondary" 
+            v-model="modalFields.description" 
+            rows="3">
+          </textarea>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
         </div>
       </div>

@@ -159,8 +159,8 @@ export default {
       if (
         confirm(
           "Vas a eliminar la temporalització del grup '" +
-            schedule.nameGroup +
-            "'. Aquesta operació no es pot des-fer"
+          schedule.nameGroup +
+          "'. Aquesta operació no es pot des-fer"
         )
       ) {
         try {
@@ -273,8 +273,8 @@ export default {
       if (
         confirm(
           "ATENCIÓ: Vas a esborrar l'activitat '" +
-            activity.description +
-            "'. Aquest procés NO es por des-fer !!!"
+          activity.description +
+          "'. Aquest procés NO es por des-fer !!!"
         )
       ) {
         try {
@@ -359,16 +359,16 @@ export default {
       <p>Indica les hores setmanals en el grup:</p>
       <table class="table table-striped">
         <thead>
-          <th v-for="entry in modalFields.entries" :key="entry.day">
-            {{ entry.name }}
-          </th>
-          <th>Total</th>
+        <th v-for="entry in modalFields.entries" :key="entry.day">
+          {{ entry.name }}
+        </th>
+        <th>Total</th>
         </thead>
         <tbody>
-          <td v-for="entry in modalFields.entries" :key="entry.day">
-            <input type="number" v-model="entry.hours" min="0" size="2" />
-          </td>
-          <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
+        <td v-for="entry in modalFields.entries" :key="entry.day">
+          <input type="number" v-model="entry.hours" min="0" size="2" />
+        </td>
+        <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
         </tbody>
       </table>
       <div class="col-auto">
@@ -381,19 +381,23 @@ export default {
       modalId="scheduleModalInCompanyTraining"
     >
       <div class="row p-2">
-          <p class="form-label p-2 fw-bold"
-            >SA {{ modalFields.position }}: {{ modalFields.title }}</p
-          >
-          <div v-if="restrictions?.data?.length">
-            <p>Les dades de formació en empresa han d'estar entre:</p>
+        <p class="form-label p-2 fw-bold"
+        >SA {{ modalFields.position }}: {{ modalFields.title }}</p
+        >
+        <div v-if="restrictions?.data?.length">
+          <div class="alert alert-success" role="alert">
+            <h4 >Atenció!</h4>
+            <p>El teu centre ha establit uns <strong>períodes de formació en empresa</strong>.</p>
+            <p>Has de <strong>temporalitzar</strong> les <strong>SA</strong> a desenvolupar a la <strong>empresa</strong> en els següents períodes:</p>
             <ul>
               <li v-for="restriction in restrictions.data" :key="restriction.id">
-                el {{ (new Date(restriction.startDate)).toLocaleDateString() }} 
-                i el {{ (new Date(restriction.endDate)).toLocaleDateString() }}
+                el <strong>{{ (new Date(restriction.startDate)).toLocaleDateString() }}</strong>
+                i el <strong>{{ (new Date(restriction.endDate)).toLocaleDateString() }}</strong>
                 ({{ restriction.stage?.description }})
               </li>
             </ul>
           </div>
+        </div>
       </div>
       <div class="row">
         <div class="input-group cols-8 p-2">
@@ -433,14 +437,14 @@ export default {
         <p><strong>Continguts tractats en l'activitat:</strong></p>
         <table class="table table-striped">
           <tbody>
-            <tr v-for="(item, index) in modalFields.contentDescriptors" :key="index">
-              <td>{{ item }}</td>
-              <td class="text-end">
-                <button @click="delContent(index)" class="btn btn-secondary" title="Eliminar">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </td>
-            </tr>
+          <tr v-for="(item, index) in modalFields.contentDescriptors" :key="index">
+            <td>{{ item }}</td>
+            <td class="text-end">
+              <button @click="delContent(index)" class="btn btn-secondary" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
           </tbody>
         </table>
         <form @submit.prevent="addContent">
@@ -490,14 +494,14 @@ export default {
           </div>
           <table class="table table-striped text-center">
             <thead>
-              <th v-for="(entry, index) in schedule.entries" :key="index">
-                {{ DAYS_NAME[entry.day - 1] }}
-              </th>
+            <th v-for="(entry, index) in schedule.entries" :key="index">
+              {{ DAYS_NAME[entry.day - 1] }}
+            </th>
             </thead>
             <tbody>
-              <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">
-                {{ entry.hours }} h.
-              </td>
+            <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">
+              {{ entry.hours }} h.
+            </td>
             </tbody>
           </table>
           <div>

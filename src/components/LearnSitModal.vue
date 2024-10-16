@@ -164,12 +164,17 @@ export default {
         </div>
         <div class="modal-body">
           <form>
+            <div class="input-group form-switch cols-8 p-2 mx-auto bg-info text-white">
+              <label class="form-check-label mx-lg-0 mx-auto" for="flexSwitchCheckDefault">
+                Aquesta SA es desenvolupa a l'empresa</label>
+              <input class="form-check-input p-2 mx-2" type="checkbox" id="flexSwitchCheckDefault" v-model="editedUnit.inCompanyTraining" />
+            </div>
             <div class="row p-2">
               <div class="input-group cols-8 p-2">
-                <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Títol</label>
+                <label class="form-label p-2 fw-bold col-sm-2 col-lg-2">Títol</label>
                 <input
                   type="text"
-                  class="form-control p-2"
+                  class="form-control p-1"
                   v-model="editedUnit.title"
                   placeholder="Títol de l'unitat"
                   autofocus
@@ -177,7 +182,7 @@ export default {
                 <p v-if="errors.title" class="text-danger p-2">{{ errors.title }}</p>
               </div>
               <div class="input-group cols-8 p-2">
-                <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Hores</label>
+                <label class="form-label p-2 fw-bold col-sm-2 col-lg-2">Hores</label>
                 <div class="col-sm-4">
                   <input
                     size="2"
@@ -191,14 +196,8 @@ export default {
                   <span v-if="errors.hours" class="text-danger">{{ errors.hours }}</span>
                 </div>
               </div>
-              <div class="form-check form-switch">
-                <label class="form-check-label" for="flexSwitchCheckDefault"
-                  >Aquesta S.A. s'imparteix en l'empresa</label
-                >
-                <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" v-model="editedUnit.inCompanyTraining" />
-              </div>
               <div v-if="!editing" class="input-group cols-8 p-2">
-                <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Posició</label>
+                <label class="form-label p-2 fw-bold col-sm-2 col-lg-2">Posició</label>
                 <div class="col-sm-4">
                   <input
                     size="2"

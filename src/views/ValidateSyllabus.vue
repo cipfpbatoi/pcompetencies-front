@@ -201,7 +201,7 @@ export default {
             </ul>
           </div>
           <div v-if="errors.InCompanyTrainingRestrictions">
-            <h5>Formació en l'empresa</h5>
+            <h5>Projecte Funcional - Formació en l'empresa</h5>
             <ul>
               <li v-for="error in errors.InCompanyTrainingRestrictions" :key="error">
                 {{ error }}

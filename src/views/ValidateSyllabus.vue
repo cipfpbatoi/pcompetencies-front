@@ -164,6 +164,9 @@ export default {
             <li v-if="errors.technologicalModuleProcess">
               {{ errors.technologicalModuleProcess }}
             </li>
+            <li v-if="errors.temporalitzacio">
+              {{ errors.temporalitzacio }}
+            </li>
           </ul>
           <div v-if="errors.learningSituations">
             <h5>Situacions d'aprenentatge</h5>

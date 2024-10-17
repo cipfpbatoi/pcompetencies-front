@@ -191,7 +191,7 @@ export default {
     ...mapActions(useDataStore, ['addMessage']),
     handleInstrumentSelection() {
       if (this.modalFields.assessmentToolId === 19) {
-        this.modalFields.description = "Activitats descrites al Pla de Formació individual de cada Alumne";
+        this.modalFields.description = "Activitats a desenvolupar en la empresa descrites al Pla de Formació de cada Alumne";
         this.isInCompanyTrainingInstrumentSelected = true;
       } else {
         if (this.isInCompanyTrainingInstrumentSelected) {

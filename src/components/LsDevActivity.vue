@@ -50,10 +50,6 @@ export default {
       type: Object,
       required: true
     },
-    inCompanyTraing: {
-      type: Boolean,
-      default: false
-    },
     type: String
   },
   components: {
@@ -153,6 +149,7 @@ export default {
       editing: false,
       showActivityDetails: false,
       didacticContentsColumns,
+      isInCompanyTrainingInstrumentSelected: false,
       learningResultsCheckeables: [],
       syllabusMarkingActivities: [],
       errors: {},
@@ -192,6 +189,17 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
+    handleInstrumentSelection() {
+      if (this.modalFields.assessmentToolId === 19) {
+        this.modalFields.description = "Activitats descrites al Pla de Formació individual de cada Alumne";
+        this.isInCompanyTrainingInstrumentSelected = true;
+      } else {
+        if (this.isInCompanyTrainingInstrumentSelected) {
+          this.modalFields.description = "";
+        }
+        this.isInCompanyTrainingInstrumentSelected = false;
+      }
+    },
     createValidationSchema() {
       let validationSchema = object({
         contents: yup.array().min(1, 'Has d\'incloure al menys 1 contingut'),
@@ -264,7 +272,7 @@ export default {
       this.showActivityDetails = details
     },
     getRaNumberFromId(id) {
-        return this.module?.learningResults?.find((element) => element.id === id).number;
+      return this.module?.learningResults?.find((element) => element.id === id).number;
     },
     showModal(activity) {
       this.errors = []
@@ -292,9 +300,9 @@ export default {
       if (this.type === 'marking') {
         let evaluationCriteriasUsedInThisLS = []
         this.learningSituation.activities
-            .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
-            .forEach(activ => activ.evaluationCriterias
-              .forEach(ec => evaluationCriteriasUsedInThisLS.push(ec.id)))
+          .filter((item) => item.type === 'marking' && item.id != this.modalFields.id)
+          .forEach(activ => activ.evaluationCriterias
+            .forEach(ec => evaluationCriteriasUsedInThisLS.push(ec.id)))
         const evaluationCriteriasUsed = Array.from(
           new Set(evaluationCriteriasUsedInThisLS.concat(this.evaluationCriteriasUsedInOtherLS))
         )
@@ -436,9 +444,9 @@ export default {
         <label class="col-sm-3 col-form-label fw-bold">Descripció del tipus d'activitat</label>
         <div class="col-md-9 col-sm-12">
           <textarea
-            :disabled="inCompanyTraing"
-            class="form-control border-secondary" 
-            v-model="modalFields.description" 
+            :disabled="isInCompanyTrainingInstrumentSelected"
+            class="form-control border-secondary"
+            v-model="modalFields.description"
             rows="3">
           </textarea>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
@@ -468,7 +476,7 @@ export default {
         <div class="form-group row p-1">
           <label class="col-sm-3 col-form-label fw-bold">Tècnica / Instrument Avaluació</label>
           <div class="col-lg-4 col-sm-10">
-            <select class="form-control custom-select col-12" v-model="modalFields.assessmentToolId">
+            <select class="form-control custom-select col-12" @change="handleInstrumentSelection" v-model="modalFields.assessmentToolId">
               <option value="undefined">--- Selecciona ---</option>
               <option
                 v-for="assessmentTool in activitiesData.assessmentTool"

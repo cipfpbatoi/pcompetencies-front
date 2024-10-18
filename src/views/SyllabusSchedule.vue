@@ -504,7 +504,7 @@ export default {
             </td>
             </tbody>
           </table>
-          <div>
+          <div v-if="syllabus.courseLevel == 1">
             <h5>Temporalització de la Formació en Empresa</h5>
             <show-table
               :data="lsToScheduleInCompanyTraining(schedule)"
@@ -533,10 +533,10 @@ export default {
         </div>
       </div>
       <h2>8.b. Activitats complementàries</h2>
-      <p>
-        Són les organitzades en el centre en horari escolar y que es diferèncien de les lectivas pel
-        moment, espais o recursos que utilitzen.
-      </p>
+      <div class="alert alert-primary text-dark" role="alert">
+        <span class="bi bi-eye-fill"></span> Són les organitzades en horari escolar y que es diferèncien de les lectives pel moment, espais o recursos que utilitzen.
+        <br><cite class="text-secondary">Si has de qualificar-les has d'afegir-les també com a activitat de qualificació en la SA on es durà a terme.</cite>
+      </div>
       <show-table :data="syllabus.complementaryActivities" :columns="complementaryActivColumns">
         <template #default="{ item }">
           <button @click="showModal('activity', item)" class="btn btn-secondary" title="Editar">

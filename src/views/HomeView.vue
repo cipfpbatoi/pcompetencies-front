@@ -166,7 +166,7 @@ export default {
     async createSyllabus(turn) {
       try {
         await api.createSyllabus({
-          cycleId: this.cycleSelect,
+          cycleId: parseInt(this.cycleSelect),
           moduleCode: this.moduleSelect,
           turn
         })

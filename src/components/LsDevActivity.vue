@@ -11,6 +11,9 @@ import * as yup from 'yup'
 import { object } from 'yup'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
+const OPTION_ID_IN_COMPANY_TRAINING = 19
+const DESCRIPTION_IN_COMPANY_TRAINING = "Formació en l'empresa"
+
 const activityBaseColumns = [
   {
     title: 'Num.',
@@ -295,6 +298,9 @@ export default {
           this.modalFields.didacticContents = []
           this.modalFields.evaluationCriterias = []
           this.modalFields.aggregateEndBlock = activity.aggregateEndBlock
+          if (this.learningSituation.inCompanyTraining) {
+            this.modalFields.description = DESCRIPTION_IN_COMPANY_TRAINING
+          }
         }
       }
       if (this.type === 'marking') {
@@ -444,9 +450,9 @@ export default {
         <label class="col-sm-3 col-form-label fw-bold">Descripció del tipus d'activitat</label>
         <div class="col-md-9 col-sm-12">
           <textarea
-            :disabled="isInCompanyTrainingInstrumentSelected"
-            class="form-control border-secondary"
-            v-model="modalFields.description"
+            :disabled="learningSituation.inCompanyTraining && type === 'marking'"
+            class="form-control border-secondary" 
+            v-model="modalFields.description" 
             rows="3">
           </textarea>
           <p v-if="errors.description" class="error">{{ errors.description }}</p>
@@ -482,6 +488,7 @@ export default {
                 v-for="assessmentTool in activitiesData.assessmentTool"
                 :key="assessmentTool.id"
                 :value="assessmentTool.id"
+                :disabled="(assessmentTool.id != 19) && learningSituation.inCompanyTraining"
               >
                 {{ assessmentTool.name }}
               </option>

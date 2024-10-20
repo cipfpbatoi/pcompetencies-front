@@ -12,7 +12,7 @@ import { object } from 'yup'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const OPTION_ID_IN_COMPANY_TRAINING = 19
-const DESCRIPTION_IN_COMPANY_TRAINING = "Formació en l'empresa"
+const DESCRIPTION_IN_COMPANY_TRAINING = "Activitats a desenvolupar el marc de la empresa. La descripció d'aquestes es durà a terme en el pla formatiu individual de cada alumne"
 
 const activityBaseColumns = [
   {

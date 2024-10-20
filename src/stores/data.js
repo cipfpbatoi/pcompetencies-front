@@ -242,6 +242,13 @@ export const useDataStore = defineStore('data', {
           this.syllabus.learningSituations.findIndex((item) => item.id === lsId),
           1
         )
+        // Borramos su temporalización en empresa si existe
+        this.syllabus.schedules.forEach(schedule => {
+          const index = schedule.inCompanyTrainingEntries.findIndex(item => item.learningSituationId == lsId)          
+          if (index > -1) {
+            schedule.inCompanyTrainingEntries.splice(index, 1)
+          }
+        });
       } catch (error) {
         this.addMessage('error', error)
         return

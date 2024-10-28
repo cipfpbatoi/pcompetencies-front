@@ -88,11 +88,13 @@ export default {
     },
     showModal(turn) {
       this.errors = {}
+      let syllabus = this.getSyllabusByTurn(turn);
       this.modalFields = {
         turn,
         editable: false,
         currentImprovementProposal:
-          this.getSyllabusByTurn(turn).currentImprovementProposal?.proposals || ''
+            (syllabus.status == 'pendent') ? syllabus.lastYearImprovementProposal?.proposals || '' :
+            syllabus.currentImprovementProposal?.proposals || ''
       }
       this.ImprovementModal.show()
     },
@@ -248,11 +250,11 @@ export default {
     >
       <div class="row">
         <div v-show="modalFields.editable">
-          <ckeditor
-            :editor="editor"
+          <textarea
+            class="form-control border-secondary"
             v-model="modalFields.currentImprovementProposal"
-            :config="editorConfig"
-          ></ckeditor>
+            rows="3"
+          ></textarea>
         </div>
         <div v-show="!modalFields.editable">
           <p v-html="modalFields.currentImprovementProposal || 'No hi ha cap proposta'"></p>
@@ -366,11 +368,13 @@ export default {
                     </div>
                   </div>
                 </div>
-                <div v-else>
+                <div>
                   <ActionButton
+                    v-if="getSyllabusByTurn(turn)?.status == 'pendent' || getSyllabusByTurn(turn)?.status == 'aprovada' "
                     @clicked="showModal(turn)"
-                    buttonClass="btn btn-secondary col-12 col-sm-4"
+                    buttonClass="btn btn-warning col-12 col-sm-4 mb-2 text-white"
                     title="Veure/Modificar propostes de millora"
+                    icon-class="bi bi-lightbulb-fill"
                   >
                   </ActionButton>
                 </div>

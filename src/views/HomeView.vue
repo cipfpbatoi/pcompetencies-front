@@ -128,6 +128,9 @@ export default {
           proposals: this.modalFields.currentImprovementProposal
         })
         syllabus.currentImprovementProposal = response.data
+        if (syllabus.status == 'pendent') {
+          syllabus.lastYearImprovementProposal = response.data;
+        }
         this.ImprovementModal.hide()
         this.addMessage('success', 'Propostes de millora guardades')
       } catch (error) {
@@ -253,11 +256,11 @@ export default {
           <textarea
             class="form-control border-secondary"
             v-model="modalFields.currentImprovementProposal"
-            rows="3"
+            rows="6"
           ></textarea>
         </div>
         <div v-show="!modalFields.editable">
-          <p v-html="modalFields.currentImprovementProposal || 'No hi ha cap proposta'"></p>
+          <p><pre>{{ modalFields.currentImprovementProposal || 'No hi ha cap proposta'}}</pre></p>
           <button @click="modalFields.editable = true" class="btn btn-secondary">Editar</button>
         </div>
         <p v-if="errors.currentImprovementProposal" class="error">

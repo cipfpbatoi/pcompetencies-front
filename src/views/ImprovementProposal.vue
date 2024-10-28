@@ -25,16 +25,6 @@ export default {
     ...mapState(useDataStore, ['syllabus'])
   },
   mounted() {
-    if (!this.syllabus.lastYearImprovementProposal) {
-      this.done = true
-    } else {
-      if (this.syllabus.lastYearImprovementProposal?.comments) {
-        this.done = true
-        this.modalFields.accepted = this.syllabus.lastYearImprovementProposal.status == 2
-        this.modalFields.comments = this.syllabus.lastYearImprovementProposal.comments
-      }
-    }
-    this.modalFields.groupContext = this.syllabus.groupContext
     this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
   },
   data() {
@@ -51,6 +41,16 @@ export default {
   methods: {
     ...mapActions(useDataStore, ['evaluateImprovement']),
     showModal() {
+      if (!this.syllabus.lastYearImprovementProposal) {
+        this.done = true
+      } else {
+        if (this.syllabus.lastYearImprovementProposal?.comments) {
+          this.done = true
+          this.modalFields.accepted = this.syllabus.lastYearImprovementProposal.status == 2
+          this.modalFields.comments = this.syllabus.lastYearImprovementProposal.comments
+        }
+      }
+      this.modalFields.groupContext = this.syllabus.groupContext
       this.GenericModal.show()
     },
     hasLastYearImprovementProposals(syllabus) {
@@ -131,7 +131,7 @@ export default {
             </div>
             <div class="card-body">
               <p class="h5"><strong>Propostes del Curs: </strong>{{ syllabus.lastYearImprovementProposal.courseYear }}</p>
-              <pre class="border rounded bg-light p-3" v-html="syllabus.lastYearImprovementProposal.proposals"></pre>
+              <p class="border rounded bg-light p-3"><pre>{{syllabus.lastYearImprovementProposal.proposals}}</pre></p>
               <h4>Resposta Aplicació de les Propostes</h4>
               <div class="border p-2">
                 <p>{{ getProposalTextStatus(syllabus.lastYearImprovementProposal.status) }}

@@ -25,13 +25,13 @@ export default {
     ...mapState(useDataStore, ['syllabus'])
   },
   mounted() {
-    if (!this.syllabus.currentImprovementProposal) {
+    if (!this.syllabus.lastYearImprovementProposal) {
       this.done = true
     } else {
-      if (this.syllabus.currentImprovementProposal?.comments) {
+      if (this.syllabus.lastYearImprovementProposal?.comments) {
         this.done = true
-        this.modalFields.accepted = this.syllabus.currentImprovementProposal.status == 2
-        this.modalFields.comments = this.syllabus.currentImprovementProposal.comments
+        this.modalFields.accepted = this.syllabus.lastYearImprovementProposal.status == 2
+        this.modalFields.comments = this.syllabus.lastYearImprovementProposal.comments
       }
     }
     this.modalFields.groupContext = this.syllabus.groupContext

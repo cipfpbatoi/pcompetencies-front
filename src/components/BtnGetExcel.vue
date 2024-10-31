@@ -22,14 +22,14 @@ export default {
   data() {
     return {
       isLoading: false,
+      GenericModal: null,
       modalFields: {
-        GenericModal: null,
-        modalFields: {
-          studentsCsv: ''
-        }
+        studentsCsv: ''
       },
-      isLoading: false
     }
+  },
+  mounted() {
+    this.GenericModal = new Modal(document.getElementById('excelModalComp'))
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),

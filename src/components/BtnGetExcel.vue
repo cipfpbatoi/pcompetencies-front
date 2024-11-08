@@ -29,13 +29,12 @@ export default {
     }
   },
   mounted() {
-    this.GenericModal = new Modal(document.getElementById('excelModalComp'))
+    this.GenericModal = new Modal(document.getElementById(`excelModalComp_${this.syllabusId}`))
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
     showModal() {
       this.modalFields.studentsCsv = ''
-      this.GenericModal = new Modal(document.getElementById('excelModalComp'))
       this.GenericModal.show()
     },
     async getExcel() {
@@ -81,7 +80,7 @@ export default {
       Obtindre quadern de Professorat
     </button>
   </div>
-  <ModalComponent @save="getExcel" title="Quadern del professorat" id="excelModalComp">
+  <ModalComponent @save="getExcel" title="Quadern del professorat" :id="`excelModalComp_${syllabusId}`">
     <div class="row p-1 align-items-center">
       <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>
       <div>

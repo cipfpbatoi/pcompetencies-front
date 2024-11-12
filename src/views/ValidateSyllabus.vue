@@ -6,6 +6,7 @@ import { api } from '@/repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import ShowPdfButton from '../components/ShowPdfButton.vue'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 export default {
   components: {
@@ -22,9 +23,15 @@ export default {
       isLoading: false,
       errors: false,
       // Modal generic
+      OthersGenericModal: null,
       GenericModal: null,
       modalFields: {
         studentsCsv: ''
+      },
+      // CKEditor
+      editor: ClassicEditor,
+      editorConfig: {
+        // The configuration of the editor.
       }
     }
   },
@@ -66,21 +73,49 @@ export default {
         )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', this.syllabus.center.code 
-          + '-' + this.syllabus.cycle.shortName.split(' ').join('_')
-          + '-' + this.syllabus.module.code
-          + '-' + this.syllabus.courseYear
-          + '-' + this.syllabus.turn + '.pdf')
+        link.setAttribute(
+          'download',
+          this.syllabus.center.code +
+            '-' +
+            this.syllabus.cycle.shortName.split(' ').join('_') +
+            '-' +
+            this.syllabus.module.code +
+            '-' +
+            this.syllabus.courseYear +
+            '-' +
+            this.syllabus.turn +
+            '.pdf'
+        )
         document.body.appendChild(link)
         link.click()
       } catch (error) {
         this.addMessage('error', error)
       }
     },
+    showModalOthersConsiderations() {
+      this.modalFields.othersConsiderations = this.syllabus.othersConsiderations || {}
+      this.OthersGenericModal = new Modal(document.getElementById('othersConsiderationsMmodalComp'))
+      this.OthersGenericModal.show()
+    },
     showModal() {
       this.modalFields.studentsCsv = ''
       this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
       this.GenericModal.show()
+    },
+    async saveOtherConsiderations() {
+      try {
+        const response = await api.saveOtherConsiderations(this.syllabus.id, {
+          othersConsiderations: this.modalFields.othersConsiderations
+        })
+        if (response.status !== 201) {
+          this.addMessage('error', response)
+          return
+        }
+        this.syllabus.othersConsiderations = this.modalFields.othersConsiderations
+        this.OthersGenericModal.hide()
+      } catch (error) {
+        this.addMessage('error', error)
+      }
     },
     async getExcel() {
       try {
@@ -122,7 +157,20 @@ export default {
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>10.1. Validar i enviar la programació</h2>
+      <h2>10.1. Altres consideracions</h2>
+      <div>
+        <p class="text-start" v-html="syllabus.othersConsiderations"></p>
+      </div>
+      <div class="text-center m-2">
+        <button
+          @click="showModalOthersConsiderations"
+          class="btn btn-primary col-sm-5 col-12"
+          title=" Afegir/Modificar altres consideracions"
+        >
+          Afegir/Modificar altres consideracions
+        </button>
+      </div>
+      <h2>10.2. Validar i enviar la programació</h2>
       <div v-if="!isValid && !errors">
         <div class="alert alert-info p-2 col-sm-12 col-12 mx-auto text-center">
           <strong>Atenció! </strong>Has de validar la programació abans d'enviar-la
@@ -231,7 +279,7 @@ export default {
           Enviar programació al departament
         </button>
       </div>
-      <h2>10.2. Documents</h2>
+      <h2>10.3. Documents</h2>
       <div class="text-center mt-5" v-if="isLoading">
         <span class="spinner-border text-primary"></span>
       </div>
@@ -239,9 +287,9 @@ export default {
         <div class="text-center m-2">
           <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
             <i class="bi bi-file-earmark-pdf"></i>
-            {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}
-          </button><br>
-<!--           <ShowPdfButton
+            {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}</button
+          ><br />
+          <!--           <ShowPdfButton
             :syllabus="syllabus"
             :title="isValid ? 'Vore PDF' : 'Vore esborrany'"
             @waiting="isLoading = $event"
@@ -260,6 +308,18 @@ export default {
       </div>
       <br />
     </div>
+    <ModalComponent modalId="othersConsiderationsMmodalComp" @save="saveOtherConsiderations" title="Altres consideracions">
+      <div class="row p-1 align-items-center">
+        <p>Altres consideracions</p>
+        <div>
+          <ckeditor
+            :editor="editor"
+            v-model="modalFields.othersConsiderations"
+            :config="editorConfig"
+          ></ckeditor>
+        </div>
+      </div>
+    </ModalComponent>
     <ModalComponent @save="getExcel" title="Quadern del professorat">
       <div class="row p-1 align-items-center">
         <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>

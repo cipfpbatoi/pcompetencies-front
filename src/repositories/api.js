@@ -111,6 +111,7 @@ export const api = {
   deleteSyllabusInstructionalUnit: (id, iUId) =>
     instance.delete(`/syllabus/${id}/instructionalUnit/${iUId}`),
   saveSyllabusMaterials: (id, data) => instance.post(`/syllabus/${id}/material`, data),
+  saveOtherConsiderations: (id, data) => instance.post(`/syllabus/${id}/others`, data),
 
   // Syllabus status
   syllabusValidate: (id) => instance.post(`${BASE_URL}syllabus/${id}/valida`, {}),

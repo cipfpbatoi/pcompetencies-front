@@ -410,7 +410,7 @@ export default {
                     @waiting="isLoading = $event" />
                 </div>
                 <div v-if="getSyllabusByTurn(turn)?.status && getSyllabusByTurn(turn)?.status !== 'pendent'">
-                  <BtnGetExcel :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
+                  <BtnGetExcel :schedules="getSyllabusByTurn(turn).schedules" :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
                 </div>
               </div>
             </div>

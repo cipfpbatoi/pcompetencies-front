@@ -14,6 +14,10 @@ export default {
     btnClass: {
       type: String,
       default: ' col-sm-5 col-12'
+    },
+    schedules : {
+      type: Object,
+      required: true
     }
   },
   components: {
@@ -24,7 +28,8 @@ export default {
       isLoading: false,
       GenericModal: null,
       modalFields: {
-        studentsCsv: ''
+        studentsCsv: '',
+        nameGroup: ''
       },
     }
   },
@@ -35,6 +40,7 @@ export default {
     ...mapActions(useDataStore, ['addMessage']),
     showModal() {
       this.modalFields.studentsCsv = ''
+      this.modalFields.nameGroup = ''
       this.GenericModal.show()
     },
     async getExcel() {
@@ -42,7 +48,10 @@ export default {
         this.isLoading = true
         const response = await api.getExcel(
           this.syllabusId,
-          this.modalFields.studentsCsv.split(';')
+          {
+            students:  this.modalFields.studentsCsv.split(';'),
+            nameGroup: this.modalFields.nameGroup
+          }
         )
         this.isLoading = false
         this.GenericModal.hide()
@@ -82,6 +91,18 @@ export default {
   </div>
   <ModalComponent @save="getExcel" title="Quadern del professorat" :id="`excelModalComp_${syllabusId}`">
     <div class="row p-1 align-items-center">
+      <div>
+        <div class="alert-info alert m-1 p-1 mb-2">
+          <p class="m-2"> <i class="bi bi-eye-fill m-1"></i>
+               Si <strong>no selecciones cap</strong> grup <strong>tindràs un únic document</strong> per a tots els grups. No obstant això, per al càlcul de notes
+               agafarà com a <strong>referència</strong>   la <strong>temporalització</strong> del <strong>GRUP A</strong>.
+          </p>
+        </div>
+        <select class="form-select form-select-lg mb-3 text-center" required v-model="modalFields.nameGroup">
+          <option value="" selected>--- Tria el grup (opcional) ---</option>
+          <option v-for="schedule in this.schedules" v-bind:value="schedule.nameGroup" >Grup {{ schedule.nameGroup }}</option>
+        </select>
+      </div>
       <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>
       <div>
         <textarea

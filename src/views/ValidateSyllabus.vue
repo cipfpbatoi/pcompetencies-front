@@ -26,7 +26,8 @@ export default {
       OthersGenericModal: null,
       GenericModal: null,
       modalFields: {
-        studentsCsv: ''
+        studentsCsv: '',
+        nameGroup: ''
       },
       // CKEditor
       editor: ClassicEditor,
@@ -99,6 +100,7 @@ export default {
     },
     showModal() {
       this.modalFields.studentsCsv = ''
+      this.modalFields.nameGroup = ''
       this.GenericModal = new Modal(document.getElementById('unitMmodalComp'))
       this.GenericModal.show()
     },
@@ -122,7 +124,10 @@ export default {
         this.isLoading = true
         const response = await api.getExcel(
           this.syllabus.id,
-          this.modalFields.studentsCsv.split(';')
+          {
+            students:  this.modalFields.studentsCsv.split(';'),
+            nameGroup: this.modalFields.nameGroup
+          }
         )
         this.isLoading = false
         this.GenericModal.hide()
@@ -158,7 +163,7 @@ export default {
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>10.1. Altres consideracions</h2>
-      <div>
+      <div class="border p-2 bg-secondary-subtle border-dark card">
         <p class="text-start" v-html="syllabus.othersConsiderations"></p>
       </div>
       <div class="text-center m-2">
@@ -167,10 +172,10 @@ export default {
           class="btn btn-primary col-sm-5 col-12"
           title=" Afegir/Modificar altres consideracions"
         >
-          Afegir/Modificar altres consideracions
+          <i class="bi bi-pencil"></i><span>Altres consideracions</span>
         </button>
       </div>
-      <h2>10.2. Validar i enviar la programació</h2>
+      <h2 class="mt-2">10.2. Validar i enviar la programació</h2>
       <div v-if="!isValid && !errors">
         <div class="alert alert-info p-2 col-sm-12 col-12 mx-auto text-center">
           <strong>Atenció! </strong>Has de validar la programació abans d'enviar-la
@@ -279,7 +284,7 @@ export default {
           Enviar programació al departament
         </button>
       </div>
-      <h2>10.3. Documents</h2>
+      <h2 class="mt-2">10.3. Documents</h2>
       <div class="text-center mt-5" v-if="isLoading">
         <span class="spinner-border text-primary"></span>
       </div>
@@ -289,11 +294,6 @@ export default {
             <i class="bi bi-file-earmark-pdf"></i>
             {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}</button
           ><br />
-          <!--           <ShowPdfButton
-            :syllabus="syllabus"
-            :title="isValid ? 'Vore PDF' : 'Vore esborrany'"
-            @waiting="isLoading = $event"
-          ></ShowPdfButton> -->
         </div>
         <div class="text-center m-2" :class="{ 'd-none': !isValid }">
           <button
@@ -322,8 +322,15 @@ export default {
     </ModalComponent>
     <ModalComponent @save="getExcel" title="Quadern del professorat">
       <div class="row p-1 align-items-center">
-        <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>
         <div>
+          <select class="form-select form-select-lg mb-3 text-center" required
+                  v-model="modalFields.nameGroup">
+            <option value="" selected>--- Tria el grup (opcional) ---</option>
+            <option v-for="schedule in this.syllabus.schedules" v-bind:value="schedule.nameGroup" >Grup {{ schedule.nameGroup }}</option>
+          </select>
+        </div>
+        <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>
+        <div class="form-control">
           <textarea
             class="form-control border-secondary"
             v-model="modalFields.studentsCsv"

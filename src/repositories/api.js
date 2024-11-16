@@ -134,8 +134,8 @@ export const api = {
       responseType: 'blob'
     }),
 
-  getExcel: (id, students) =>
-    axios.post(`${BASE_URL}syllabus/${id}/excel`, {students}, {
+  getExcel: (id, data) =>
+    axios.post(`${BASE_URL}syllabus/${id}/excel`, data, {
       headers: {
         Authorization: `Bearer ${localStorage.token}`
       },

@@ -349,8 +349,11 @@ export default {
             <option value="B">Grup B</option>
             <option value="C">Grup C</option>
             <option value="D">Grup D</option>
+            <option value="M">Grup M</option>
+            <option value="V">Grup V</option>
+            <option value="S">Grup S</option>
           </select>
-          <input type="text" v-model="modalFields.nameGroup" />
+          <input type="text" v-model="modalFields.nameGroup" disabled/>
         </div>
         <div class="col-auto">
           <p v-if="errors.nameGroup" class="error">{{ errors.nameGroup }}</p>

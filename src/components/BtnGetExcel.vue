@@ -4,11 +4,16 @@ import ModalComponent from '../components/ModalComponent.vue'
 import { mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import { api } from '@/repositories/api'
+import { string } from 'yup'
 
 export default {
   props: {
     syllabusId: {
       type: Number,
+      required: true
+    },
+    moduleName: {
+      type: string,
       required: true
     },
     btnClass: {
@@ -43,6 +48,11 @@ export default {
       this.modalFields.nameGroup = ''
       this.GenericModal.show()
     },
+    removeBadCharactersForFileName(str) {
+      return str
+        .replace(/[^\w\s.-]/g, '')
+        .replace(/\s+/g, '_');
+    },
     async getExcel() {
       try {
         this.isLoading = true
@@ -66,7 +76,7 @@ export default {
         )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'quadern_programacio_' + this.syllabusId)
+        link.setAttribute('download', 'quadern_professor_'+ this.syllabusId+'_' + this.removeBadCharactersForFileName(this.moduleName))
         document.body.appendChild(link)
         link.click()
       } catch (error) {
@@ -94,8 +104,8 @@ export default {
       <div>
         <div class="alert-info alert m-1 p-1 mb-2">
           <p class="m-2"> <i class="bi bi-eye-fill m-1"></i>
-               Si <strong>no selecciones cap</strong> grup <strong>tindràs un únic document</strong> per a tots els grups. No obstant això, per al càlcul de notes
-               agafarà com a <strong>referència</strong>   la <strong>temporalització</strong> del <strong>GRUP A</strong>.
+            Si <strong>no selecciones cap</strong> grup <strong>tindràs un únic document</strong> per a tots els grups. No obstant això, per al càlcul de notes
+            agafarà com a <strong>referència</strong>   la <strong>temporalització</strong> del <strong>GRUP A</strong>.
           </p>
         </div>
         <select class="form-select form-select-lg mb-3 text-center" required v-model="modalFields.nameGroup">

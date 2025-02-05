@@ -56,7 +56,7 @@ export default {
         center: false,
         cycle: false
       },
-      // CKEditor
+      showHelp: false,
       editor: ClassicEditor,
       editorConfig: {
         // The configuration of the editor.
@@ -143,7 +143,8 @@ export default {
       </div>
       <div class="card text-center mb-2">
         <div class="card-header fw-bold bg-info text-uppercase text-white text-start">
-          1.3 Característiques del grup-classe
+          1.3 Característiques del grup-classe <span @click="showHelp = true"><i class="bi bi-info-circle-fill"></i>
+        </span>
         </div>
         <div class="card-body">
           <p class="text-start" v-if="syllabus.groupContext" v-html="syllabus.groupContext"></p>
@@ -160,6 +161,63 @@ export default {
       </div>
     </div>
   </main>
+    <div>
+      <div v-if="showHelp"
+        class="modal d-block modal-lg"
+        tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-info text-white ">
+              <h5 class="modal-title mx-auto"><i class="bi bi-info-circle-fill m-2"></i>Directrius per a Contextualitzar el Grup-Classe</h5>
+            </div>
+            <div class="modal-body">
+              <p class="text-muted">
+                Aquestes són opcions suggerides per a ajudar a contextualitzar el grup-classe. No són obligatòries, sinó orientatives.
+              </p>
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <strong>Nombre d'alumnes:</strong> Indica quants estudiants hi ha al grup.
+                </li>
+                <li class="list-group-item">
+                  <strong>Distribució per sexe i edat:</strong> Descriu com es distribueixen els alumnes segons el sexe i les franges d'edat principals.
+                </li>
+                <li class="list-group-item">
+                  <strong>Diversitat lingüística:</strong> Enumera els idiomes predominants al grup.
+                </li>
+                <li class="list-group-item">
+                  <strong>Interessos del grup:</strong> Especifica si busquen treballar, anar a la universitat o algun altre objectiu.
+                </li>
+                <li class="list-group-item">
+                  <strong>Dificultats amb els idiomes cooficials:</strong> Descriu possibles barreres relacionades amb idiomes oficials o cooficials.
+                </li>
+                <li class="list-group-item">
+                  <strong>Situació laboral i procedència:</strong> Menciona si treballen, la seua formació prèvia o d'on venen.
+                </li>
+                <li class="list-group-item">
+                  <strong>Repetidors o convalidacions:</strong> Indica si hi ha estudiants que repetixen curs o que tenen moltes assignatures convalidades.
+                </li>
+              </ul>
+            </div>
+            <div class="modal-footer mx-auto">
+              <button
+                type="button"
+                class="btn btn-success"
+                @click="showHelp = false">
+                Tancar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fons enfosquit -->
+      <div
+        v-if="showHelp"
+        class="modal-backdrop fade show"
+        @click="showHelp = false"
+      ></div>
+    </div>
+
 </template>
 
 <style scoped>

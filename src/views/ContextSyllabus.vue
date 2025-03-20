@@ -209,7 +209,6 @@ export default {
           </div>
         </div>
       </div>
-
       <!-- Fons enfosquit -->
       <div
         v-if="showHelp"

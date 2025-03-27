@@ -89,7 +89,9 @@ export const useDataStore = defineStore('data', {
     },
     filterModules() {
       if (this.user.info && !this.user.info.roles.includes('ROLE_ADMIN')) {
-        this.cycle.modules = this.cycle.modules.filter(item => item.department.id === this.user.info?.department.id) 
+        this.cycle.modules = this.cycle.modules.filter((item) =>
+              item.departments.some((element) => element.id === this.user.info?.department.id)
+        );
       }
     },
     setCycleAndModule(cycleId, moduleCode) {

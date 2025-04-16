@@ -32,7 +32,7 @@ export default {
           position: ls.position,
           hours: ls.hours,
           title: ls.title,
-          totalPercentageWeightLs: ls.ponderedLearningResults.reduce((total, pr) => total + pr.percentageWeight, 0)
+          ponderedLearningResults: ls.ponderedLearningResults
         }
 
         const activities = this.sylMarkingActivities.filter(
@@ -69,6 +69,17 @@ export default {
               }
             })
           }
+        });
+        learningSituation.percentageWeightAssignedByLR = learningSituation.ponderedLearningResults.map((item) => {
+            return {
+              learningResult: item.learningResult,
+              percentatgeWeight:  learningSituation.activities.reduce((total, actividad) => {
+                         const sumaPonderaciones = actividad.ponderedLearningResults
+                        .filter(p => p.learningResultId === item.learningResult.id)
+                        .reduce((suma, p) => suma + p.percentageWeight, 0)
+                   return total + sumaPonderaciones;
+              }, 0)
+            }
         })
         learningSituation.totalPercentageWeight = learningSituation.activities.reduce(
           (total, act) => total +
@@ -77,6 +88,7 @@ export default {
         )
         learningSituations.push(learningSituation)
       })
+
       return learningSituations
     }
   },
@@ -226,10 +238,12 @@ export default {
       </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-        <p v-if="ls.totalPercentageWeight !== ls.totalPercentageWeightLs" class="bg-danger text-white p-2">
-          <strong>ATENCIÓ:</strong> la suma dels percentatges de la S.A. NO és 100%. Has
-          d'arreglar-lo abans de continuar
-        </p>
+        <div v-for="pondRa in ls.ponderedLearningResults">
+          <p v-if="pondRa.percentageWeight !== ls.percentageWeightAssignedByLR.find((item) => item.learningResult.id === pondRa.learningResult.id).percentatgeWeight" class="bg-danger text-white p-2">
+            <strong>ATENCIÓ:</strong> la suma dels percentatges del <strong>RA {{ pondRa.learningResult.number }}</strong> ha de sumar
+            <strong>{{ pondRa.percentageWeight }}%</strong>. Has d'arreglar-ho abans de continuar
+          </p>
+        </div>
         <table class="table table-striped">
           <thead>
             <th>R.A.</th>
@@ -248,7 +262,7 @@ export default {
               ></td>
               <td :title="activity.description"><strong>{{ activity.code }}</strong> <cite>({{activity.assessmentTool.name}})</cite></td>
               <td v-html="showCes(activity)"></td>
-              <td>{{ activity.percentageWeight }} %</td>
+              <td><span v-for="pls in activity.ponderedLearningResults">RA{{pls.number}} ({{pls.percentageWeight}}%)<br></span></td>
               <td>
                 <check-icon :checked="activity.fundamental"></check-icon>
               </td>
@@ -262,8 +276,8 @@ export default {
           <tfoot>
             <tr>
               <th colspan="3">TOTAL</th>
-              <th>{{ ls.totalPercentageWeight }} %</th>
-              <th>%</th>
+              <th><div v-for="pondRa in ls.percentageWeightAssignedByLR">RA{{pondRa.learningResult.number}}: {{pondRa.percentatgeWeight}}%</div></th>
+              <th></th>
             </tr>
           </tfoot>
         </table>

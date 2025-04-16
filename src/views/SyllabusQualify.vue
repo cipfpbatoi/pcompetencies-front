@@ -17,8 +17,7 @@ export default {
     ...mapState(useDataStore, ['syllabus']),
     totalPercentajeWeight() {
       return this.learningSituationsToShow.reduce(
-        (total, ls) => total + ls.totalPercentageWeight,
-        0
+        (total, ls) => total + ls.totalPercentageWeight, 0
       )
     },
     done() {
@@ -32,8 +31,10 @@ export default {
           id: ls.id,
           position: ls.position,
           hours: ls.hours,
-          title: ls.title
+          title: ls.title,
+          totalPercentageWeightLs: ls.ponderedLearningResults.reduce((total, pr) => total + pr.percentageWeight, 0)
         }
+
         const activities = this.sylMarkingActivities.filter(
           (item) => item.learningSituation.id === ls.id
         )
@@ -43,12 +44,21 @@ export default {
             code: item.code,
             positiom: item.position,
             hours: item.hours,
-            percentageWeight: item.percentageWeight,
             fundamental: item.fundamental,
             description: item.description,
             ecs: this.getRAData(item),
             assessmentTool: item.assessmentTool,
-            ras: ls.ponderedLearningResults.map((lr) => {
+            ponderedLearningResults: item.learningSituation.ponderedLearningResults.filter(
+              subitem => item.evaluationCriterias.some((evCriterias) => evCriterias.learningResultId === subitem.learningResult.id )
+            ).map((plr) => {
+              return {
+                learningResultId: plr.learningResult.id,
+                number: plr.learningResult.number,
+                percentageWeight: item.ponderedLearningResults.find(subitem => subitem.learningResult.id === plr.learningResult.id)?.percentageWeight ?? 0
+              }
+            }),
+            ras: ls.ponderedLearningResults
+              .map((lr) => {
               return {
                 id: lr.learningResult.id,
                 percentageWeight: lr.percentageWeight,
@@ -61,7 +71,8 @@ export default {
           }
         })
         learningSituation.totalPercentageWeight = learningSituation.activities.reduce(
-          (total, act) => total + act.percentageWeight,
+          (total, act) => total +
+            act.ponderedLearningResults.reduce((subtotal, pact) => subtotal + pact.percentageWeight,0),
           0
         )
         learningSituations.push(learningSituation)
@@ -109,6 +120,8 @@ export default {
       this.modalFields = {
         activityId: activity.id,
         percentageWeight: activity.percentageWeight,
+        learningResults: activity.ras,
+        ponderedLearningResults: activity.ponderedLearningResults,
         fundamental: activity.fundamental,
         description: activity.description,
         code: activity.code
@@ -175,15 +188,16 @@ export default {
       <p class="text-justify">
         <span v-html="modalFields.description"></span>
       </p>
-      <div class="input-group mb-3">
-        <span class="input-group-text">Pes:</span>
+      <div v-for="item in modalFields.ponderedLearningResults" class="input-group mb-3">
+        <span class="input-group-text">RA: {{item.number}}</span>
         <input
           type="number"
           size="3"
           min="0"
           max="100"
+          step="0.1"
           class="form-control"
-          v-model="modalFields.percentageWeight"
+          v-model="item.percentageWeight"
         />
         %
         <span v-if="errors.percentageWeight" class="input-group-text text-danger">{{
@@ -212,7 +226,7 @@ export default {
       </div>
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
-        <p v-if="ls.totalPercentageWeight !== 100" class="bg-danger text-white p-2">
+        <p v-if="ls.totalPercentageWeight !== ls.totalPercentageWeightLs" class="bg-danger text-white p-2">
           <strong>ATENCIÓ:</strong> la suma dels percentatges de la S.A. NO és 100%. Has
           d'arreglar-lo abans de continuar
         </p>

@@ -3,6 +3,7 @@ import { api } from '../repositories/api.js'
 
 const DELMSG_TIMEOUT = 8000
 let id = 1
+let debug = true
 
 export const useDataStore = defineStore('data', {
   state() {
@@ -79,6 +80,7 @@ export const useDataStore = defineStore('data', {
       }
       newMessage.time = new Date().toLocaleTimeString()
       this.messages.push(newMessage)
+      if (debug) console.log(newMessage)
       if (type === 'success' || type === 'error') {
         setTimeout(() => this.delMessage(id), DELMSG_TIMEOUT)
       }
@@ -89,7 +91,8 @@ export const useDataStore = defineStore('data', {
     },
     filterModules() {
       if (this.user.info && !this.user.info.roles.includes('ROLE_ADMIN')) {
-        this.cycle.modules = this.cycle.modules.filter(item => item.department.id === this.user.info?.department.id) 
+        this.cycle.modules = this.cycle.modules.filter(item => 
+          item.departments.map(dep => dep.id).includes(this.user.info?.department.id)) 
       }
     },
     setCycleAndModule(cycleId, moduleCode) {

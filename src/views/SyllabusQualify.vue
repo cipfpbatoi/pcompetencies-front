@@ -21,7 +21,7 @@ export default {
       )
     },
     done() {
-      return this.learningSituationsToShow.every((ls) => ls.totalPercentageWeight === 100)
+      return true;
     },
     learningSituationsToShow() {
       if (!this.syllabus.learningSituations || !this.sylMarkingActivities.length) return []

@@ -9,17 +9,6 @@ import ShowTable from '@/components/ShowTable.vue'
 
 const DAYS_NAME = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres']
 
-const complementaryActivColumns = [
-  {
-    title: 'Nom',
-    value: 'description'
-  },
-  {
-    title: 'Continguts',
-    func: (x) => (x ? x.join(', ') : '---'),
-    param: 'contentDescriptors'
-  }
-]
 const inCompanyTrainingColumns = [
   {
     title: "Situació d'aprenentatge",
@@ -62,21 +51,17 @@ export default {
     this.ScheduleModalInCompanyTraining = new Modal(
       document.getElementById('scheduleModalInCompanyTraining')
     )
-    this.ActivitiesModal = new Modal(document.getElementById('complementaryActivitiesModal'))
   },
   data() {
     return {
       errors: {},
       ScheduleModal: null,
       ScheduleModalInCompanyTraining: null,
-      ActivitiesModal: null,
       modalFields: { inCompanyTraining: {} },
       modalTitle: '',
       DAYS_NAME,
-      complementaryActivColumns,
       inCompanyTrainingColumns,
-      newContent: '',
-      restrictions: {},
+      restrictions: {}
     }
   },
   methods: {
@@ -129,8 +114,9 @@ export default {
           this.ScheduleModal.show()
           break
         case 'scheduleLearningSituation':
-            this.modalFields = { ...data }
-            this.modalTitle = 'Temporalització de la S.A. ' + data.learningSituationId + ' del grup ' + data.nameGroup
+          this.modalFields = { ...data }
+          this.modalTitle =
+            'Temporalització de la S.A. ' + data.learningSituationId + ' del grup ' + data.nameGroup
           this.ScheduleModalInCompanyTraining.show()
           break
         case 'scheduleInCompanyTraining':
@@ -146,23 +132,6 @@ export default {
           }
           this.ScheduleModalInCompanyTraining.show()
           break
-        case 'activity':
-          if (data) {
-            this.modalFields = {
-              ...data,
-              contentDescriptors: [...data.contentDescriptors]
-            }
-            this.modalTitle = 'Editar activitat complementària'
-          } else {
-            this.modalFields = {
-              description: '',
-              contentDescriptors: []
-            }
-            this.modalTitle = 'Agegir nova activitat complementària'
-          }
-
-          this.ActivitiesModal.show()
-          break
       }
     },
     daysWithData(schedule) {
@@ -177,7 +146,9 @@ export default {
     },
     async generateSchedule(schedule) {
       if (schedule.learningSituationEntries.length) {
-        if (!confirm("Vas a sobre-escriure la temporalització del grup '" + schedule.nameGroup + "'")) {
+        if (
+          !confirm("Vas a sobre-escriure la temporalització del grup '" + schedule.nameGroup + "'")
+        ) {
           return
         }
       }
@@ -188,7 +159,10 @@ export default {
       delete scheduleConNombreIdCambiado.id
       try {
         const response = await api.generateSchedule(this.syllabus.id, scheduleConNombreIdCambiado)
-        this.addMessage('success', `Creada correctament la temporalització per al grup ${response.data.nameGroup}`)
+        this.addMessage(
+          'success',
+          `Creada correctament la temporalització per al grup ${response.data.nameGroup}`
+        )
         schedule.learningSituationEntries = response.data.learningSituationEntries
       } catch (error) {
         this.addMessage('error', error)
@@ -198,8 +172,8 @@ export default {
       if (
         confirm(
           "Vas a eliminar la temporalització del grup '" +
-          schedule.nameGroup +
-          "'. Aquesta operació no es pot des-fer"
+            schedule.nameGroup +
+            "'. Aquesta operació no es pot des-fer"
         )
       ) {
         try {
@@ -324,68 +298,6 @@ export default {
       }
       this.ScheduleModalInCompanyTraining.hide()
       this.addMessage('success', 'Temporalització guardada')
-    },
-    async deleteComplementaryActivity(activity) {
-      if (
-        confirm(
-          "ATENCIÓ: Vas a esborrar l'activitat '" +
-          activity.description +
-          "'. Aquest procés NO es por des-fer !!!"
-        )
-      ) {
-        try {
-          await api.deleteComplementaryActivity(this.syllabus.id, activity.id)
-          this.syllabus.complementaryActivities = this.syllabus.complementaryActivities.filter(
-            (item) => item.id !== activity.id
-          )
-          this.addMessage('success', 'Activitat eliminada')
-        } catch (error) {
-          this.addMessage('error', error)
-        }
-      }
-    },
-    delContent(index) {
-      this.modalFields.contentDescriptors.splice(index, 1)
-    },
-    addContent() {
-      if (this.newContent.length < 5) {
-        this.errors.contentDescriptors = 'Al menys ha de tindre 5 caracters'
-        return
-      }
-      this.modalFields.contentDescriptors.push(this.newContent)
-      this.newContent = ''
-      this.errors = {}
-    },
-    async saveContents() {
-      // COmprovacions
-      this.errors = {}
-      if (this.modalFields.description.length < 10) {
-        this.errors.description = 'Has de posar una descripció de al menys 10 caracters'
-      }
-      if (!this.modalFields.contentDescriptors.length) {
-        this.errors.contentDescriptors = "L'activitat ha de tractar al menys 1 contingut"
-      }
-      if (Object.keys(this.errors).length) return
-
-      if (this.modalFields.id) {
-        this.modalFields.activityId = this.modalFields.id
-        delete this.modalFields.id
-      }
-      try {
-        const response = await api.saveComplementaryActivity(this.syllabus.id, this.modalFields)
-        if (this.modalFields.activityId) {
-          const index = this.syllabus.complementaryActivities.findIndex(
-            (item) => item.id === response.data.id
-          )
-          this.syllabus.complementaryActivities.splice(index, 1, response.data)
-        } else {
-          this.syllabus.complementaryActivities.push(response.data)
-        }
-        this.ActivitiesModal.hide()
-        this.addMessage('success', 'Activitat guardada')
-      } catch (error) {
-        this.addMessage('error', error)
-      }
     }
   }
 }
@@ -409,7 +321,7 @@ export default {
             <option value="V">Grup V</option>
             <option value="S">Grup S</option>
           </select>
-          <input type="text" v-model="modalFields.nameGroup" disabled/>
+          <input type="text" v-model="modalFields.nameGroup" disabled />
         </div>
         <div class="col-auto">
           <p v-if="errors.nameGroup" class="error">{{ errors.nameGroup }}</p>
@@ -418,16 +330,16 @@ export default {
       <p>Indica les hores setmanals en el grup:</p>
       <table class="table table-striped">
         <thead>
-        <th v-for="entry in modalFields.entries" :key="entry.day">
-          {{ entry.name }}
-        </th>
-        <th>Total</th>
+          <th v-for="entry in modalFields.entries" :key="entry.day">
+            {{ entry.name }}
+          </th>
+          <th>Total</th>
         </thead>
         <tbody>
-        <td v-for="entry in modalFields.entries" :key="entry.day">
-          <input type="number" v-model="entry.hours" min="0" size="2" />
-        </td>
-        <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
+          <td v-for="entry in modalFields.entries" :key="entry.day">
+            <input type="number" v-model="entry.hours" min="0" size="2" />
+          </td>
+          <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
         </tbody>
       </table>
       <div class="col-auto">
@@ -440,19 +352,21 @@ export default {
       modalId="scheduleModalInCompanyTraining"
     >
       <div class="row p-2">
-        <p class="form-label p-2 fw-bold"
-        >SA {{ modalFields.position }}: {{ modalFields.title }}</p
-        >
+        <p class="form-label p-2 fw-bold">SA {{ modalFields.position }}: {{ modalFields.title }}</p>
         <div v-if="restrictions?.data?.length">
           <div class="alert alert-success" role="alert">
-            <h4 >Atenció!</h4>
+            <h4>Atenció!</h4>
             <p>El teu centre ha establit uns <strong>períodes de formació en empresa</strong>.</p>
-            <p>Has de <strong>temporalitzar</strong> les <strong>SA</strong> a desenvolupar a la <strong>empresa</strong> en els següents períodes:</p>
+            <p>
+              Has de <strong>temporalitzar</strong> les <strong>SA</strong> a desenvolupar a la
+              <strong>empresa</strong> en els següents períodes:
+            </p>
             <ul>
               <li v-for="restriction in restrictions.data" :key="restriction.id">
-                el <strong>{{ (new Date(restriction.startDate)).toLocaleDateString() }}</strong>
-                i el <strong>{{ (new Date(restriction.endDate)).toLocaleDateString() }}</strong>
-                ({{ restriction.stage?.description }})
+                el <strong>{{ new Date(restriction.startDate).toLocaleDateString() }}</strong> i el
+                <strong>{{ new Date(restriction.endDate).toLocaleDateString() }}</strong> ({{
+                  restriction.stage?.description
+                }})
               </li>
             </ul>
           </div>
@@ -484,45 +398,6 @@ export default {
         <p v-if="errors.otherErrors" class="error p-2">{{ errors.otherErrors }}</p>
       </div>
     </ModalComponent>
-    <ModalComponent @save="saveContents" :title="modalTitle" modalId="complementaryActivitiesModal">
-      <div class="row p-2">
-        <div class="input-group cols-8 p-2">
-          <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Nom</label>
-          <input type="text" v-model="modalFields.description" class="form-control p-2" />
-          <p v-if="errors.description" class="error p-2">{{ errors.description }}</p>
-        </div>
-      </div>
-      <div class="row">
-        <p><strong>Continguts tractats en l'activitat:</strong></p>
-        <table class="table table-striped">
-          <tbody>
-          <tr v-for="(item, index) in modalFields.contentDescriptors" :key="index">
-            <td>{{ item }}</td>
-            <td class="text-end">
-              <button @click="delContent(index)" class="btn btn-secondary" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-        <form @submit.prevent="addContent">
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              v-model="newContent"
-              placeholder="Afegir nou contingut"
-            />
-            <button type="submit" class="btn btn-secondary" title="Establir objectiu">
-              Afegir nou contingut
-            </button>
-          </div>
-          <span v-if="errors.newContent" class="error">{{ errors.newContent }}</span>
-        </form>
-        <p v-if="errors.contentDescriptors" class="error">{{ errors.contentDescriptors }}</p>
-      </div>
-    </ModalComponent>
 
     <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
@@ -531,7 +406,7 @@ export default {
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 mt-2">
-      <h2>8.a Temporalització</h2>
+      <h2>8 Temporalització</h2>
       <div class="container">
         <div
           v-for="(schedule, scheduleIndex) in syllabus.schedules"
@@ -553,14 +428,14 @@ export default {
           </div>
           <table class="table table-striped text-center">
             <thead>
-            <th v-for="(entry, index) in schedule.entries" :key="index">
-              {{ DAYS_NAME[entry.day - 1] }}
-            </th>
+              <th v-for="(entry, index) in schedule.entries" :key="index">
+                {{ DAYS_NAME[entry.day - 1] }}
+              </th>
             </thead>
             <tbody>
-            <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">
-              {{ entry.hours }} h.
-            </td>
+              <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">
+                {{ entry.hours }} h.
+              </td>
             </tbody>
           </table>
           <div v-if="syllabus.courseLevel > 1">
@@ -581,13 +456,21 @@ export default {
             </show-table>
           </div>
           <div>
-            <h5>Temporalització de les Situacions d'Aprenentatge
-              <button @click="generateSchedule(schedule)" class="btn btn-success" :class="{'btn-danger': schedule.learningSituationEntries.length}" title="Generar temporalització">
-              Generar temporalització automàtica
+            <h5>
+              Temporalització de les Situacions d'Aprenentatge
+              <button
+                @click="generateSchedule(schedule)"
+                class="btn btn-success"
+                :class="{ 'btn-danger': schedule.learningSituationEntries.length }"
+                title="Generar temporalització"
+              >
+                Generar temporalització automàtica
               </button>
             </h5>
             <show-table
-              :data="lsToScheduleLearningSituation(schedule.learningSituationEntries, scheduleIndex)"
+              :data="
+                lsToScheduleLearningSituation(schedule.learningSituationEntries, scheduleIndex)
+              "
               :columns="inCompanyTrainingColumns"
             >
               <template #default="{ item }">
@@ -611,34 +494,6 @@ export default {
             Afegir temporalització d'un nou grup
           </button>
         </div>
-      </div>
-      <h2>8.b. Activitats complementàries</h2>
-      <div class="alert alert-primary text-dark" role="alert">
-        <span class="bi bi-eye-fill"></span> Són les organitzades en horari escolar y que es diferèncien de les lectives pel moment, espais o recursos que utilitzen.
-        <br><cite class="text-secondary">Si has de qualificar-les has d'afegir-les també com a activitat de qualificació en la SA on es durà a terme.</cite>
-      </div>
-      <show-table :data="syllabus.complementaryActivities" :columns="complementaryActivColumns">
-        <template #default="{ item }">
-          <button @click="showModal('activity', item)" class="btn btn-secondary" title="Editar">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button
-            @click="deleteComplementaryActivity(item)"
-            class="btn btn-secondary"
-            title="Eliminar"
-          >
-            <i class="bi bi-trash"></i>
-          </button>
-        </template>
-      </show-table>
-      <div class="text-center">
-        <button
-          @click="showModal('activity')"
-          class="btn btn-success mt-2 mx-auto"
-          title="Establir objectiu"
-        >
-          Afegir activitat complementària
-        </button>
       </div>
     </div>
   </main>

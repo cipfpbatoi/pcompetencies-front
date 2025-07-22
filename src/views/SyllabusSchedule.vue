@@ -76,7 +76,7 @@ export default {
       complementaryActivColumns,
       inCompanyTrainingColumns,
       newContent: '',
-      restrictions: {}
+      restrictions: {},
     }
   },
   methods: {
@@ -94,9 +94,24 @@ export default {
             position: ls.position,
             startDate: lsInCompanyTrainingEntries?.startDate || '',
             endDate: lsInCompanyTrainingEntries?.endDate || '',
-            schedule: schedule
+            schedule: schedule,
+            inCompanyTrainingScheduling: true
           }
         })
+    },
+    lsToScheduleLearningSituation(data, scheduleIndex) {
+      return data.map((item) => {
+        const ls = this.syllabus.learningSituations.find((ls) => ls.id === item.learningSituationId)
+        return {
+          learningSituationId: item.learningSituationId,
+          title: ls?.title || 'S.A. sense títol',
+          position: scheduleIndex,
+          startDate: item.startDate,
+          endDate: item.endDate,
+          nameGroup: this.syllabus.schedules[scheduleIndex].nameGroup,
+          inCompanyTrainingScheduling: false
+        }
+      })
     },
     showModal(type, data, group) {
       this.errors = {}
@@ -112,6 +127,11 @@ export default {
           this.modalFields.entries = this.daysWithData(data)
 
           this.ScheduleModal.show()
+          break
+        case 'scheduleLearningSituation':
+            this.modalFields = { ...data }
+            this.modalTitle = 'Temporalització de la S.A. ' + data.learningSituationId + ' del grup ' + data.nameGroup
+          this.ScheduleModalInCompanyTraining.show()
           break
         case 'scheduleInCompanyTraining':
           this.modalFields = { ...data }
@@ -154,6 +174,25 @@ export default {
           hours: data?.hours || 0
         }
       })
+    },
+    async generateSchedule(schedule) {
+      if (schedule.learningSituationEntries.length) {
+        if (!confirm("Vas a sobre-escriure la temporalització del grup '" + schedule.nameGroup + "'")) {
+          return
+        }
+      }
+      const scheduleConNombreIdCambiado = {
+        ...schedule,
+        scheduleId: schedule.id
+      }
+      delete scheduleConNombreIdCambiado.id
+      try {
+        const response = await api.generateSchedule(this.syllabus.id, scheduleConNombreIdCambiado)
+        this.addMessage('success', `Creada correctament la temporalització per al grup ${response.data.nameGroup}`)
+        schedule.learningSituationEntries = response.data.learningSituationEntries
+      } catch (error) {
+        this.addMessage('error', error)
+      }
     },
     async delSchedule(schedule) {
       if (
@@ -215,7 +254,7 @@ export default {
         this.addMessage('error', error)
       }
     },
-    async saveInCompanyTraining() {
+    async saveLSScheduled() {
       this.errors = {}
       if (!this.modalFields.startDate) {
         this.errors.startDate = "'Has d'indicar una data d'inici de la S.A."
@@ -228,6 +267,23 @@ export default {
       }
       if (Object.keys(this.errors).length) return
 
+      if (this.modalFields.inCompanyTrainingScheduling) {
+        this.saveInCompanyTraining()
+      } else {
+        try {
+          const response = await api.saveLearningSituationSchedule(
+            this.syllabus.id,
+            this.modalFields
+          )
+          this.ScheduleModalInCompanyTraining.hide()
+          this.addMessage('success', 'Temporalització manual de la S.A. guardada')
+          this.syllabus.schedules[this.modalFields.position] = response.data
+        } catch (error) {
+          this.addMessage('error', error)
+        }
+      }
+    },
+    async saveInCompanyTraining() {
       const lsIndex = this.modalFields.schedule.inCompanyTrainingEntries.findIndex(
         (item) => item.learningSituationId === this.modalFields.id
       )
@@ -379,7 +435,7 @@ export default {
       </div>
     </ModalComponent>
     <ModalComponent
-      @save="saveInCompanyTraining"
+      @save="saveLSScheduled"
       :title="modalTitle"
       modalId="scheduleModalInCompanyTraining"
     >
@@ -478,7 +534,7 @@ export default {
       <h2>8.a Temporalització</h2>
       <div class="container">
         <div
-          v-for="schedule in syllabus.schedules"
+          v-for="(schedule, scheduleIndex) in syllabus.schedules"
           :key="schedule.id"
           class="p-2 border border-dark"
         >
@@ -507,7 +563,7 @@ export default {
             </td>
             </tbody>
           </table>
-          <div v-if="syllabus.courseLevel == 1">
+          <div v-if="syllabus.courseLevel > 1">
             <h5>Temporalització de la Formació en Empresa</h5>
             <show-table
               :data="lsToScheduleInCompanyTraining(schedule)"
@@ -516,6 +572,27 @@ export default {
               <template #default="{ item }">
                 <button
                   @click="showModal('scheduleInCompanyTraining', item)"
+                  class="btn btn-secondary"
+                  title="Editar"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </template>
+            </show-table>
+          </div>
+          <div>
+            <h5>Temporalització de les Situacions d'Aprenentatge
+              <button @click="generateSchedule(schedule)" class="btn btn-success" :class="{'btn-danger': schedule.learningSituationEntries.length}" title="Generar temporalització">
+              Generar temporalització automàtica
+              </button>
+            </h5>
+            <show-table
+              :data="lsToScheduleLearningSituation(schedule.learningSituationEntries, scheduleIndex)"
+              :columns="inCompanyTrainingColumns"
+            >
+              <template #default="{ item }">
+                <button
+                  @click="showModal('scheduleLearningSituation', item)"
                   class="btn btn-secondary"
                   title="Editar"
                 >

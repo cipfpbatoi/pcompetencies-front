@@ -145,7 +145,7 @@ export default {
       })
     },
     async generateSchedule(schedule) {
-      if (schedule.learningSituationEntries.length) {
+      if (schedule.learningSituationEntries?.length) {
         if (
           !confirm("Vas a sobre-escriure la temporalització del grup '" + schedule.nameGroup + "'")
         ) {
@@ -172,8 +172,8 @@ export default {
       if (
         confirm(
           "Vas a eliminar la temporalització del grup '" +
-            schedule.nameGroup +
-            "'. Aquesta operació no es pot des-fer"
+          schedule.nameGroup +
+          "'. Aquesta operació no es pot des-fer"
         )
       ) {
         try {
@@ -330,16 +330,16 @@ export default {
       <p>Indica les hores setmanals en el grup:</p>
       <table class="table table-striped">
         <thead>
-          <th v-for="entry in modalFields.entries" :key="entry.day">
-            {{ entry.name }}
-          </th>
-          <th>Total</th>
+        <th v-for="entry in modalFields.entries" :key="entry.day">
+          {{ entry.name }}
+        </th>
+        <th>Total</th>
         </thead>
         <tbody>
-          <td v-for="entry in modalFields.entries" :key="entry.day">
-            <input type="number" v-model="entry.hours" min="0" size="2" />
-          </td>
-          <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
+        <td v-for="entry in modalFields.entries" :key="entry.day">
+          <input type="number" v-model="entry.hours" min="0" size="2" />
+        </td>
+        <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
         </tbody>
       </table>
       <div class="col-auto">
@@ -428,45 +428,29 @@ export default {
           </div>
           <table class="table table-striped text-center">
             <thead>
-              <th v-for="(entry, index) in schedule.entries" :key="index">
-                {{ DAYS_NAME[entry.day - 1] }}
-              </th>
+            <th v-for="(entry, index) in schedule.entries" :key="index">
+              {{ DAYS_NAME[entry.day - 1] }}
+            </th>
             </thead>
             <tbody>
-              <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">
-                {{ entry.hours }} h.
-              </td>
+            <td class="border m-2" v-for="(entry, index) in schedule.entries" :key="index">
+              {{ entry.hours }} h.
+            </td>
             </tbody>
           </table>
-          <div v-if="syllabus.courseLevel > 1">
-            <h5>Temporalització de la Formació en Empresa</h5>
-            <show-table
-              :data="lsToScheduleInCompanyTraining(schedule)"
-              :columns="inCompanyTrainingColumns"
-            >
-              <template #default="{ item }">
-                <button
-                  @click="showModal('scheduleInCompanyTraining', item)"
-                  class="btn btn-secondary"
-                  title="Editar"
-                >
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </template>
-            </show-table>
-          </div>
           <div>
-            <h5>
-              Temporalització de les Situacions d'Aprenentatge
+            <div>
+              <h5 class="h2 text-center">Temporalització de les Situacions d'Aprenentatge</h5>
+            </div>
+            <div class="text-center p-2 border-info">
               <button
                 @click="generateSchedule(schedule)"
-                class="btn btn-success"
-                :class="{ 'btn-danger': schedule.learningSituationEntries.length }"
-                title="Generar temporalització"
-              >
-                Generar temporalització automàtica
+                class="btn btn-success btn-block p-2"
+                :class="{ 'btn-danger': schedule.learningSituationEntries?.length }"
+                title="Generar temporalització">
+                <span v-if="schedule.learningSituationEntries?.length">Tornar</span> Generar temporalització automàtica
               </button>
-            </h5>
+            </div>
             <show-table
               :data="
                 lsToScheduleLearningSituation(schedule.learningSituationEntries, scheduleIndex)

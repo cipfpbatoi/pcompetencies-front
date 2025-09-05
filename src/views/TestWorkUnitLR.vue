@@ -117,7 +117,7 @@ export default {
           <!-- Iterar sobre cada contenido para crear una fila en la tabla -->
           <tr v-for="(ls, indexLS) in syllabus.learningSituations" :key="ls.id">
             <td>{{ ls.position }} - {{ ls.title }}
-              <span v-if="ls.inCompanyTraining" class="badge bg-primary">F. Empresa</span>
+              <span v-if="ls.inCompanyTraining" class="badge bg-primary">FE (Dualitzable)</span>
             </td>
             <td>{{ ls.hours }}</td>
             <!-- Iterar sobre cada resultado para crear una celda en la fila -->

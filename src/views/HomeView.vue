@@ -92,9 +92,7 @@ export default {
       this.modalFields = {
         turn,
         editable: false,
-        currentImprovementProposal:
-            (syllabus.status == 'pendent') ? syllabus.lastYearImprovementProposal?.proposals || '' :
-            syllabus.currentImprovementProposal?.proposals || ''
+        currentImprovementProposal: syllabus.currentImprovementProposal?.proposals || ''
       }
       this.ImprovementModal.show()
     },

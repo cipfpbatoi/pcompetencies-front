@@ -166,7 +166,7 @@ export default {
           <form>
             <div class="input-group form-switch cols-8 p-2 mx-auto bg-info text-white">
               <label class="form-check-label mx-lg-0 mx-auto" for="flexSwitchCheckDefault">
-                Aquesta SA es desenvolupa a l'empresa</label>
+                Aquesta SA és susceptible de dur-se a l’empresa</label>
               <input class="form-check-input p-2 mx-2" type="checkbox" id="flexSwitchCheckDefault" v-model="editedUnit.inCompanyTraining" />
             </div>
             <div class="row p-2">

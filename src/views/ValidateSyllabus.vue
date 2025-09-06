@@ -7,12 +7,14 @@ import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
 import ShowPdfButton from '../components/ShowPdfButton.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
+import BtnGetExcel from '../components/BtnGetExcel.vue'
 
 export default {
   components: {
     AppBreadcrumb,
     ModalComponent,
-    ShowPdfButton
+    ShowPdfButton,
+    BtnGetExcel
   },
   computed: {
     ...mapState(useDataStore, ['syllabus'])
@@ -289,21 +291,20 @@ export default {
         <span class="spinner-border text-primary"></span>
       </div>
       <div v-else>
-        <div class="text-center m-2">
-          <button @click="showPdf" class="btn btn-danger col-sm-5 col-12" title="Vore PDF">
-            <i class="bi bi-file-earmark-pdf"></i>
-            {{ isValid ? 'Vore PDF' : 'Vore esborrany' }}</button
-          ><br />
+        <div class="text-center m-2" v-if="syllabus?.id">
+          <ShowPdfButton
+            v-if="syllabus.id"
+            :syllabus="syllabus"
+            buttonClass="btn btn-danger col-12 col-sm-4"
+            @waiting="isLoading = $event" />
         </div>
-        <div class="text-center m-2" :class="{ 'd-none': !isValid }">
-          <button
-            @click="showModal"
-            class="btn btn-primary col-sm-5 col-12"
-            title="Quadern del Professorat PDF"
-          >
-            <i class="bi bi-file-earmark-excel"></i>
-            Obtindre quadern de Professorat
-          </button>
+        <div class="text-center m-2" v-if="syllabus?.id" :class="{ 'd-none': !isValid }">
+          <BtnGetExcel
+            :module-name="syllabus.module.name"
+            :schedules="syllabus.schedules"
+            :syllabus-id="syllabus.id"
+            btnClass="col-sm-4 col-12"
+          />
         </div>
       </div>
       <br />

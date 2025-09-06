@@ -31,7 +31,7 @@ const learningSituationsColumns = [
   {
     title: 'Títol',
     html: true,
-      func: (x, y) => { return (y.inCompanyTraining) ? '<strong class="badge bg-primary m-1 p-1">FE (Dualitzable)</strong> ' + x : x},
+      func: (x, y) => { return (y.inCompanyTraining) ? x+'<strong class="badge bg-primary m-1 p-1"> Dualitzable FE</strong> ' : x},
     param: 'title',
   },
   {

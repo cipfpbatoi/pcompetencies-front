@@ -28,14 +28,18 @@ const learningSituationsColumns = [
   {
     title: 'R.A.',
     class: 'text-center',
-    func: (x) => {
+    html: true,
+    func: (x, row) => {
       if (!x || !x.length) return ''
-      return x
-        .map(
+      const raText = x.map(
           (item) =>
             (item.learningResultId || item.learningResult.number) + ` (${item.percentageWeight} %)`
         )
         .join(', ')
+      if (row.inCompanyTraining) {
+        return `${raText} <span class="badge bg-primary"> (Dualitzable - FE)</span> `;
+      }
+      return raText;
     },
     param: 'ponderedLearningResults'
   }
@@ -45,7 +49,7 @@ export default {
   components: {
     AppBreadcrumb,
     ShowTable,
-    LrTable,
+    LrTable
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module']),

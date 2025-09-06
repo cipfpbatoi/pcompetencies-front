@@ -142,12 +142,17 @@ export default {
         )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'quadern_programacio_' + this.syllabus.id)
+        link.setAttribute('download', 'quadern_professor_'+ this.syllabus.id+'_' + this.removeBadCharactersForFileName(this.syllabus.module.name))
         document.body.appendChild(link)
         link.click()
       } catch (error) {
         this.addMessage('error', error)
       }
+    },
+    removeBadCharactersForFileName(str) {
+      return str
+        .replace(/[^\w\s.-]/g, '')
+        .replace(/\s+/g, '_');
     }
   }
 }

@@ -51,7 +51,7 @@ export default {
         )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', this.syllabus.center.code 
+        link.setAttribute('download', this.syllabus.center.code
           + '-' + this.syllabus.cycle.shortName.split(' ').join('_')
           + '-' + this.syllabus.module.code
           + '-' + this.syllabus.courseYear

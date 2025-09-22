@@ -12,15 +12,27 @@ const DAYS_NAME = ['Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres']
 const inCompanyTrainingColumns = [
   {
     title: "Situació d'aprenentatge",
-    value: 'title'
+    value: 'title',
+  },
+  {
+    title: "Avaluació",
+    value: 'evaluation',
   },
   {
     title: 'Data inici',
-    value: 'startDate'
+    param: 'startDate',
+    html: true,
+    func: (x, row) => {
+      return `<input readonly type="date" value="${x}" />`;
+    },
   },
   {
     title: 'Data fi',
-    value: 'endDate'
+    param: 'endDate',
+    html: true,
+    func: (x) => {
+      return `<input readonly type="date" value="${x}" />`;
+    },
   }
 ]
 export default {
@@ -89,10 +101,11 @@ export default {
         const ls = this.syllabus.learningSituations.find((ls) => ls.id === item.learningSituationId)
         return {
           learningSituationId: item.learningSituationId,
-          title: ls?.title || 'S.A. sense títol',
+          title: ls?.title + ' ('+ls?.hours+'h) '|| 'S.A. sense títol',
           position: scheduleIndex,
           startDate: item.startDate,
           endDate: item.endDate,
+          evaluation: item.evaluation,
           nameGroup: this.syllabus.schedules[scheduleIndex].nameGroup,
           inCompanyTrainingScheduling: false
         }

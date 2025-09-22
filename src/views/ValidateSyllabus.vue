@@ -168,7 +168,7 @@ export default {
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>10.1. Altres consideracions</h2>
-      <div class="border p-2 bg-secondary-subtle border-dark card">
+      <div class="border p-2 bg-secondary-subtle border-dark card" style="min-height: 100px">
         <p class="text-start" v-html="syllabus.othersConsiderations"></p>
       </div>
       <div class="text-center m-2">
@@ -316,7 +316,7 @@ export default {
     <ModalComponent modalId="othersConsiderationsMmodalComp" @save="saveOtherConsiderations" title="Altres consideracions">
       <div class="row p-1 align-items-center">
         <p>Altres consideracions</p>
-        <div>
+       <div>
           <ckeditor
             :editor="editor"
             v-model="modalFields.othersConsiderations"

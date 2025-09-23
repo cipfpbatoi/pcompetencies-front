@@ -276,7 +276,7 @@ export default {
           <tfoot>
             <tr>
               <th colspan="3">TOTAL</th>
-              <th><div v-for="pondRa in ls.percentageWeightAssignedByLR">RA{{pondRa.learningResult.number}}: {{pondRa.percentatgeWeight}}%</div></th>
+              <th><div v-for="pondRa in ls.percentageWeightAssignedByLR">RA{{pondRa.learningResult.number}}: {{pondRa.percentatgeWeight.toFixed(2)}}%</div></th>
               <th></th>
             </tr>
           </tfoot>

@@ -239,7 +239,7 @@ export default {
       <template v-for="ls in learningSituationsToShow" :key="ls.id">
         <h4 class="bg-secondary text-white p-1">S.A. {{ ls.position }}: {{ ls.title }}</h4>
         <div v-for="pondRa in ls.ponderedLearningResults">
-          <p v-if="pondRa.percentageWeight !== ls.percentageWeightAssignedByLR.find((item) => item.learningResult.id === pondRa.learningResult.id).percentatgeWeight" class="bg-danger text-white p-2">
+          <p v-if="pondRa.percentageWeight.toFixed(2) !== ls.percentageWeightAssignedByLR.find((item) => item.learningResult.id === pondRa.learningResult.id).percentatgeWeight.toFixed(2)" class="bg-danger text-white p-2">
             <strong>ATENCIÓ:</strong> la suma dels percentatges del <strong>RA {{ pondRa.learningResult.number }}</strong> ha de sumar
             <strong>{{ pondRa.percentageWeight }}%</strong>. Has d'arreglar-ho abans de continuar
           </p>

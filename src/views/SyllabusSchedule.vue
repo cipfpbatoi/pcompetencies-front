@@ -253,8 +253,8 @@ export default {
         this.errors.endDate = "La data de finalització ha de ser posterior a la d'inici"
       }
 
-      if (this.modalFields.evaluation <= 0) {
-        this.errors.evaluation = "Has d'indicar una avaluació"
+      if (this.modalFields.evaluation <= 0 || this.modalFields.evaluation > 3) {
+        this.errors.evaluation = "Has d'indicar una avaluació vàlida [1-3]"
       }
       if (Object.keys(this.errors).length) return
 

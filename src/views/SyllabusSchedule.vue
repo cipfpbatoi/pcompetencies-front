@@ -252,6 +252,10 @@ export default {
       if (this.modalFields.startDate > this.modalFields.endDate) {
         this.errors.endDate = "La data de finalització ha de ser posterior a la d'inici"
       }
+
+      if (this.modalFields.evaluation <= 0) {
+        this.errors.evaluation = "Has d'indicar una avaluació"
+      }
       if (Object.keys(this.errors).length) return
 
       if (this.modalFields.inCompanyTrainingScheduling) {
@@ -278,13 +282,15 @@ export default {
         this.modalFields.schedule.inCompanyTrainingEntries.push({
           learningSituationId: this.modalFields.id,
           startDate: this.modalFields.startDate,
-          endDate: this.modalFields.endDate
+          endDate: this.modalFields.endDate,
+          evaluation: this.modalFields.evaluation
         })
       } else {
         this.modalFields.schedule.inCompanyTrainingEntries[lsIndex] = {
           learningSituationId: this.modalFields.id,
           startDate: this.modalFields.startDate,
-          endDate: this.modalFields.endDate
+          endDate: this.modalFields.endDate,
+          evaluation: this.modalFields.evaluation
         }
       }
 

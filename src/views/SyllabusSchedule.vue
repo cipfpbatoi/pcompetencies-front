@@ -408,6 +408,19 @@ export default {
         </div>
       </div>
       <div class="row">
+        <div class="input-group cols-8 p-2">
+          <label class="form-label p-2 fw-bold col-sm-6 col-lg-3">Avaluació</label>
+          <input
+            type="number"
+            min="1"
+            max="3"
+            v-model="modalFields.evaluation"
+            class="form-control p-2 col-sm-2 col-lg-1"
+          />
+          <p v-if="errors.evaluation" class="error p-2">{{ errors.evaluation }}</p>
+        </div>
+      </div>
+      <div class="row">
         <p v-if="errors.otherErrors" class="error p-2">{{ errors.otherErrors }}</p>
       </div>
     </ModalComponent>

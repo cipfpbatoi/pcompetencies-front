@@ -189,8 +189,6 @@ export default {
     showLSModal(unit) {
       if (unit) {
         this.modalData = unit
-      } else {
-        this.modalData = unit
       }
       this.LearnSitModal.show()
     },

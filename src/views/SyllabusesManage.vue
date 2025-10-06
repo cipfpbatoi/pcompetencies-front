@@ -241,7 +241,7 @@ export default {
           <th>Codi</th>
           <th>Mòdul</th>
           <th>Torn</th>
-          <th>Enviat Per:</th>
+          <th>Enviat per:</th>
           <th>Estat</th>
           <th>Accions</th>
           </thead>

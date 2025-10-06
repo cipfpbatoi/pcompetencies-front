@@ -241,6 +241,7 @@ export default {
           <th>Codi</th>
           <th>Mòdul</th>
           <th>Torn</th>
+          <th>Enviat Per:</th>
           <th>Estat</th>
           <th>Accions</th>
           </thead>
@@ -253,6 +254,8 @@ export default {
             <td>{{ syl.module.code }}</td>
             <td :title="syl.module.code">{{ syl.module.name }}</td>
             <td>{{ (syl.turn === 'presential' ? 'Presencial' : 'Semi-presencial') }}</td>
+            <td v-if="syl.sentUser">{{ syl.sentUser.name }} {{ syl.sentUser.surname }}</td>
+            <td v-else>No establit</td>
             <td class="align-middle">
                 <span :class="statusClass(syl.status)">{{
                     syl.status

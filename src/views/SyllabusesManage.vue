@@ -81,6 +81,7 @@ export default {
       }
       if (this.moduleFilter) {
         filter += `&module.code=${this.moduleFilter}`
+        filter += `&module.name=${this.moduleFilter}`
       }
 
       return encodeURI(filter)
@@ -207,7 +208,7 @@ export default {
         </div>
         <div class="row align-items-center">
           <div class="col-lg-5 col-12">
-            <label class="fw-bold col-12 col-lg-4">Codi del Mòdul:</label>
+            <label class="fw-bold col-12 col-lg-4">Codi o nom del Mòdul:</label>
             <input
               @input="getSyllabuses"
               v-model="moduleFilter"
@@ -242,6 +243,7 @@ export default {
           <th>Mòdul</th>
           <th>Torn</th>
           <th>Enviat per:</th>
+          <th>Curs:</th>
           <th>Estat</th>
           <th>Accions</th>
           </thead>
@@ -256,6 +258,7 @@ export default {
             <td>{{ (syl.turn === 'presential' ? 'Presencial' : 'Semi-presencial') }}</td>
             <td v-if="syl.sentUser">{{ syl.sentUser.name }} {{ syl.sentUser.surname }}</td>
             <td v-else>No establit</td>
+            <td>{{ syl.courseYear }}</td>
             <td class="align-middle">
                 <span :class="statusClass(syl.status)">{{
                     syl.status

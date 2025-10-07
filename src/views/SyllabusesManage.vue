@@ -80,7 +80,6 @@ export default {
         filter += `&status=${this.statusFilter}`
       }
       if (this.moduleFilter) {
-        filter += `&module.code=${this.moduleFilter}`
         filter += `&module.name=${this.moduleFilter}`
       }
 
@@ -208,12 +207,12 @@ export default {
         </div>
         <div class="row align-items-center">
           <div class="col-lg-5 col-12">
-            <label class="fw-bold col-12 col-lg-4">Codi o nom del Mòdul:</label>
+            <label class="fw-bold col-12 col-lg-4">Nom del Mòdul:</label>
             <input
               @input="getSyllabuses"
               v-model="moduleFilter"
               class="form-input p-2 col-12 col-lg-8 m-lg-0 my-1"
-              placeholder="Ex. 03012..."
+              placeholder="Ex. Desplegament..."
             />
           </div>
           <div class="col-lg-5 text-center col-sm-12">

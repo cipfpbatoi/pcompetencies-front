@@ -148,6 +148,7 @@ export default {
     },
     async getSyllabuses() {
       this.isLoading = true
+      this.showHistory = false
       try {
         const [respSyl, respSylToCopy] = await Promise.all([
           api.getSyllabusByCycleAndModule(this.cycleSelect, this.moduleSelect),
@@ -426,6 +427,7 @@ export default {
                     <HistorySyllabusList
                       :syllabus-id="getSyllabusByTurn(turn).id"
                       :turn-label="turn"
+                      :key="getSyllabusByTurn(turn).id"
                     />
                   </div>
                 </div>

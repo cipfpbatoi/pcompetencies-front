@@ -64,6 +64,7 @@ export default {
   },
   data() {
     return {
+      showHistory: false,
       cycles: [],
       currentData: {},
       cycleSelect: '',
@@ -413,11 +414,21 @@ export default {
                   <BtnGetExcel :module-name="getSyllabusByTurn(turn).module.name" :schedules="getSyllabusByTurn(turn).schedules" :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
                 </div>
               </div>
-              <div class="col-lg-6 mx-auto">
-                <HistorySyllabusList
-                  v-if="getSyllabusByTurn(turn).id"
-                  :syllabus-id="getSyllabusByTurn(turn).id"
-                />
+              <div class="row text-center">
+                <div v-if="getSyllabusByTurn(turn).id" class="mb-3">
+                  <button
+                    class="btn btn-secondary col-12 col-sm-4"
+                    @click="showHistory = !showHistory">
+                    {{ showHistory ? 'Ocultar Històric Propostes Didàctiques' : 'Veure Històric Propostes Didàctiques' }}
+                    <i class="bi bi-clock-history"></i>
+                  </button>
+                  <div v-if="showHistory">
+                    <HistorySyllabusList
+                      :syllabus-id="getSyllabusByTurn(turn).id"
+                      :turn-label="turn"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </template>

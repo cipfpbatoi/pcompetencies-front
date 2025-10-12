@@ -137,6 +137,14 @@ export const api = {
       responseType: 'blob'
     }),
 
+  getApprovedDocumentsBySyllabusId: (syllabusId) =>
+    instance.get(`/syllabus/${syllabusId}/approvedDocument/`),
+
+  getApprovedDocumentPdf: (approvedDocumentId) =>
+    axios.get(`${BASE_URL}public/syllabus/approvedDocument/${approvedDocumentId}`, {
+      responseType: 'blob'
+    }),
+
   getExcel: (id, data) =>
     axios.post(`${BASE_URL}syllabus/${id}/excel`, data, {
       headers: {

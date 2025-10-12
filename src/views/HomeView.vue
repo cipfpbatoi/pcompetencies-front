@@ -9,13 +9,15 @@ import ShowPdfButton from '../components/ShowPdfButton.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import { statusClass } from '../utils/utils.js'
 import BtnGetExcel from '../components/BtnGetExcel.vue'
+import HistorySyllabusList from '../components/HistorySyllabusList.vue'
 
 export default {
   components: {
     ModalComponent,
     ActionButton,
     ShowPdfButton,
-    BtnGetExcel
+    BtnGetExcel,
+    HistorySyllabusList,
   },
   async mounted() {
     this.syllabuses = []
@@ -411,6 +413,12 @@ export default {
                   <BtnGetExcel :module-name="getSyllabusByTurn(turn).module.name" :schedules="getSyllabusByTurn(turn).schedules" :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
                 </div>
               </div>
+            </div>
+            <div>
+              <HistorySyllabusList
+                v-if="getSyllabusByTurn(turn).id"
+                :syllabus-id="getSyllabusByTurn(turn).id"
+              />
             </div>
           </template>
         </div>

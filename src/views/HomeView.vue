@@ -220,7 +220,7 @@ export default {
       const syllabus = this.getSyllabusByTurn(turn)
       window.open(
         window.location.origin +
-          `/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
+        `/public/syllabus/${syllabus.center.code}/${syllabus.cycle.id}/${syllabus.module.code}/${turn}`,
         '_blank'
       )
     },
@@ -405,7 +405,7 @@ export default {
                 <div v-else>
                   <ShowPdfButton
                     v-if="getSyllabusByTurn(turn).id"
-                    :syllabus="getSyllabusByTurn(turn)" 
+                    :syllabus="getSyllabusByTurn(turn)"
                     buttonClass="btn btn-danger col-12 col-sm-4"
                     @waiting="isLoading = $event" />
                 </div>
@@ -413,12 +413,12 @@ export default {
                   <BtnGetExcel :module-name="getSyllabusByTurn(turn).module.name" :schedules="getSyllabusByTurn(turn).schedules" :syllabus-id="getSyllabusByTurn(turn).id" btnClass="col-sm-4 col-12"></BtnGetExcel>
                 </div>
               </div>
-            </div>
-            <div>
-              <HistorySyllabusList
-                v-if="getSyllabusByTurn(turn).id"
-                :syllabus-id="getSyllabusByTurn(turn).id"
-              />
+              <div class="col-lg-6 mx-auto">
+                <HistorySyllabusList
+                  v-if="getSyllabusByTurn(turn).id"
+                  :syllabus-id="getSyllabusByTurn(turn).id"
+                />
+              </div>
             </div>
           </template>
         </div>

@@ -340,7 +340,7 @@ export default {
                       aria-controls="current"
                       aria-selected="true"
                     >
-                      <i class="bi bi-file-earmark-text"></i> Programacions actuals
+                      <i class="bi bi-file-earmark-text"></i> Propostes Didàctiques Actuals
                     </button>
                   </li>
                   <li class="nav-item" role="presentation">

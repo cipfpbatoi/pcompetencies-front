@@ -37,7 +37,7 @@
   </div>
 
   <div v-else class="alert alert-secondary mt-4 text-center">
-    No hi ha cap programació aprovada de cursos anteriors.
+    No hi ha cap proposta didàctica aprovada de cursos anteriors.
   </div>
 </template>
 

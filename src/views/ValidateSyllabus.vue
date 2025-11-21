@@ -170,6 +170,7 @@ export default {
       <h2>10.1. Altres consideracions</h2>
       <div class="border p-2 bg-secondary-subtle border-dark card" style="min-height: 100px">
         <p class="text-start" v-html="syllabus.othersConsiderations"></p>
+        <cite v-if="!syllabus.othersConsiderations">No s'han especificat altres consideracions</cite>
       </div>
       <div class="text-center m-2">
         <button
@@ -223,7 +224,12 @@ export default {
               {{ errors.technologicalModuleProcess }}
             </li>
             <li v-if="errors.temporalització">
-              {{ errors.temporalització }}
+              <h5>Temporalització de les Situacions d'aprenentatge</h5>
+              <ul>
+                <li v-for="error in errors.temporalització" :key="error">
+                   {{ error }}
+                </li>
+              </ul>
             </li>
           </ul>
           <div v-if="errors.learningSituations">

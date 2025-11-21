@@ -159,24 +159,29 @@ export default {
     },
     async generateSchedule(schedule) {
       if (schedule.learningSituationEntries?.length) {
-        if (
-          !confirm("Vas a sobre-escriure la temporalització del grup '" + schedule.nameGroup + "'")
-        ) {
-          return
-        }
+        const ok = confirm(`Vas a sobre-escriure la temporalització del grup '${schedule.nameGroup}'`)
+        if (!ok) return
       }
-      const scheduleConNombreIdCambiado = {
+
+      const dataToSend = {
         ...schedule,
         scheduleId: schedule.id
       }
-      delete scheduleConNombreIdCambiado.id
+
+      delete dataToSend.id
+
       try {
-        const response = await api.generateSchedule(this.syllabus.id, scheduleConNombreIdCambiado)
+        const response = await api.generateSchedule(this.syllabus.id, dataToSend)
         this.addMessage(
           'success',
           `Creada correctament la temporalització per al grup ${response.data.nameGroup}`
         )
-        schedule.learningSituationEntries = response.data.learningSituationEntries
+        const index = this.syllabus.schedules.findIndex(
+          (item) => item.id === response.data.id
+        )
+        if (index !== -1) {
+          this.syllabus.schedules.splice(index, 1, response.data)
+        }
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -326,28 +331,36 @@ export default {
   <main class="border shadow view-main">
     <ModalComponent @save="saveSchedule" :title="modalTitle" modalId="scheduleModal">
       <div class="row g-3 align-items-center">
-        <div class="col-auto">
+
+        <div class="col-12">
           <label class="form-label">Nom del grup</label>
         </div>
-        <div class="col-auto">
-          <select v-model="modalFields.nameGroup">
-            <option value="">--- Tria el grup ---</option>
-            <option value="A">Grup A</option>
-            <option value="B">Grup B</option>
-            <option value="C">Grup C</option>
-            <option value="D">Grup D</option>
-            <option value="M">Grup M</option>
-            <option value="V">Grup V</option>
-            <option value="S">Grup S</option>
-          </select>
-          <input type="text" v-model="modalFields.nameGroup" disabled />
+
+        <div class="col-12">
+          <div class="row g-2">
+            <div class="col-6">
+              <select v-model="modalFields.nameGroup" class="form-select">
+                <option value="">--- Tria el grup ---</option>
+                <option value="A">Grup A</option>
+                <option value="B">Grup B</option>
+                <option value="C">Grup C</option>
+                <option value="D">Grup D</option>
+                <option value="M">Grup M</option>
+                <option value="V">Grup V</option>
+                <option value="S">Grup S</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <input type="text" v-model="modalFields.nameGroup" disabled class="form-control" />
+            </div>
+          </div>
         </div>
-        <div class="col-auto">
-          <p v-if="errors.nameGroup" class="error">{{ errors.nameGroup }}</p>
-        </div>
+
       </div>
-      <p>Indica les hores setmanals en el grup:</p>
-      <table class="table table-striped">
+
+      <p class="mt-3">Indica les hores setmanals en el grup:</p>
+
+      <table class="table table-striped text-center">
         <thead>
         <th v-for="entry in modalFields.entries" :key="entry.day">
           {{ entry.name }}
@@ -356,15 +369,19 @@ export default {
         </thead>
         <tbody>
         <td v-for="entry in modalFields.entries" :key="entry.day">
-          <input type="number" v-model="entry.hours" min="0" size="2" />
+          <input type="number" v-model="entry.hours" min="0" class="form-control text-center" />
         </td>
-        <td :class="hoursClass">{{ totalHours }} de {{ syllabus.weekHours }}</td>
+        <td :class="hoursClass + ' total-col'">
+          {{ totalHours }} de {{ syllabus.weekHours }}
+        </td>
         </tbody>
       </table>
+
       <div class="col-auto">
         <p v-if="errors.hours" class="error">{{ errors.hours }}</p>
       </div>
     </ModalComponent>
+
     <ModalComponent
       @save="saveLSScheduled"
       :title="modalTitle"
@@ -438,7 +455,7 @@ export default {
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 mt-2">
-      <h2>8 Temporalització</h2>
+      <h2>8. Temporalització</h2>
       <div class="container">
         <div
           v-for="(schedule, scheduleIndex) in syllabus.schedules"
@@ -446,6 +463,10 @@ export default {
           class="p-2 border border-dark"
         >
           <div class="text-center">
+            <div class="alert alert-warning" role="alert" v-if="schedule.review">
+                 <strong>Atenció!</strong> S'han modificat les hores de les situacions d'aprenentatge i no s'ha regenerat la temporalització. <br>
+              <cite>En cas que hages fet la temporalització manualment hauràs d'editar i guardar, almenys la temporalització d'una SA.</cite>
+            </div>
             <span class="h3 px-2 align-middle">Grup {{ schedule.nameGroup }}</span>
             <button
               @click="showModal('schedule', schedule)"
@@ -480,7 +501,7 @@ export default {
                 class="btn btn-success btn-block p-2"
                 :class="{ 'btn-danger': schedule.learningSituationEntries?.length }"
                 title="Generar temporalització">
-                <span v-if="schedule.learningSituationEntries?.length">Tornar</span> Generar temporalització automàtica
+                <span v-if="schedule.learningSituationEntries?.length">Tornar a</span> Generar temporalització automàtica
               </button>
             </div>
             <show-table
@@ -518,5 +539,10 @@ export default {
 <style scoped>
 .error {
   color: red;
+}
+.total-col {
+  min-width: 120px;
+  font-weight: bold;
+  white-space: nowrap;
 }
 </style>

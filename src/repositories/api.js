@@ -61,9 +61,9 @@ export const api = {
       responseType: 'blob'
     }),
 
-  getPCCMethodologicalPrinciples: (pccId, mpContext) => instance.get(`/api/pcc/${pccId}/mp-contexts`, mpContext),
-  savePCCMethodologicalPrinciples: (pccId) => instance.post(`/api/pcc/${pccId}/mp-contexts`),
-  deletePCCMethodologicalPrinciples: (pccId, mpId) => instance.delete(`/api/pcc/${pccId}/mp-contexts/${mpId}`),
+  getPCCMethodologicalPrinciples: (pccId, mpContext) => instance.get(`/pcc/${pccId}/mp-context`, mpContext),
+  savePCCMethodologicalPrinciple: (pccId, data) => instance.post(`/pcc/${pccId}/mp-context`, data),
+  deletePCCMethodologicalPrinciple: (pccId, mpId) => instance.delete(`/pcc/${pccId}/mp-context/${mpId}`),
 
   // Center
   getAsessmentTool: () => instance.get('/assessmentTool'),

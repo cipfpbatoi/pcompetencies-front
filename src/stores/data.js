@@ -9,7 +9,7 @@ export const useDataStore = defineStore('data', {
     return {
       user: {},
       messages: [],
-      pcc: {},
+      pcc: { methodologicalPrinciplesContext: [] },
       syllabus: {},
       module: {},
       cycle: {},
@@ -195,6 +195,51 @@ export const useDataStore = defineStore('data', {
         const response = await api.createPccEnvironment(id, data)
         this.pcc = response.data
         this.addMessage('success', 'Contextualització guardada')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async savePccMethodologicalPrinciple(id, data) {
+      try {
+        const response = await api.savePCCMethodologicalPrinciple(id, data)
+        const index = this.pcc.methodologicalsPrinciplesContext.findIndex(
+          (item) => item.methodologicalPrinciple.id === response.data.id
+        )
+        if (index > -1) {
+          // Editamos existente
+          this.pcc.methodologicalsPrinciplesContext.splice(index, 1, response.data)
+          this.addMessage('success', 'Principi metodològic actualitzat')
+        } else {
+          // Nueva
+          this.pcc.methodologicalsPrinciplesContext.push(response.data)
+          this.addMessage('success', 'Principi metodològic guardat')
+        }
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async deletePccMethodologicalPrinciple(id, data) {
+      try {
+        const index = this.pcc.methodologicalsPrinciplesContext.findIndex(
+          (item) => item.methodologicalPrinciple.id === data.methodologicalPrincipleId
+        )
+        if (index > -1) {
+          await api.deletePCCMethodologicalPrinciple(id, data.methodologicalPrincipleId)
+          this.pcc.methodologicalsPrinciplesContext.splice(index, 1)
+          this.addMessage('success', 'Principi metodològic eliminat')
+        } else {
+          // Nueva
+          this.addMessage('error', `Principi metodològic ${data.id} no trobat`)
+          return
+        }
         return 'ok'
       } catch (error) {
         if (error.response?.status != 422) {

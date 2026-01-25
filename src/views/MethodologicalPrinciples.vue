@@ -124,7 +124,7 @@ export default {
               description: '',
               contentDescriptors: []
             }
-            this.modalTitle = 'Agegir nova activitat complementària'
+            this.modalTitle = 'Afegir nova activitat complementària'
           }
 
           this.ActivitiesModal.show()

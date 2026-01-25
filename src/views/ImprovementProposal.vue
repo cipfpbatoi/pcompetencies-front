@@ -100,7 +100,7 @@ export default {
       <div class="row m-2 m-md-4 bg-light border">
         <div v-if="hasLastYearImprovementProposals(syllabus)" class="p-0 m-0">
           <p class="h5 m-0 p-2 text-center bg-info text-white"><strong>Propostes del Curs: </strong>{{ syllabus.lastYearImprovementProposal.courseYear }}</p>
-          <p class="bg-light-subtle p-2"><pre>{{ syllabus.lastYearImprovementProposal.proposals }}</pre></p>
+          <pre>{{ syllabus.lastYearImprovementProposal.proposals }}</pre>
         </div>
         <div class="form-check m-1 p-2 bg-info-subtle h5">
           <input class="form-check-input mx-3" type="checkbox" v-model="modalFields.accepted" />
@@ -131,7 +131,7 @@ export default {
             </div>
             <div class="card-body">
               <p class="h5"><strong>Propostes del Curs: </strong>{{ syllabus.lastYearImprovementProposal.courseYear }}</p>
-              <p class="border rounded bg-light p-3"><pre>{{syllabus.lastYearImprovementProposal.proposals}}</pre></p>
+              <pre class="border rounded bg-light p-3">{{syllabus.lastYearImprovementProposal.proposals}}</pre>
               <h4>Resposta Aplicació de les Propostes</h4>
               <div class="border p-2">
                 <p>{{ getProposalTextStatus(syllabus.lastYearImprovementProposal.status) }}

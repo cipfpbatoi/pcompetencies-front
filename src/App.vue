@@ -21,6 +21,13 @@ export default {
       }
     }
   },
+  computed: {
+    title() {
+      return window.location.pathname.includes('pcc') 
+      ? 'Projecte Curricular de Centre' 
+      : 'Programacions per competències'
+    }
+  },
   methods: {
     ...mapActions(useDataStore, ['loadData'])
   }
@@ -37,7 +44,7 @@ export default {
         height="100px"
       />
       <div class="m-2 col-10">
-        <h1 class="text-xl-end">Programacions per competències</h1>
+        <h1 class="text-xl-end">{{ title }}</h1>
         <div class="wrapper navbar-expand">
           <AppNav />
         </div>
@@ -69,5 +76,11 @@ header {
 
 .view-main {
   min-height: 500px;
+}
+</style>
+
+<style>
+div.card-header.pcc {
+  background-color: darksalmon;
 }
 </style>

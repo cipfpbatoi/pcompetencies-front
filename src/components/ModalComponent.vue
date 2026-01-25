@@ -31,7 +31,7 @@ export default {
   >
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header bg-darkgrey">
+        <div class="modal-header bg-info bg-darkgrey">
           <h1 class="modal-title fs-5" id="modalTitle">{{ title }}</h1>
           <button
             type="button"

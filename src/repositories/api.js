@@ -48,6 +48,23 @@ instance.interceptors.response.use(
 
 // Métodos para acceder a las rutas de la API
 export const api = {
+  // PCC
+  getPCCByCycleId: (cycleId) => instance.get(`/pcc/cycle/${cycleId}`),
+  createPCC: (data) => instance.post('/pcc', data),
+  createPccOportunities: (id, text) => instance.post(`/pcc/${id}/opportunities`, { opportunities: text }),
+  createPccEnvironment: (id, text) => instance.post(`/pcc/${id}/sep-environment`, { SEPEnvironment: text }),
+  getPCCPdf: (pccId) =>
+    axios.get(`${BASE_URL}pcc/${pccId}/pdf`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.token}`
+      },
+      responseType: 'blob'
+    }),
+
+  getPCCMethodologicalPrinciples: (pccId, mpContext) => instance.get(`/api/pcc/${pccId}/mp-contexts`, mpContext),
+  savePCCMethodologicalPrinciples: (pccId) => instance.post(`/api/pcc/${pccId}/mp-contexts`),
+  deletePCCMethodologicalPrinciples: (pccId, mpId) => instance.delete(`/api/pcc/${pccId}/mp-contexts/${mpId}`),
+
   // Center
   getAsessmentTool: () => instance.get('/assessmentTool'),
   getMarkingTool: () => instance.get('/markingTool'),

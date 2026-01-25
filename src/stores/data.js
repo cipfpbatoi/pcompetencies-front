@@ -9,6 +9,7 @@ export const useDataStore = defineStore('data', {
     return {
       user: {},
       messages: [],
+      pcc: {},
       syllabus: {},
       module: {},
       cycle: {},
@@ -50,7 +51,8 @@ export const useDataStore = defineStore('data', {
       let text = ''
       if (message.response) {
         if (message.response.data?.title) {
-          text = message.response.data.title +
+          text =
+            message.response.data.title +
             ` (${message.response.data.status})` +
             message.response.data.detail
         } else {
@@ -90,13 +92,13 @@ export const useDataStore = defineStore('data', {
     filterModules() {
       if (this.user.info && !this.user.info.roles.includes('ROLE_ADMIN')) {
         this.cycle.modules = this.cycle.modules.filter((item) =>
-              item.departments.some((element) => element.id === this.user.info?.department.id)
-        );
+          item.departments.some((element) => element.id === this.user.info?.department.id)
+        )
       }
     },
     setCycleAndModule(cycleId, moduleCode) {
-      this.cicle = {id: cycleId}
-      this.module = { code: moduleCode}
+      this.cicle = { id: cycleId }
+      this.module = { code: moduleCode }
     },
     async loadCurrentUser() {
       try {
@@ -113,11 +115,13 @@ export const useDataStore = defineStore('data', {
           const data = JSON.parse(localStorage.data)
           this.syllabus = { id: data.syllabusId }
           try {
-            const [respCycle, respMod, respSyl] = await Promise.all([
+            const [respPCC, respCycle, respMod, respSyl] = await Promise.all([
+              api.getPCCByCycleId(data.cycleId),
               api.getCycleById(data.cycleId),
               api.getModuleByCode(data.moduleCode),
               api.getSyllabusById(data.syllabusId)
             ])
+            this.pcc = respPCC.data
             this.cycle = respCycle.data
             this.filterModules()
             this.module = respMod.data
@@ -131,7 +135,7 @@ export const useDataStore = defineStore('data', {
           const [respActAsmt, respActMark, respTransversals] = await Promise.all([
             await api.getAsessmentTool(),
             api.getMarkingTool(),
-            api.getTrasversalObjectives(),
+            api.getTrasversalObjectives()
           ])
           this.activitiesData = {
             assessmentTool: respActAsmt.data,
@@ -171,6 +175,32 @@ export const useDataStore = defineStore('data', {
         this.module = {}
         localStorage.removeItem('data')
         this.addMessage('error', error)
+      }
+    },
+    async savePccOportunities(id, data) {
+      try {
+        const response = await api.createPccOportunities(id, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Contextualització guardada')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async savePccEnvironment(id, data) {
+      try {
+        const response = await api.createPccEnvironment(id, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Contextualització guardada')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
       }
     },
     async saveSyllabusGroupContext(id, data) {
@@ -245,12 +275,14 @@ export const useDataStore = defineStore('data', {
           1
         )
         // Borramos su temporalización en empresa si existe
-        this.syllabus.schedules.forEach(schedule => {
-          const index = schedule.inCompanyTrainingEntries.findIndex(item => item.learningSituationId == lsId)          
+        this.syllabus.schedules.forEach((schedule) => {
+          const index = schedule.inCompanyTrainingEntries.findIndex(
+            (item) => item.learningSituationId == lsId
+          )
           if (index > -1) {
             schedule.inCompanyTrainingEntries.splice(index, 1)
           }
-        });
+        })
       } catch (error) {
         this.addMessage('error', error)
         return
@@ -319,6 +351,6 @@ export const useDataStore = defineStore('data', {
       }
       this.addMessage('success', 'Objectius transversals guardats')
       return 'ok'
-    },
+    }
   }
 })

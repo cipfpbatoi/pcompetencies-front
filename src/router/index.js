@@ -15,6 +15,8 @@ import MethodologicalPrinciples from '../views/MethodologicalPrinciples.vue'
 import ValidateSyllabus from '../views/ValidateSyllabus.vue'
 import SyllabusesManage from '../views/SyllabusesManage.vue'
 import ViewSyllabus from '../views/ViewSyllabus.vue'
+import ContextPCC from '../views/pcc/ContextPCC.vue'
+import FocusPCC from '../views/pcc/FocusPCC.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -118,6 +120,18 @@ const router = createRouter({
       path: '/syl-manage',
       name: 'SyllabusesManage',
       component: SyllabusesManage,
+      meta: { requiresAuth: true }
+    },
+        {
+      path: '/pcc/context',
+      name: 'contextPCC',
+      component: ContextPCC,
+      meta: { requiresAuth: true }
+    },
+            {
+      path: '/pcc/focus',
+      name: 'focusPCC',
+      component: FocusPCC,
       meta: { requiresAuth: true }
     },
     {

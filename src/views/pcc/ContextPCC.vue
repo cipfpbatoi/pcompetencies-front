@@ -6,6 +6,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 // Components
 import ModalComponent from '@/components/ModalComp.vue'
 import AppBreadcrumb from '@/components/AppPccBreadcrumb.vue'
+import PccModuleManager from '@/components/PccModuleManager.vue'
 
 // Store
 import { useDataStore } from '@/stores/data'
@@ -230,6 +231,9 @@ const saveEnvironmentData = async () => {
     <!-- ✅ CONTENIDO PRINCIPAL -->
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>1. Contextualització</h2>
+
+      <!-- Gestión de módulos del PCC -->
+      <PccModuleManager v-if="pcc.id" :pcc-id="pcc.id" class="mb-4" />
 
       <!-- 1.1 Entorn -->
       <div class="card text-center mb-2">

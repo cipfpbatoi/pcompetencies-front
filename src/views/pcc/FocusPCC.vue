@@ -39,8 +39,7 @@ const pccMethodologicalPrinciples = computed(() => {
     }))
     || []
 })
-const pccMethodologicalPrinciplesColumns = computed(() => {
-  return [
+const pccMethodologicalPrinciplesColumns = [
     {
       title: 'Obl.',
       func: (x) => `<input type="checkbox" ${x ? 'checked' : ''} disabled>`,
@@ -59,7 +58,7 @@ const pccMethodologicalPrinciplesColumns = computed(() => {
       html: false
     },
   ]
-})
+
 // CKEditor
 const editor = ClassicEditor
 const editorConfig = {
@@ -237,7 +236,7 @@ const {
 // ==========================================
 // 📋 METODOLOGICAL PRINCPIPLE CONTEXT
 // ==========================================
-const methodologicalPrinciplesColumnsBase = [
+const methodologicalPrinciplesColumns = [
   {
     title: 'Nom',
     value: 'name'
@@ -247,26 +246,7 @@ const methodologicalPrinciplesColumnsBase = [
     value: 'description'
   }
 ]
-const methodologicalPrinciplesMandatoryColumns = computed(() => {
-  return [
-    {
-      title: 'Obl.',
-      func: () => '<input type="checkbox" checked disabled>',
-      html: true
-    },
-    ...methodologicalPrinciplesColumnsBase
-  ]
-})
-const methodologicalPrinciplesNonMandatoryColumns = computed(() => {
-  return [
-    {
-      title: 'Obl.',
-      func: () => '<input type="checkbox" disabled>',
-      html: true
-    },
-    ...methodologicalPrinciplesColumnsBase
-  ]
-})
+
 const methodologicalPrinciples = ref([])
 
 onMounted(async () => {
@@ -286,7 +266,7 @@ onMounted(async () => {
     <!-- ✅ MODAL MP -->
     <ModalComponent ref="addMpModalRef" v-bind="modalsConfig.mp" @close="handleModalClose('mp')">
       <h4>Principis metodològics obligatoris</h4>
-      <ShowTable :data="methodologicalPrinciples.mandatory" :columns="methodologicalPrinciplesMandatoryColumns">
+      <ShowTable :data="methodologicalPrinciples.mandatory" :columns="methodologicalPrinciplesColumns">
         <template v-slot="{ item, index }">
           <button @click="openMP('add', item)" class="btn btn-secondary" title="Afegir">
             <i class="bi bi-plus"></i>
@@ -294,7 +274,7 @@ onMounted(async () => {
         </template>
       </ShowTable>
       <h4>Altres principis metodològics que vaig a utilitzar</h4>
-      <ShowTable :data="methodologicalPrinciples.nonMandatory" :columns="methodologicalPrinciplesNonMandatoryColumns">
+      <ShowTable :data="methodologicalPrinciples.nonMandatory" :columns="methodologicalPrinciplesColumns">
         <template v-slot="{ item, index }">
           <button @click="openMP('add', item)" class="btn btn-secondary" title="Afegir">
             <i class="bi bi-plus"></i>

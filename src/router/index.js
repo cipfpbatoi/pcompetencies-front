@@ -17,6 +17,8 @@ import SyllabusesManage from '../views/SyllabusesManage.vue'
 import ViewSyllabus from '../views/ViewSyllabus.vue'
 import ContextPCC from '../views/pcc/ContextPCC.vue'
 import FocusPCC from '../views/pcc/FocusPCC.vue'
+import ModulesPCC from '../views/pcc/ModulesPCC.vue'
+import AssessmentToolsPCC from '../views/pcc/AssessmentToolsPCC.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -132,6 +134,18 @@ const router = createRouter({
       path: '/pcc/focus',
       name: 'focusPCC',
       component: FocusPCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/modules',
+      name: 'modulesPCC',
+      component: ModulesPCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/assessment-tools',
+      name: 'assessmentToolsPCC',
+      component: AssessmentToolsPCC,
       meta: { requiresAuth: true }
     },
     {

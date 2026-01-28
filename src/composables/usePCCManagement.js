@@ -60,12 +60,34 @@ export function usePCCManagement() {
     }
   }
 
+  // Añadir módulos al PCC
+  const addModulesToPCC = async (pccId, moduleCodes) => {
+    try {
+      return await store.addModuleToPCC(pccId, moduleCodes)
+    } catch (error) {
+      store.addMessage('error', error)
+      return false
+    }
+  }
+
+  // Eliminar módulo del PCC
+  const removeModuleFromPCC = async (pccId, moduleCode) => {
+    try {
+      return await store.removeModuleFromPCC(pccId, moduleCode)
+    } catch (error) {
+      store.addMessage('error', error)
+      return false
+    }
+  }
+
   return {
     pcc,
     isLoadingPCC,
     loadPCC,
     hasPCC,
     createPCC,
-    editPCC
+    editPCC,
+    addModulesToPCC,
+    removeModuleFromPCC
   }
 }

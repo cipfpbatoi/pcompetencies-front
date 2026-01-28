@@ -248,6 +248,120 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
+    async addModuleToPCC(pccId, moduleCodes) {
+      try {
+        const response = await api.addPCCModules(pccId, moduleCodes)
+        this.pcc = response.data
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async removeModuleFromPCC(pccId, moduleCode) {
+      try {
+        const response = await api.removePCCModule(pccId, moduleCode)
+        this.pcc = response.data
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async savePCCModuleOrganization(pccId, data) {
+      try {
+        const response = await api.createPCCModuleOrganization(pccId, data)
+        // Actualizar la organización en el store
+        if (!this.pcc.moduleOrganizations) {
+          this.pcc.moduleOrganizations = []
+        }
+        const index = this.pcc.moduleOrganizations.findIndex(
+          mo => mo.module?.code === data.moduleCode
+        )
+        if (index > -1) {
+          this.pcc.moduleOrganizations[index] = response.data
+        } else {
+          this.pcc.moduleOrganizations.push(response.data)
+        }
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async deletePCCModuleOrganization(pccId, moduleCode) {
+      try {
+        await api.deletePCCModuleOrganization(pccId, moduleCode)
+        // Eliminar del store
+        if (this.pcc.moduleOrganizations) {
+          this.pcc.moduleOrganizations = this.pcc.moduleOrganizations.filter(
+            mo => mo.module?.code !== moduleCode
+          )
+        }
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async loadCycleAssessmentTools(cycleId) {
+      try {
+        const response = await api.getCycleAssessmentTools(cycleId)
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return []
+      }
+    },
+    async loadPCCAgreedAssessmentTools(pccId) {
+      try {
+        const response = await api.getPCCAgreedAssessmentTools(pccId)
+        if (!this.pcc.agreedAssessmentTools) {
+          this.pcc.agreedAssessmentTools = []
+        }
+        this.pcc.agreedAssessmentTools = response.data
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return []
+      }
+    },
+    async savePCCAgreedAssessmentTool(pccId, data) {
+      try {
+        const response = await api.createPCCAgreedAssessmentTool(pccId, data)
+        // Actualizar el store
+        if (!this.pcc.agreedAssessmentTools) {
+          this.pcc.agreedAssessmentTools = []
+        }
+        const index = this.pcc.agreedAssessmentTools.findIndex(
+          tool => tool.assessmentTool?.id === data.assessmentToolId
+        )
+        if (index > -1) {
+          this.pcc.agreedAssessmentTools[index] = response.data
+        } else {
+          this.pcc.agreedAssessmentTools.push(response.data)
+        }
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async deletePCCAgreedAssessmentTool(pccId, assessmentToolId) {
+      try {
+        await api.deletePCCAgreedAssessmentTool(pccId, assessmentToolId)
+        // Eliminar del store
+        if (this.pcc.agreedAssessmentTools) {
+          this.pcc.agreedAssessmentTools = this.pcc.agreedAssessmentTools.filter(
+            tool => tool.assessmentTool?.id !== assessmentToolId
+          )
+        }
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
     async saveSyllabusGroupContext(id, data) {
       try {
         const response = await api.createSyllabusGroupContext(id, data)

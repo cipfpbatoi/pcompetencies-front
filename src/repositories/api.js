@@ -64,6 +64,14 @@ export const api = {
   getPCCMethodologicalPrinciples: (pccId, mpContext) => instance.get(`/pcc/${pccId}/mp-context`, mpContext),
   savePCCMethodologicalPrinciple: (pccId, data) => instance.post(`/pcc/${pccId}/mp-context`, data),
   deletePCCMethodologicalPrinciple: (pccId, mpId) => instance.delete(`/pcc/${pccId}/mp-context/${mpId}`),
+  addPCCModules: (pccId, moduleCodes) => instance.post(`/pcc/${pccId}/modules`, { moduleCodes }),
+  removePCCModule: (pccId, moduleCode) => instance.delete(`/pcc/${pccId}/modules/${moduleCode}`),
+  createPCCModuleOrganization: (pccId, data) => instance.post(`/pcc/${pccId}/module-organization`, data),
+  deletePCCModuleOrganization: (pccId, moduleCode) => instance.delete(`/pcc/${pccId}/module-organization/module/${moduleCode}`),
+  getCycleAssessmentTools: (cycleId) => instance.get(`/cycle/${cycleId}/assessment-tools`),
+  getPCCAgreedAssessmentTools: (pccId) => instance.get(`/pcc/${pccId}/agreed-assessment-tools`),
+  createPCCAgreedAssessmentTool: (pccId, data) => instance.post(`/pcc/${pccId}/agreed-assessment-tool`, data),
+  deletePCCAgreedAssessmentTool: (pccId, assessmentToolId) => instance.delete(`/pcc/${pccId}/agreed-assessment-tool/${assessmentToolId}`),
 
   // Center
   getAsessmentTool: () => instance.get('/assessmentTool'),

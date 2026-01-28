@@ -26,6 +26,16 @@ export default {
         {
           title: 'Enfocament',
           path: 'focusPCC',
+          nextPath: 'modulesPCC'
+        },
+        {
+          title: 'Organització dels Mòduls',
+          path: 'modulesPCC',
+          nextPath: 'assessmentToolsPCC'
+        },
+        {
+          title: 'Instruments d\'Avaluació',
+          path: 'assessmentToolsPCC',
           nextPath: 'validatePCC'
         },
         {

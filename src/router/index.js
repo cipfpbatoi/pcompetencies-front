@@ -19,6 +19,7 @@ import ContextPCC from '../views/pcc/ContextPCC.vue'
 import FocusPCC from '../views/pcc/FocusPCC.vue'
 import ModulesPCC from '../views/pcc/ModulesPCC.vue'
 import AssessmentToolsPCC from '../views/pcc/AssessmentToolsPCC.vue'
+import TrainingPlanPCC from '../views/pcc/TrainingPlanPCC.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -146,6 +147,12 @@ const router = createRouter({
       path: '/pcc/assessment-tools',
       name: 'assessmentToolsPCC',
       component: AssessmentToolsPCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/training-plan',
+      name: 'trainingPlanPCC',
+      component: TrainingPlanPCC,
       meta: { requiresAuth: true }
     },
     {

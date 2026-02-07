@@ -260,8 +260,8 @@ export const useDataStore = defineStore('data', {
     },
     async removeModuleFromPCC(pccId, moduleCode) {
       try {
-        const response = await api.removePCCModule(pccId, moduleCode)
-        this.pcc = response.data
+        await api.removePCCModule(pccId, moduleCode)
+        this.pcc.modules = this.pcc.modules.filter((m) => m.code !== moduleCode)
         return true
       } catch (error) {
         this.addMessage('error', error)
@@ -271,17 +271,23 @@ export const useDataStore = defineStore('data', {
     async savePCCModuleOrganization(pccId, data) {
       try {
         const response = await api.createPCCModuleOrganization(pccId, data)
+        // La API no devuelve el objeto module, lo reconstruimos desde los módulos del PCC
+        const moduleInfo = this.pcc.modules?.find((m) => m.code === data.moduleCode)
+        const organizationData = {
+          ...response.data,
+          module: moduleInfo || { code: data.moduleCode }
+        }
         // Actualizar la organización en el store
         if (!this.pcc.moduleOrganizations) {
           this.pcc.moduleOrganizations = []
         }
         const index = this.pcc.moduleOrganizations.findIndex(
-          mo => mo.module?.code === data.moduleCode
+          (mo) => mo.module?.code === data.moduleCode
         )
         if (index > -1) {
-          this.pcc.moduleOrganizations[index] = response.data
+          this.pcc.moduleOrganizations[index] = organizationData
         } else {
-          this.pcc.moduleOrganizations.push(response.data)
+          this.pcc.moduleOrganizations.push(organizationData)
         }
         return true
       } catch (error) {
@@ -295,7 +301,7 @@ export const useDataStore = defineStore('data', {
         // Eliminar del store
         if (this.pcc.moduleOrganizations) {
           this.pcc.moduleOrganizations = this.pcc.moduleOrganizations.filter(
-            mo => mo.module?.code !== moduleCode
+            (mo) => mo.module?.code !== moduleCode
           )
         }
         return true
@@ -334,7 +340,7 @@ export const useDataStore = defineStore('data', {
           this.pcc.agreedAssessmentTools = []
         }
         const index = this.pcc.agreedAssessmentTools.findIndex(
-          tool => tool.assessmentTool?.id === data.assessmentToolId
+          (tool) => tool.assessmentTool?.id === data.assessmentToolId
         )
         if (index > -1) {
           this.pcc.agreedAssessmentTools[index] = response.data
@@ -353,9 +359,29 @@ export const useDataStore = defineStore('data', {
         // Eliminar del store
         if (this.pcc.agreedAssessmentTools) {
           this.pcc.agreedAssessmentTools = this.pcc.agreedAssessmentTools.filter(
-            tool => tool.assessmentTool?.id !== assessmentToolId
+            (tool) => tool.assessmentTool?.id !== assessmentToolId
           )
         }
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async savePCCTrainingPlan(pccId, data) {
+      try {
+        const response = await api.savePCCTrainingPlan(pccId, data)
+        this.pcc.trainingPlan = response.data
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async deletePCCTrainingPlan(pccId) {
+      try {
+        await api.deletePCCTrainingPlan(pccId)
+        this.pcc.trainingPlan = null
         return true
       } catch (error) {
         this.addMessage('error', error)

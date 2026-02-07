@@ -84,7 +84,7 @@ const editorConfig = {
 // 🔧 COMPUTED
 // ==========================================
 const isDone = computed(() => {
-  return pcc.value.opportunitiesAndTechnologicalEvolution && pcc.value.socioeconomicAndProfessionalEnvironment
+  return !!(pcc.value.opportunitiesAndTechnologicalEvolution && pcc.value.socioeconomicAndProfessionalEnvironment)
 })
 
 // ==========================================
@@ -238,7 +238,7 @@ const saveEnvironmentData = async () => {
       <!-- 1.1 Entorn -->
       <div class="card text-center mb-2">
         <div class="card-header pcc fw-bold text-uppercase text-white text-start">
-          1.1 Entorn socioeconòmic i professional del cicle a Alcoi i àrea d'influència
+          1.2 Entorn socioeconòmic i professional del cicle a Alcoi i àrea d'influència
         </div>
         <div class="card-body">
           <p v-if="pcc.socioeconomicAndProfessionalEnvironment" class="text-start"
@@ -258,7 +258,7 @@ const saveEnvironmentData = async () => {
       <!-- 1.2 Oportunitats -->
       <div class="card text-center mb-2">
         <div class="card-header pcc fw-bold text-uppercase text-white text-start">
-          1.2 Oportunitats d'ocupació i evolució tecnològica o productiva
+          1.3 Oportunitats d'ocupació i evolució tecnològica o productiva
           <span @click="toggleHelp" class="cursor-pointer ms-2" role="button" tabindex="0">
             <i class="bi bi-info-circle-fill" />
           </span>

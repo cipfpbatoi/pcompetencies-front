@@ -40,24 +40,24 @@ const pccMethodologicalPrinciples = computed(() => {
     || []
 })
 const pccMethodologicalPrinciplesColumns = [
-    {
-      title: 'Obl.',
-      func: (x) => `<input type="checkbox" ${x ? 'checked' : ''} disabled>`,
-      param: 'mandatory',
-      html: true
-    },
-    {
-      title: 'Nom',
-      func: (x) => x?.name,
-      param: 'methodologicalPrinciple'
-    },
-    {
-      title: 'Mòduls',
-      func: (modules) => modules.length === 0 ? 'Tots' : modules.map(m => m.code).join(', '),
-      param: 'modules',
-      html: false
-    },
-  ]
+  {
+    title: 'Obl.',
+    func: (x) => `<input type="checkbox" ${x ? 'checked' : ''} disabled>`,
+    param: 'mandatory',
+    html: true
+  },
+  {
+    title: 'Nom',
+    func: (x) => x?.name,
+    param: 'methodologicalPrinciple'
+  },
+  {
+    title: 'Mòduls',
+    func: (modules) => modules.length === 0 ? 'Tots' : modules.map(m => m.code).join(', '),
+    param: 'modules',
+    html: false
+  },
+]
 
 // CKEditor
 const editor = ClassicEditor
@@ -247,8 +247,19 @@ const methodologicalPrinciplesColumns = [
   }
 ]
 
-const methodologicalPrinciples = ref([])
+const methodologicalPrinciples = ref({
+  mandatory: [],
+  nonMandatory: []
+})
 
+const methodologicalPrinciplesFiltered = computed(() => {
+  if (!pcc.value.methodologicalsPrinciplesContext) return methodologicalPrinciples.value
+  const pccMPIds = pccMethodologicalPrinciples.value.map(mp => mp.methodologicalPrinciple.id)
+  return {
+    mandatory: methodologicalPrinciples.value.mandatory.filter(mp => !pccMPIds.includes(mp.id)),
+    nonMandatory: methodologicalPrinciples.value.nonMandatory.filter(mp => !pccMPIds.includes(mp.id))
+  }
+})
 onMounted(async () => {
   try {
     const response = await api.getMethodologicalPrinciples()
@@ -266,7 +277,7 @@ onMounted(async () => {
     <!-- ✅ MODAL MP -->
     <ModalComponent ref="addMpModalRef" v-bind="modalsConfig.mp" @close="handleModalClose('mp')">
       <h4>Principis metodològics obligatoris</h4>
-      <ShowTable :data="methodologicalPrinciples.mandatory" :columns="methodologicalPrinciplesColumns">
+      <ShowTable :data="methodologicalPrinciplesFiltered.mandatory" :columns="methodologicalPrinciplesColumns">
         <template v-slot="{ item, index }">
           <button @click="openMP('add', item)" class="btn btn-secondary" title="Afegir">
             <i class="bi bi-plus"></i>
@@ -274,7 +285,7 @@ onMounted(async () => {
         </template>
       </ShowTable>
       <h4>Altres principis metodològics que vaig a utilitzar</h4>
-      <ShowTable :data="methodologicalPrinciples.nonMandatory" :columns="methodologicalPrinciplesColumns">
+      <ShowTable :data="methodologicalPrinciplesFiltered.nonMandatory" :columns="methodologicalPrinciplesColumns">
         <template v-slot="{ item, index }">
           <button @click="openMP('add', item)" class="btn btn-secondary" title="Afegir">
             <i class="bi bi-plus"></i>
@@ -357,35 +368,43 @@ onMounted(async () => {
     <!-- ✅ CONTENIDO PRINCIPAL -->
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>2. Enfocament</h2>
-
-      <!-- 1.1 Entorn -->
-      <div class="card text-center mb-2">
-        <div class="card-body">
-          <ShowTable :data="pccMethodologicalPrinciples" :columns="pccMethodologicalPrinciplesColumns" :actions="true">
-
-            <template v-slot="{ item, index }">
-              <button @click="openMP('view', item)" class="btn btn-secondary" title="Veure">
-                <i class="bi bi-eye"></i>
-              </button>
-              <button @click="openMP('edit', item)" class="btn btn-secondary" title="Editar">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button @click="openMP('delete', item)" class="btn btn-secondary" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
-            </template>
-
-          </ShowTable>
-
-          <div class="card-footer text-muted">
-            <button @click="showModal('mp')" class="btn btn-success" title="Afegir/Modificar principis metodològics">
-              <i class="bi bi-pencil-fill me-2" />
-              Afegir principi metodològic
-            </button>
-          </div>
-        </div>
-
+      <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>S'han d'afegir TOTS els princicpis metodològics obligatoris i els que es considerin oportuns.</strong>
+        <p v-if="methodologicalPrinciplesFiltered.mandatory.length > 0" class="mb-0 mt-2 text-danger">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          <strong>Important:</strong> No s'han afegit tots els principis metodològics obligatoris
+        </p>
       </div>
+
+    <!-- 2.1 Enfocament -->
+    <div class="card text-center mb-2">
+      <div class="card-body">
+        <ShowTable :data="pccMethodologicalPrinciples" :columns="pccMethodologicalPrinciplesColumns" :actions="true">
+
+          <template v-slot="{ item, index }">
+            <button @click="openMP('view', item)" class="btn btn-secondary" title="Veure">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button @click="openMP('edit', item)" class="btn btn-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button @click="openMP('delete', item)" class="btn btn-secondary" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </template>
+
+        </ShowTable>
+
+        <div class="card-footer text-muted">
+          <button @click="showModal('mp')" class="btn btn-success" title="Afegir/Modificar principis metodològics">
+            <i class="bi bi-pencil-fill me-2" />
+            Afegir principi metodològic
+          </button>
+        </div>
+      </div>
+
+    </div>
 
     </div>
   </main>

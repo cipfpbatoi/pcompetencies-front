@@ -36,6 +36,11 @@ export default {
         {
           title: 'Instruments d\'Avaluació',
           path: 'assessmentToolsPCC',
+          nextPath: 'trainingPlanPCC'
+        },
+        {
+          title: 'Pla Formatiu Empresa',
+          path: 'trainingPlanPCC',
           nextPath: 'validatePCC'
         },
         {

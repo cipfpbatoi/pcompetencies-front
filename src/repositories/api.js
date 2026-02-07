@@ -72,6 +72,8 @@ export const api = {
   getPCCAgreedAssessmentTools: (pccId) => instance.get(`/pcc/${pccId}/agreed-assessment-tools`),
   createPCCAgreedAssessmentTool: (pccId, data) => instance.post(`/pcc/${pccId}/agreed-assessment-tool`, data),
   deletePCCAgreedAssessmentTool: (pccId, assessmentToolId) => instance.delete(`/pcc/${pccId}/agreed-assessment-tool/${assessmentToolId}`),
+  savePCCTrainingPlan: (pccId, data) => instance.post(`/pcc/${pccId}/training_plan`, data),
+  deletePCCTrainingPlan: (pccId) => instance.delete(`/pcc/${pccId}/training_plan`),
 
   // Center
   getAsessmentTool: () => instance.get('/assessmentTool'),

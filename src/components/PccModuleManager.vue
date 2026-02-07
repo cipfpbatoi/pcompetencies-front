@@ -150,13 +150,9 @@ const confirmDelete = async () => {
 </script>
 
 <template>
-  <div class="pcc-module-manager">
-    <!-- Título y botón de añadir -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="mb-0">
-        <i class="bi bi-book me-2"></i>
-        Mòduls del PCC
-      </h5>
+      <div class="card text-center mb-2">
+        <div class="card-header pcc fw-bold text-uppercase text-white text-start">
+        1.1 Mòduls del PCC
       <button
         v-if="hasModulesToAdd"
         @click="openAddModal"
@@ -173,7 +169,7 @@ const confirmDelete = async () => {
       <!-- 1º Curso -->
       <div class="col-12 col-lg-6">
         <div class="card h-100">
-          <div class="card-header bg-primary text-white fw-bold">
+          <div class="card-header bg-secondary text-white fw-bold">
             <i class="bi bi-journal-text me-2"></i>
             1r Curs
           </div>
@@ -209,7 +205,7 @@ const confirmDelete = async () => {
       <!-- 2º Curso -->
       <div class="col-12 col-lg-6">
         <div class="card h-100">
-          <div class="card-header bg-success text-white fw-bold">
+          <div class="card-header bg-secondary text-white fw-bold">
             <i class="bi bi-journal-text me-2"></i>
             2n Curs
           </div>

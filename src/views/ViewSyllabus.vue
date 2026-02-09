@@ -1,34 +1,35 @@
 <script>
-import { api } from '@/repositories/api'
 import { mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
+
+const API_BASE_URL = import.meta.env.VITE_API_URL
 
 export default {
   async mounted() {
     try {
-      const collegeCode = this.$route.params.collegeCode;
-      const cycleId = this.$route.params.cycleId;
-      const moduleCode = this.$route.params.moduleCode;
-      const turn = this.$route.params.turn;
-      const response = await api.getPublicPdf(collegeCode, cycleId, moduleCode, turn)
-      if (response.status !== 200) {
-        this.addMessage('error', response)
-        return
+      const { collegeCode, cycleId, moduleCode, turn } = this.$route.params
+      const publicUrl = `${API_BASE_URL}public/syllabus/${collegeCode}/${cycleId}/${moduleCode}/${turn}`
+      const response = await fetch(publicUrl)
+      const contentType = response.headers.get('content-type') || ''
+      if (!response.ok || !contentType.includes('application/pdf')) {
+        let msgError = "No s'ha pogut carregar la programació"
+        try {
+          const errorJson = await response.json()
+          msgError = errorJson.detail || errorJson.message || msgError
+        } catch (parseError) {}
+        throw new Error(msgError)
       }
-      const url = URL.createObjectURL(new Blob([response.data], {
-        type: 'application/pdf'
-      }))
-      this.msg = 'Programació oberta en una altra Pestanya del navegador'
+
+      response.body?.cancel?.()
+
+      this.msg = 'Programació oberta en una altra pestanya del navegador'
       this.title = 'Programació Publicada'
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('open', 'syllabus_'+ collegeCode + '_' + cycleId + '_' + moduleCode + '_' + turn + '.pdf')
-      document.body.appendChild(link)
-      link.click()
+      const opened = window.open(publicUrl, '_blank', 'noopener')
+      if (!opened) {
+        window.location.href = publicUrl
+      }
     } catch (error) {
-      const responseObj = await error.response.data.text();
-      const errorJSON = JSON.parse(responseObj);
-      const msgError = errorJSON.detail || errorJSON.message;
+      const msgError = error?.message || 'Error carregant la programació'
       this.addMessage('error', msgError)
       this.msg = msgError
       this.title = 'Programació no Publicada'
@@ -41,7 +42,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(useDataStore, ['addMessage']),
+    ...mapActions(useDataStore, ['addMessage'])
   }
 }
 </script>
@@ -52,7 +53,7 @@ export default {
       <h2 class="text-center fw-bold text-primary p-2">{{ title }}</h2>
       <div class="text-center m-5 alert alert-info border border-info">
         <i class="bi bi-info-circle-fill fs-1"></i>
-        <p class="col-12 h5 text-uppercase ">{{ msg }}</p>
+        <p class="col-12 h5 text-uppercase">{{ msg }}</p>
       </div>
     </div>
   </main>

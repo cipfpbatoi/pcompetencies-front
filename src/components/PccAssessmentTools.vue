@@ -26,7 +26,10 @@ const {
 } = store
 
 // Estado local
-const availableTools = ref([])
+const availableTools = ref({
+  mandatory: [],
+  nonMandatory: []
+})
 const agreedTools = ref([])
 const isLoading = ref(false)
 const showEditModal = ref(false)
@@ -45,23 +48,29 @@ const formErrors = ref({})
 const currentModules = computed(() => pcc.value?.modules || [])
 
 const allRequiredHavePercentage = computed(() => {
-  const required = availableTools.value.filter(t => t.isMandatory)
-  return required.every(tool => {
-    const agreed = agreedTools.value.find(a => a.assessmentTool?.id === tool.id)
-    return agreed && agreed.percentage !== null
+  return availableTools.value.mandatory.every(tool => {
+    const agreed = agreedTools.value.find(a => a.assessmentTool?.id === tool.assessmentTool.id)
+    return agreed && agreed.minimumPercentage !== null
   })
 })
 
+const findToolById = (assessmentToolId) => {
+  const mandatory = availableTools.value.mandatory.find(t => t.assessmentTool.id === assessmentToolId)
+  if (mandatory) return { ...mandatory.assessmentTool, minPercentage: mandatory.minPercentage, isMandatory: true }
+  const nonMandatory = availableTools.value.nonMandatory.find(t => t.id === assessmentToolId)
+  if (nonMandatory) return { ...nonMandatory, isMandatory: false }
+  return null
+}
+
 const isFormValid = computed(() => {
-  // Validación básica
   if (!form.value.assessmentToolId) return false
 
-  const tool = availableTools.value.find(t => t.id === form.value.assessmentToolId)
+  const tool = findToolById(form.value.assessmentToolId)
   if (!tool) return false
 
   // Validar porcentaje mínimo si existe
-  if (tool.minimumPercentage && form.value.percentage !== null) {
-    if (form.value.percentage < tool.minimumPercentage) return false
+  if (tool.minPercentage && form.value.percentage !== null) {
+    if (form.value.percentage < tool.minPercentage) return false
   }
 
   // Validar módulos: si se seleccionan, deben ser al menos 2
@@ -90,12 +99,23 @@ const getAgreed = (toolId) => {
 }
 
 const openEditModal = (tool) => {
-  editingTool.value = tool
-  const agreed = getAgreed(tool.id)
+  // For mandatory tools, assessmentTool is nested; for nonMandatory, it's flat
+  const assessmentToolId = tool.assessmentTool ? tool.assessmentTool.id : tool.id
+  const toolName = tool.assessmentTool ? tool.assessmentTool.name : tool.name
+  const minPct = tool.minPercentage || null
+
+  editingTool.value = {
+    id: assessmentToolId,
+    name: toolName,
+    minPercentage: minPct,
+    isMandatory: !!tool.assessmentTool
+  }
+
+  const agreed = getAgreed(assessmentToolId)
 
   form.value = {
-    assessmentToolId: tool.id,
-    percentage: agreed?.percentage || tool.minimumPercentage || null,
+    assessmentToolId,
+    percentage: agreed?.minimumPercentage ?? minPct ?? null,
     moduleCodes: agreed?.modules?.map(m => m.code) || []
   }
 
@@ -127,9 +147,9 @@ const validateForm = () => {
   const errors = {}
 
   // Validar porcentaje mínimo
-  if (editingTool.value?.minimumPercentage && form.value.percentage !== null) {
-    if (form.value.percentage < editingTool.value.minimumPercentage) {
-      errors.percentage = `El percentatge mínim és ${editingTool.value.minimumPercentage}%`
+  if (editingTool.value?.minPercentage && form.value.percentage !== null) {
+    if (form.value.percentage < editingTool.value.minPercentage) {
+      errors.percentage = `El percentatge mínim és ${editingTool.value.minPercentage}%`
     }
   }
 
@@ -149,8 +169,8 @@ const saveAgreed = async () => {
   try {
     const data = {
       assessmentToolId: form.value.assessmentToolId,
-      percentage: form.value.percentage,
-      moduleCodes: form.value.moduleCodes.length > 0 ? form.value.moduleCodes : null
+      minPercentage: form.value.percentage,
+      moduleCodes: form.value.moduleCodes.length > 0 ? form.value.moduleCodes : []
     }
 
     const success = await savePCCAgreedAssessmentTool(props.pccId, data)
@@ -188,12 +208,15 @@ onMounted(() => {
   <div class="pcc-assessment-tools">
     <!-- Instrumentos disponibles -->
     <div class="card">
-      <div class="card-header bg-info text-white fw-bold">
-        <i class="bi bi-clipboard-check me-2"></i>
+      <div class="card-header pcc text-white fw-bold">
         Instruments d'Avaluació del Cicle
       </div>
+      <div class="card-header bg-info text-white fw-bold">
+        <i class="bi bi-clipboard-check me-2"></i>
+        Obligatoris
+      </div>
       <ul class="list-group list-group-flush">
-        <li v-if="availableTools.length === 0 && !isLoading" class="list-group-item text-center text-muted">
+        <li v-if="availableTools.mandatory.length === 0 && !isLoading" class="list-group-item text-center text-muted">
           <i class="bi bi-info-circle me-1"></i>
           No hi ha instruments disponibles
         </li>
@@ -201,63 +224,85 @@ onMounted(() => {
           <span class="spinner-border spinner-border-sm me-2"></span>
           Carregant...
         </li>
-        <li
-          v-for="tool in availableTools"
-          :key="tool.id"
-          class="list-group-item"
-        >
+        <li v-for="tool in availableTools.mandatory" :key="tool.assessmentTool.id" class="list-group-item">
           <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
               <div class="d-flex align-items-center gap-2 mb-1">
-                <i
-                  v-if="hasAgreed(tool.id)"
-                  class="bi bi-check-circle-fill text-success"
-                  title="Consensuat"
-                ></i>
-                <i
-                  v-else-if="tool.isMandatory"
-                  class="bi bi-exclamation-circle-fill text-warning"
-                  title="Obligatori - pendent de configurar"
-                ></i>
-                <i
-                  v-else
-                  class="bi bi-circle text-secondary"
-                  title="No consensuat"
-                ></i>
-                <strong>{{ tool.name }}</strong>
-                <span v-if="tool.isMandatory" class="badge bg-danger">Obligatori</span>
-                <span v-if="tool.minimumPercentage" class="badge bg-warning text-dark">
-                  Mínim: {{ tool.minimumPercentage }}%
+                <i v-if="hasAgreed(tool.assessmentTool.id)" class="bi bi-check-circle-fill text-success" title="Consensuat"></i>
+                <i v-else class="bi bi-exclamation-circle-fill text-warning"
+                  title="Obligatori - pendent de configurar"></i>
+                <strong>{{ tool.assessmentTool.name + ' (' + tool.assessmentTool.code + ')' }}</strong>
+                <span class="badge bg-danger">Obligatori</span>
+
+                <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
+                  Mínim: {{ tool.minPercentage }}%
                 </span>
               </div>
-              <div v-if="tool.description" class="text-muted small">{{ tool.description }}</div>
-              <div v-if="hasAgreed(tool.id)" class="mt-2">
+              <div v-if="hasAgreed(tool.assessmentTool.id)" class="mt-2">
                 <span class="badge bg-primary me-1">
-                  {{ getAgreed(tool.id).percentage ? `${getAgreed(tool.id).percentage}%` : 'Sense %' }}
+                  {{ getAgreed(tool.assessmentTool.id).minimumPercentage ? `${getAgreed(tool.assessmentTool.id).minimumPercentage}%` : 'Sense %' }}
                 </span>
                 <span class="text-muted small">
-                  {{ getAgreed(tool.id).modules?.length > 0
-                    ? `Mòduls: ${getAgreed(tool.id).modules.map(m => m.code).join(', ')}`
-                    : 'Aplica a tots els mòduls'
+                  {{ getAgreed(tool.assessmentTool.id).modules?.length > 0
+          ? `Mòduls: ${getAgreed(tool.assessmentTool.id).modules.map(m => m.code).join(', ')}`
+          : 'Aplica a tots els mòduls'
                   }}
                 </span>
               </div>
             </div>
             <div class="btn-group-vertical" role="group">
-              <button
-                @click="openEditModal(tool)"
-                class="btn btn-sm"
-                :class="hasAgreed(tool.id) ? 'btn-outline-primary' : 'btn-primary'"
-                :disabled="isLoading"
-              >
+              <button @click="openEditModal(tool)" class="btn btn-sm"
+                :class="hasAgreed(tool.assessmentTool.id) ? 'btn-outline-primary' : 'btn-primary'" :disabled="isLoading">
+                <i :class="hasAgreed(tool.assessmentTool.id) ? 'bi-pencil' : 'bi-plus-circle'"></i>
+              </button>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="card-header bg-info text-white fw-bold">
+        <i class="bi bi-clipboard-check me-2"></i>
+        No obligatoris
+      </div>
+      <ul class="list-group list-group-flush">
+        <li v-if="availableTools.nonMandatory.length === 0 && !isLoading"
+          class="list-group-item text-center text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          No hi ha instruments disponibles
+        </li>
+        <li v-if="isLoading" class="list-group-item text-center">
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Carregant...
+        </li>
+        <li v-for="tool in availableTools.nonMandatory" :key="tool.id" class="list-group-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <i v-if="hasAgreed(tool.id)" class="bi bi-check-circle-fill text-success" title="Consensuat"></i>
+                <i v-else class="bi bi-circle text-secondary" title="No consensuat"></i>
+                <strong>{{ tool.name + ' (' + tool.code + ')' }}</strong>
+                <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
+                  Mínim: {{ tool.minPercentage }}%
+                </span>
+              </div>
+              <div v-if="hasAgreed(tool.id)" class="mt-2">
+                <span class="badge bg-primary me-1">
+                  {{ getAgreed(tool.id).minimumPercentage ? `${getAgreed(tool.id).minimumPercentage}%` : 'Sense %' }}
+                </span>
+                <span class="text-muted small">
+                  {{ getAgreed(tool.id).modules?.length > 0
+          ? `Mòduls: ${getAgreed(tool.id).modules.map(m => m.code).join(', ')}`
+          : 'Aplica a tots els mòduls'
+                  }}
+                </span>
+              </div>
+            </div>
+            <div class="btn-group-vertical" role="group">
+              <button @click="openEditModal(tool)" class="btn btn-sm"
+                :class="hasAgreed(tool.id) ? 'btn-outline-primary' : 'btn-primary'" :disabled="isLoading">
                 <i :class="hasAgreed(tool.id) ? 'bi-pencil' : 'bi-plus-circle'"></i>
               </button>
-              <button
-                v-if="hasAgreed(tool.id) && !tool.isMandatory"
-                @click="confirmDelete(tool)"
-                class="btn btn-sm btn-outline-danger"
-                :disabled="isLoading"
-              >
+              <button v-if="hasAgreed(tool.id) && !tool.isMandatory" @click="confirmDelete(tool)"
+                class="btn btn-sm btn-outline-danger" :disabled="isLoading">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -289,19 +334,13 @@ onMounted(() => {
                 <div class="mb-3">
                   <label class="form-label fw-bold">
                     Percentatge
-                    <span v-if="editingTool.minimumPercentage" class="text-danger">
-                      (mínim: {{ editingTool.minimumPercentage }}%)
+                    <span v-if="editingTool.minPercentage" class="text-danger">
+                      (mínim: {{ editingTool.minPercentage }}%)
                     </span>
                   </label>
-                  <input
-                    type="number"
-                    class="form-control"
-                    v-model.number="form.percentage"
-                    :min="editingTool.minimumPercentage || 0"
-                    max="100"
-                    placeholder="Deixa en blanc si no assignes %"
-                    :class="{ 'is-invalid': formErrors.percentage }"
-                  >
+                  <input type="number" class="form-control" v-model.number="form.percentage"
+                    :min="editingTool.minPercentage || 0" max="100" placeholder="Deixa en blanc si no assignes %"
+                    :class="{ 'is-invalid': formErrors.percentage }">
                   <div v-if="formErrors.percentage" class="invalid-feedback">
                     {{ formErrors.percentage }}
                   </div>
@@ -317,19 +356,9 @@ onMounted(() => {
                     Selecciona els mòduls als quals aplica (mínim 2 o cap per aplicar a tots)
                   </div>
                   <div class="module-selection">
-                    <div
-                      v-for="module in currentModules"
-                      :key="module.code"
-                      class="form-check"
-                    >
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        :id="`mod-${module.code}`"
-                        :value="module.code"
-                        :checked="form.moduleCodes.includes(module.code)"
-                        @change="toggleModule(module.code)"
-                      >
+                    <div v-for="module in currentModules" :key="module.code" class="form-check">
+                      <input class="form-check-input" type="checkbox" :id="`mod-${module.code}`" :value="module.code"
+                        :checked="form.moduleCodes.includes(module.code)" @change="toggleModule(module.code)">
                       <label class="form-check-label" :for="`mod-${module.code}`">
                         <strong>{{ module.code }}</strong> - {{ module.name }}
                       </label>
@@ -344,12 +373,7 @@ onMounted(() => {
                 <button type="button" class="btn btn-secondary" @click="closeEditModal" :disabled="isLoading">
                   Cancel·lar
                 </button>
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  @click="saveAgreed"
-                  :disabled="isLoading || !isFormValid"
-                >
+                <button type="button" class="btn btn-primary" @click="saveAgreed" :disabled="isLoading || !isFormValid">
                   <span v-if="isLoading" class="spinner-border spinner-border-sm me-1"></span>
                   Guardar
                 </button>

@@ -53,6 +53,7 @@ export const api = {
   createPCC: (data) => instance.post('/pcc', data),
   createPccOportunities: (id, text) => instance.post(`/pcc/${id}/opportunities`, { opportunities: text }),
   createPccEnvironment: (id, text) => instance.post(`/pcc/${id}/sep-environment`, { SEPEnvironment: text }),
+  savePccSustainabilityCriteria: (id, text) => instance.post(`/pcc/${id}/sustainability-criteria`, { criteriaAdaptingSostenibilityAndDigitalModules: text }),
   getPCCPdf: (pccId) =>
     axios.get(`${BASE_URL}pcc/${pccId}/pdf`, {
       headers: {
@@ -71,9 +72,13 @@ export const api = {
   getCycleAssessmentTools: (cycleId) => instance.get(`/cycle/${cycleId}/assessment-tools`),
   getPCCAgreedAssessmentTools: (pccId) => instance.get(`/pcc/${pccId}/agreed-assessment-tools`),
   createPCCAgreedAssessmentTool: (pccId, data) => instance.post(`/pcc/${pccId}/agreed-assessment-tool`, data),
-  deletePCCAgreedAssessmentTool: (pccId, assessmentToolId) => instance.delete(`/pcc/${pccId}/agreed-assessment-tool/${assessmentToolId}`),
+  deletePCCAgreedAssessmentTool: (pccId, assessmentToolId) => instance.delete(`/pcc/${pccId}/agreed-assessment-tools/${assessmentToolId}`),
   savePCCTrainingPlan: (pccId, data) => instance.post(`/pcc/${pccId}/training_plan`, data),
   deletePCCTrainingPlan: (pccId) => instance.delete(`/pcc/${pccId}/training_plan`),
+  getCenterProjects: () => instance.get('/center-projects'),
+  getModuleCenterProjects: (pccId, moduleCode) => instance.get(`/curricular-projects/${pccId}/module/${moduleCode}/center-projects`),
+  addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) => instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, { centerProjectIds }),
+  removeModuleCenterProject: (pccId, moduleCode, centerProjectId) => instance.delete(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects/${centerProjectId}`),
 
   // Center
   getAsessmentTool: () => instance.get('/assessmentTool'),

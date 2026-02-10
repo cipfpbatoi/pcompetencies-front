@@ -203,6 +203,19 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
+    async savePccSustainabilityCriteria(id, data) {
+      try {
+        const response = await api.savePccSustainabilityCriteria(id, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Criteris de sostenibilitat guardats')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
     async savePccMethodologicalPrinciple(id, data) {
       try {
         const response = await api.savePCCMethodologicalPrinciple(id, data)
@@ -382,6 +395,44 @@ export const useDataStore = defineStore('data', {
       try {
         await api.deletePCCTrainingPlan(pccId)
         this.pcc.trainingPlan = null
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async loadCenterProjects() {
+      try {
+        const response = await api.getCenterProjects()
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return []
+      }
+    },
+    async loadModuleCenterProjects(pccId, moduleCode) {
+      try {
+        const response = await api.getModuleCenterProjects(pccId, moduleCode)
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return []
+      }
+    },
+    async addModuleCenterProjects(pccId, moduleCode, centerProjectIds) {
+      try {
+        await api.addModuleCenterProjects(pccId, moduleCode, centerProjectIds)
+        this.addMessage('success', 'Projectes de centre afegits al mòdul')
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async removeModuleCenterProject(pccId, moduleCode, centerProjectId) {
+      try {
+        await api.removeModuleCenterProject(pccId, moduleCode, centerProjectId)
+        this.addMessage('success', 'Projecte de centre eliminat del mòdul')
         return true
       } catch (error) {
         this.addMessage('error', error)

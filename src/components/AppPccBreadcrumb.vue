@@ -41,6 +41,11 @@ export default {
         {
           title: 'Pla Formatiu Empresa',
           path: 'trainingPlanPCC',
+          nextPath: 'centerProjectsPCC'
+        },
+        {
+          title: 'Projectes de Centre',
+          path: 'centerProjectsPCC',
           nextPath: 'validatePCC'
         },
         {

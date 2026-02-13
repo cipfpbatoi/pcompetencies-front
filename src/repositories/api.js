@@ -53,7 +53,11 @@ export const api = {
   createPCC: (data) => instance.post('/pcc', data),
   createPccOportunities: (id, text) => instance.post(`/pcc/${id}/opportunities`, { opportunities: text }),
   createPccEnvironment: (id, text) => instance.post(`/pcc/${id}/sep-environment`, { SEPEnvironment: text }),
-  savePccSustainabilityCriteria: (id, text) => instance.post(`/pcc/${id}/sustainability-criteria`, { criteriaAdaptingSostenibilityAndDigitalModules: text }),
+  savePccSustainabilityCriteria: (id, text) => instance.post(`/pcc/${id}/criteria-sostenibility-digital`, { criteriaAdaptingSostenibilityAndDigitalModules: text }),
+  savePccComplementaryCriteria: (id, text) => instance.post(`/pcc/${id}/criteria-complementary-extracurricular`, { criteriaForComplementaryAndExtraActivities: text }),
+  savePCCIntermodularGuide: (pccId, data) => instance.post(`/pcc/${pccId}/intermodular-project-guide`, data),
+  savePCCIntermodularOrientation: (pccId, data) => instance.post(`/pcc/${pccId}/intermodular-project-guide/orientations`, data),
+  deletePCCIntermodularOrientation: (pccId, moduleCode, learningResultId) => instance.delete(`/pcc/${pccId}/intermodular-project-guide/orientations/${moduleCode}/${learningResultId}`),
   getPCCPdf: (pccId) =>
     axios.get(`${BASE_URL}pcc/${pccId}/pdf`, {
       headers: {

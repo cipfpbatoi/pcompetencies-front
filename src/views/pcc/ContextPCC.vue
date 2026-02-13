@@ -20,7 +20,7 @@ import { useFormValidation } from '@/composables/useFormValidation'
 // ==========================================
 const store = useDataStore()
 const { pcc } = storeToRefs(store)
-const { savePccOportunities, savePccEnvironment, savePccSustainabilityCriteria } = store
+const { savePccOportunities, savePccEnvironment } = store
 
 // ==========================================
 // 📋 VALIDACIÓN
@@ -41,17 +41,8 @@ const environmentSchema = yup.object({
     .min(15, 'Al menys han de tindre 15 caràcters'),
 })
 
-const sustainabilitySchema = yup.object({
-  sustainabilityCriteria: yup
-    .string()
-    .trim()
-    .required('Has de posar els criteris d\'adaptació dels mòduls')
-    .min(20, 'Al menys han de tindre 20 caràcters'),
-})
-
 const opportunitiesValidation = useFormValidation(opportunitiesSchema)
 const environmentValidation = useFormValidation(environmentSchema)
-const sustainabilityValidation = useFormValidation(sustainabilitySchema)
 
 // Si quieres, desestructura para que sea más cómodo:
 const {
@@ -68,21 +59,13 @@ const {
   clearErrors: clearEnvErrors,
 } = environmentValidation
 
-const {
-  errors: sustainabilityErrors,
-  validate: validateSustainability,
-  handleServerError: handleSustServerError,
-  clearErrors: clearSustErrors,
-} = sustainabilityValidation
-
 
 // ==========================================
 // 📊 ESTADO LOCAL
 // ==========================================
 const modalFields = reactive({
   opportunities: '',
-  environment: '',
-  sustainabilityCriteria: ''
+  environment: ''
 })
 
 // CKEditor
@@ -101,7 +84,7 @@ const editorConfig = {
 // 🔧 COMPUTED
 // ==========================================
 const isDone = computed(() => {
-  return !!(pcc.value.opportunitiesAndTechnologicalEvolution && pcc.value.socioeconomicAndProfessionalEnvironment && pcc.value.criteriaAdaptingSostenibilityAndDigitalModules)
+  return !!(pcc.value.opportunitiesAndTechnologicalEvolution && pcc.value.socioeconomicAndProfessionalEnvironment)
 })
 
 // ==========================================
@@ -110,7 +93,7 @@ const isDone = computed(() => {
 onMounted(() => {
   modalFields.opportunities = pcc.value.opportunitiesAndTechnologicalEvolution || ''
   modalFields.environment = pcc.value.socioeconomicAndProfessionalEnvironment || ''
-  modalFields.sustainabilityCriteria = pcc.value.criteriaAdaptingSostenibilityAndDigitalModules || ''
+
 })
 
 // ==========================================
@@ -120,13 +103,11 @@ onMounted(() => {
 // Referencias a los modales
 const pccOpportunitiesModalRef = ref(null)
 const pccEnvironmentModalRef = ref(null)
-const pccSustainabilityModalRef = ref(null)
 
 // Mapa para acceso dinámico
 const modalRefs = {
   opportunities: pccOpportunitiesModalRef,
-  environment: pccEnvironmentModalRef,
-  sustainability: pccSustainabilityModalRef
+  environment: pccEnvironmentModalRef
 }
 
 // Información de configuración de modales
@@ -139,11 +120,6 @@ const modalsConfig = {
   environment: {
     modalId: 'environmentModal',
     title: 'Entorn socioeconòmic i professional',
-    size: 'lg'
-  },
-  sustainability: {
-    modalId: 'sustainabilityModal',
-    title: 'Criteris d\'adaptació dels mòduls de Sostenibilitat i Digitalització',
     size: 'lg'
   }
 }
@@ -163,7 +139,7 @@ const hideModal = (modalKey) => {
 const handleModalClose = (modalKey) => {
   if (modalKey === 'opportunities') clearOppErrors()
   if (modalKey === 'environment') clearEnvErrors()
-  if (modalKey === 'sustainability') clearSustErrors()
+
 }
 
 
@@ -217,23 +193,6 @@ const saveEnvironmentData = async () => {
   }
 }
 
-const saveSustainabilityData = async () => {
-  const isValid = await validateSustainability({ sustainabilityCriteria: modalFields.sustainabilityCriteria })
-  if (!isValid) return
-
-  try {
-    const response = await savePccSustainabilityCriteria(pcc.value.id, modalFields.sustainabilityCriteria)
-    if (response === 'ok') {
-      hideModal('sustainability')
-      clearSustErrors()
-    } else {
-      handleSustServerError(response)
-    }
-  } catch (error) {
-    console.error('Error al guardar criteris de sostenibilitat:', error)
-    handleSustServerError(error)
-  }
-}
 
 </script>
 
@@ -258,17 +217,6 @@ const saveSustainabilityData = async () => {
         <ckeditor :editor="editor" v-model="modalFields.environment" :config="editorConfig" />
         <p v-if="environmentErrors.environment" class="error mt-2">
           {{ environmentErrors.environment }}
-        </p>
-      </div>
-    </ModalComponent>
-
-    <!-- ✅ MODAL SOSTENIBILITAT -->
-    <ModalComponent ref="pccSustainabilityModalRef" v-bind="modalsConfig.sustainability" @save="saveSustainabilityData"
-      @close="handleModalClose('sustainability')">
-      <div class="row p-2 text-center">
-        <ckeditor :editor="editor" v-model="modalFields.sustainabilityCriteria" :config="editorConfig" />
-        <p v-if="sustainabilityErrors.sustainabilityCriteria" class="error mt-2">
-          {{ sustainabilityErrors.sustainabilityCriteria }}
         </p>
       </div>
     </ModalComponent>
@@ -332,26 +280,6 @@ const saveSustainabilityData = async () => {
         </div>
       </div>
 
-      <!-- 1.4 Criteris d'adaptació dels mòduls de Sostenibilitat i Digitalització -->
-      <div class="card text-center mb-2">
-        <div class="card-header pcc fw-bold text-uppercase text-white text-start">
-          1.4 Criteris d'adaptació dels mòduls de Sostenibilitat i Digitalització
-        </div>
-        <div class="card-body">
-          <p v-if="pcc.criteriaAdaptingSostenibilityAndDigitalModules" class="text-start"
-            v-html="pcc.criteriaAdaptingSostenibilityAndDigitalModules" />
-          <p v-else>
-            Has d'indicar els criteris d'adaptació dels mòduls de Sostenibilitat aplicable a l'entorn productiu i Digitalització aplicada al sistema productiu
-          </p>
-        </div>
-        <div class="card-footer text-muted">
-          <button @click="showModal('sustainability')" class="btn btn-success"
-            title="Afegir/Modificar criteris d'adaptació">
-            <i class="bi bi-pencil-fill me-2" />
-            Afegir/Modificar criteris d'adaptació
-          </button>
-        </div>
-      </div>
     </div>
   </main>
 

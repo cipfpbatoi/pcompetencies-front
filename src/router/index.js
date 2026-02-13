@@ -21,6 +21,8 @@ import ModulesPCC from '../views/pcc/ModulesPCC.vue'
 import AssessmentToolsPCC from '../views/pcc/AssessmentToolsPCC.vue'
 import TrainingPlanPCC from '../views/pcc/TrainingPlanPCC.vue'
 import CenterProjectsPCC from '../views/pcc/CenterProjectsPCC.vue'
+import CriteriaPCC from '../views/pcc/CriteriaPCC.vue'
+import IntermodularPCC from '../views/pcc/IntermodularPCC.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -160,6 +162,18 @@ const router = createRouter({
       path: '/pcc/center-projects',
       name: 'centerProjectsPCC',
       component: CenterProjectsPCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/criteria',
+      name: 'criteriaPCC',
+      component: CriteriaPCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/intermodular',
+      name: 'intermodularPCC',
+      component: IntermodularPCC,
       meta: { requiresAuth: true }
     },
     {

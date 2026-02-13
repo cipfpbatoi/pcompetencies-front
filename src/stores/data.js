@@ -216,6 +216,56 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
+    async savePccComplementaryCriteria(id, data) {
+      try {
+        const response = await api.savePccComplementaryCriteria(id, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Criteris d\'activitats complementàries guardats')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async savePCCIntermodularGuide(pccId, data) {
+      try {
+        const response = await api.savePCCIntermodularGuide(pccId, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Guia del projecte intermodular guardada')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async savePCCIntermodularOrientation(pccId, data) {
+      try {
+        const response = await api.savePCCIntermodularOrientation(pccId, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Orientació guardada')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async deletePCCIntermodularOrientation(pccId, moduleCode, learningResultId) {
+      try {
+        const response = await api.deletePCCIntermodularOrientation(pccId, moduleCode, learningResultId)
+        this.pcc = response.data
+        this.addMessage('success', 'Orientació eliminada')
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
     async savePccMethodologicalPrinciple(id, data) {
       try {
         const response = await api.savePCCMethodologicalPrinciple(id, data)

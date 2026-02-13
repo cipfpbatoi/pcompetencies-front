@@ -46,6 +46,16 @@ export default {
         {
           title: 'Projectes de Centre',
           path: 'centerProjectsPCC',
+          nextPath: 'criteriaPCC'
+        },
+        {
+          title: 'Criteris',
+          path: 'criteriaPCC',
+          nextPath: 'intermodularPCC'
+        },
+        {
+          title: 'Projecte Intermodular',
+          path: 'intermodularPCC',
           nextPath: 'validatePCC'
         },
         {

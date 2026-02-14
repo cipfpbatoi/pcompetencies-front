@@ -1,7 +1,7 @@
 <template>
   <div v-if="!loading && syllabusHistory.length" class="mt-4">
     <h5 class="fw-bold text-info mb-3 text-center bg-secondary-subtle p-2">
-      <i class="bi bi-clock-history me-2"></i>Històric de Propostes Didàctiques
+      <i class="bi bi-clock-history me-2"></i>Històric de Programacions
     </h5>
 
     <table class="table table-bordered table-striped align-middle">

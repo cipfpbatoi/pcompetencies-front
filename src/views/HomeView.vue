@@ -400,7 +400,7 @@ const getTurnLabel = (turn) => {
 
       <!-- ✅ SECCIÓN PCC -->
       <div v-if="cycleSelect" class="form-group mt-4">
-        <div class="card border-danger">
+        <div class="card">
           <div class="card-header pcc text-white fw-bold"> <i class="bi bi-file-earmark-text-fill me-2"></i>
             Projecte Curricular de Cicle (PCC) </div>
           <div class="card-body text-center"> <!-- Loading spinner -->

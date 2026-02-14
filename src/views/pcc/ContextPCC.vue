@@ -244,7 +244,8 @@ const saveEnvironmentData = async () => {
           :editor="editor"
           v-model="modalFields.opportunities"
           :config="editorConfig"
-        /><p v-if="opportunitiesErrors.opportunities" class="error mt-2">
+        />
+        <p v-if="opportunitiesErrors.opportunities" class="error mt-2">
           {{ opportunitiesErrors.opportunities }}
         </p>
       </div>
@@ -361,7 +362,7 @@ const saveEnvironmentData = async () => {
       <div class="modal d-block modal-lg" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header bg-info text-white">
               <h5 class="modal-title mx-auto">
                 <i class="bi bi-info-circle-fill me-2" />
                 {{ activeHelp?.title || 'Ajuda' }}

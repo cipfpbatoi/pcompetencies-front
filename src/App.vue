@@ -3,11 +3,13 @@ import { useDataStore } from './stores/data'
 import { mapActions } from 'pinia'
 import ShowMessages from './components/ShowMessages.vue'
 import AppNav from './components/AppNav.vue'
+import AppLocationBreadcrumb from './components/AppLocationBreadcrumb.vue'
 
 export default {
   components: {
     ShowMessages,
-    AppNav
+    AppNav,
+    AppLocationBreadcrumb
   },
   async mounted() {
     if (
@@ -23,9 +25,9 @@ export default {
   },
   computed: {
     title() {
-      return window.location.pathname.includes('pcc') 
-      ? 'Projecte Curricular de Centre' 
-      : 'Programacions per competències'
+      return window.location.pathname.includes('pcc')
+        ? 'Projecte Curricular de Centre'
+        : 'Programacions per competències'
     }
   },
   methods: {
@@ -50,6 +52,7 @@ export default {
         </div>
       </div>
     </header>
+    <AppLocationBreadcrumb />
     <!-- <button @click="arregla" disabled>Arregla</button> -->
     <RouterView />
     <show-messages></show-messages>
@@ -81,6 +84,7 @@ header {
 
 <style>
 div.card-header.pcc {
-  background-color: darksalmon;
+  background-color: #2c4a7a;
+  border-color: #1f3b60;
 }
 </style>

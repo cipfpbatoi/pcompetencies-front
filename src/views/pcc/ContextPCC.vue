@@ -30,7 +30,7 @@ const opportunitiesSchema = yup.object({
     .string()
     .trim()
     .required('Has de posar la contextualització de la programació')
-    .min(20, 'Al menys han de tindre 20 caràcters'),
+    .min(20, 'Al menys han de tindre 20 caràcters')
 })
 
 const environmentSchema = yup.object({
@@ -38,7 +38,7 @@ const environmentSchema = yup.object({
     .string()
     .trim()
     .required("Has de posar l'entorn correcte")
-    .min(15, 'Al menys han de tindre 15 caràcters'),
+    .min(15, 'Al menys han de tindre 15 caràcters')
 })
 
 const opportunitiesValidation = useFormValidation(opportunitiesSchema)
@@ -49,16 +49,15 @@ const {
   errors: opportunitiesErrors,
   validate: validateOpportunities,
   handleServerError: handleOppServerError,
-  clearErrors: clearOppErrors,
+  clearErrors: clearOppErrors
 } = opportunitiesValidation
 
 const {
   errors: environmentErrors,
   validate: validateEnvironment,
   handleServerError: handleEnvServerError,
-  clearErrors: clearEnvErrors,
+  clearErrors: clearEnvErrors
 } = environmentValidation
-
 
 // ==========================================
 // 📊 ESTADO LOCAL
@@ -72,10 +71,19 @@ const modalFields = reactive({
 const editor = ClassicEditor
 const editorConfig = {
   toolbar: [
-    'heading', '|',
-    'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-    'blockQuote', 'insertTable', '|',
-    'undo', 'redo'
+    'heading',
+    '|',
+    'bold',
+    'italic',
+    'link',
+    'bulletedList',
+    'numberedList',
+    '|',
+    'blockQuote',
+    'insertTable',
+    '|',
+    'undo',
+    'redo'
   ],
   language: 'ca'
 }
@@ -84,7 +92,10 @@ const editorConfig = {
 // 🔧 COMPUTED
 // ==========================================
 const isDone = computed(() => {
-  return !!(pcc.value.opportunitiesAndTechnologicalEvolution && pcc.value.socioeconomicAndProfessionalEnvironment)
+  return !!(
+    pcc.value.opportunitiesAndTechnologicalEvolution &&
+    pcc.value.socioeconomicAndProfessionalEnvironment
+  )
 })
 
 // ==========================================
@@ -93,7 +104,6 @@ const isDone = computed(() => {
 onMounted(() => {
   modalFields.opportunities = pcc.value.opportunitiesAndTechnologicalEvolution || ''
   modalFields.environment = pcc.value.socioeconomicAndProfessionalEnvironment || ''
-
 })
 
 // ==========================================
@@ -114,18 +124,39 @@ const modalRefs = {
 const modalsConfig = {
   opportunities: {
     modalId: 'opportunitiesModal',
-    title: 'Oportunitats d\'ocupació i evolució tecnològica',
+    title: "1.3 Oportunitats d'ocupació i evolució tecnològica",
     size: 'lg'
   },
   environment: {
     modalId: 'environmentModal',
-    title: 'Entorn socioeconòmic i professional',
+    title: "1.2 Entorn socioeconòmic i professional del cicle i àrea d'influència",
     size: 'lg'
   }
 }
 
 // Modal de ayuda (simple)
 const showHelp = ref(false)
+const activeHelpKey = ref('')
+const helpContent = {
+  modules: {
+    title: 'Ajuda - 1.1 Mòduls del PCC',
+    body: "Has d'indicar tots els mòduls que s'inclouen al cicle formatiu. Recordant que d'un any a altre pot canviar el mòdul optatiu."
+  },
+  environment: {
+    title: "Ajuda - 1.2 Entorn socioeconòmic i professional del cicle i àrea d'influència",
+    body: "Aquest apartat ha de descriure el teixit empresarial de la ciutat i la comarca, així com el tipus d'empreses que poden contractar el nostre alumnat. Ha d'ajudar a entendre per què el cicle és necessari en aquest entorn.\n\nInclou informació sobre: sectors productius predominants; tipus d'empreses (majoritàriament pimes); necessitats de professionals qualificats; relació amb empreses o entitats de referència de la zona; connexió entre la formació del cicle i la realitat laboral.\n\n<div class=\"help-quote-label\">Exemple curt</div><blockquote class=\"help-quote\">L'entorn es caracteritza per un predomini de xicotetes i mitjanes empreses industrials i de serveis que demanden professionals amb formació tècnica actualitzada i capacitat d'adaptació als canvis tecnològics.</blockquote>"
+  },
+  opportunities: {
+    title: "Ajuda - 1.3 Oportunitats d'ocupació i evolució tecnològica",
+    body: 'Aquest apartat ha d\'explicar de què poden treballar els titulats i com estan evolucionant aquests llocs de treball. Ha de mirar al present però també a les tendències de futur.\n\nCal parlar de:<ul class="help-list"><li>Eixides professionals més habituals a l\'entorn proper.</li><li>Possibilitats d\'inserció laboral després de la FCT.</li><li>Principals canvis tecnològics o organitzatius del sector.</li><li>Competències que cada vegada valoren més les empreses.</li><li>Importància de l\'actualització i la formació contínua.</li></ul>\n\n<div class="help-quote-label">Exemple curt</div><blockquote class="help-quote">Les empreses de l\'entorn presenten una demanda creixent de titulats del cicle, especialment en activitats vinculades a la digitalització i la incorporació de noves tecnologies, fet que implica una renovació constant de les competències professionals.</blockquote>'
+  }
+}
+
+const activeHelp = computed(() => helpContent[activeHelpKey.value] || null)
+const helpParagraphs = computed(() => {
+  if (!activeHelp.value?.body) return []
+  return activeHelp.value.body.split('\n\n').filter(Boolean)
+})
 
 // Métodos genéricos para manejar modales
 const showModal = (modalKey) => {
@@ -139,17 +170,21 @@ const hideModal = (modalKey) => {
 const handleModalClose = (modalKey) => {
   if (modalKey === 'opportunities') clearOppErrors()
   if (modalKey === 'environment') clearEnvErrors()
-
 }
 
-
 // Toggle del modal de ayuda
-const toggleHelp = () => {
+const toggleHelp = (helpKey) => {
+  if (helpKey && activeHelpKey.value !== helpKey) {
+    activeHelpKey.value = helpKey
+    showHelp.value = true
+    return
+  }
   showHelp.value = !showHelp.value
 }
 
 const closeHelp = () => {
   showHelp.value = false
+  activeHelpKey.value = ''
 }
 
 // ==========================================
@@ -192,29 +227,43 @@ const saveEnvironmentData = async () => {
     handleEnvServerError(error)
   }
 }
-
-
 </script>
 
 <template>
   <main class="border shadow view-main">
     <!-- ✅ MODAL OPORTUNIDADES -->
-    <ModalComponent ref="pccOpportunitiesModalRef" v-bind="modalsConfig.opportunities" @save="saveOpportunitiesData"
-      @close="handleModalClose('opportunities')">
-      <div class="row p-2 text-center">
-        <ckeditor :editor="editor" v-model="modalFields.opportunities" :config="editorConfig" />
-        <p v-if="opportunitiesErrors.opportunities" class="error mt-2">
+    <ModalComponent
+      ref="pccOpportunitiesModalRef"
+      v-bind="modalsConfig.opportunities"
+      @save="saveOpportunitiesData"
+      @close="handleModalClose('opportunities')"
+    >
+      <div class="p-2 text-center">
+        <ckeditor
+          class="help-editor"
+          :editor="editor"
+          v-model="modalFields.opportunities"
+          :config="editorConfig"
+        /><p v-if="opportunitiesErrors.opportunities" class="error mt-2">
           {{ opportunitiesErrors.opportunities }}
         </p>
-
       </div>
     </ModalComponent>
 
     <!-- ✅ MODAL ENTORNO -->
-    <ModalComponent ref="pccEnvironmentModalRef" v-bind="modalsConfig.environment" @save="saveEnvironmentData"
-      @close="handleModalClose('environment')">
-      <div class="row p-2 text-center">
-        <ckeditor :editor="editor" v-model="modalFields.environment" :config="editorConfig" />
+    <ModalComponent
+      ref="pccEnvironmentModalRef"
+      v-bind="modalsConfig.environment"
+      @save="saveEnvironmentData"
+      @close="handleModalClose('environment')"
+    >
+      <div class="p-2 text-center">
+        <ckeditor
+          class="help-editor"
+          :editor="editor"
+          v-model="modalFields.environment"
+          :config="editorConfig"
+        />
         <p v-if="environmentErrors.environment" class="error mt-2">
           {{ environmentErrors.environment }}
         </p>
@@ -231,25 +280,38 @@ const saveEnvironmentData = async () => {
 
     <!-- ✅ CONTENIDO PRINCIPAL -->
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>1. Contextualització</h2>
+      <h2>1. Contextualització del cicle i mòduls del PCC</h2>
 
       <!-- Gestión de módulos del PCC -->
-      <PccModuleManager v-if="pcc.id" :pcc-id="pcc.id" class="mb-4" />
+      <PccModuleManager v-if="pcc.id" :pcc-id="pcc.id" class="mb-4" @help="toggleHelp('modules')" />
 
       <!-- 1.1 Entorn -->
       <div class="card text-center mb-2">
         <div class="card-header pcc fw-bold text-uppercase text-white text-start">
           1.2 Entorn socioeconòmic i professional del cicle a Alcoi i àrea d'influència
+          <span
+            @click="toggleHelp('environment')"
+            class="cursor-pointer ms-2"
+            role="button"
+            tabindex="0"
+          >
+            <i class="bi bi-info-circle-fill" />
+          </span>
         </div>
         <div class="card-body">
-          <p v-if="pcc.socioeconomicAndProfessionalEnvironment" class="text-start"
-            v-html="pcc.socioeconomicAndProfessionalEnvironment" />
-          <p v-else>
-            Has d'indicar l'entorn del cicle a Alcoi i comarca
-          </p>
+          <p
+            v-if="pcc.socioeconomicAndProfessionalEnvironment"
+            class="text-start"
+            v-html="pcc.socioeconomicAndProfessionalEnvironment"
+          />
+          <p v-else>Has d'indicar l'entorn del cicle a Alcoi i comarca</p>
         </div>
         <div class="card-footer text-muted">
-          <button @click="showModal('environment')" class="btn btn-success" title="Afegir/Modificar entorn del cicle">
+          <button
+            @click="showModal('environment')"
+            class="btn btn-success"
+            title="Afegir/Modificar entorn del cicle"
+          >
             <i class="bi bi-pencil-fill me-2" />
             Afegir/Modificar entorn del cicle
           </button>
@@ -260,26 +322,36 @@ const saveEnvironmentData = async () => {
       <div class="card text-center mb-2">
         <div class="card-header pcc fw-bold text-uppercase text-white text-start">
           1.3 Oportunitats d'ocupació i evolució tecnològica o productiva
-          <span @click="toggleHelp" class="cursor-pointer ms-2" role="button" tabindex="0">
+          <span
+            @click="toggleHelp('opportunities')"
+            class="cursor-pointer ms-2"
+            role="button"
+            tabindex="0"
+          >
             <i class="bi bi-info-circle-fill" />
           </span>
         </div>
         <div class="card-body">
-          <p v-if="pcc.opportunitiesAndTechnologicalEvolution" class="text-start"
-            v-html="pcc.opportunitiesAndTechnologicalEvolution" />
+          <p
+            v-if="pcc.opportunitiesAndTechnologicalEvolution"
+            class="text-start"
+            v-html="pcc.opportunitiesAndTechnologicalEvolution"
+          />
           <p v-else>
             Ha d'indicar les oportunitats d'ocupació i l'evolució tecnològica en la comarca
           </p>
         </div>
         <div class="card-footer text-muted">
-          <button @click="showModal('opportunities')" class="btn btn-success"
-            title="Afegir/Modificar oportunitats d'ocupació">
+          <button
+            @click="showModal('opportunities')"
+            class="btn btn-success"
+            title="Afegir/Modificar oportunitats d'ocupació"
+          >
             <i class="bi bi-pencil-fill me-2" />
             Afegir/Modificar oportunitats d'ocupació
           </button>
         </div>
       </div>
-
     </div>
   </main>
 
@@ -292,42 +364,19 @@ const saveEnvironmentData = async () => {
             <div class="modal-header bg-danger text-white">
               <h5 class="modal-title mx-auto">
                 <i class="bi bi-info-circle-fill me-2" />
-                Directrius per a Contextualitzar el Grup-Classe
+                {{ activeHelp?.title || 'Ajuda' }}
               </h5>
             </div>
             <div class="modal-body">
-              <p class="text-muted">
-                Aquestes són opcions suggerides per a ajudar a contextualitzar el grup-classe.
-                No són obligatòries, sinó orientatives.
+              <p v-if="helpParagraphs.length === 0" class="text-muted">
+                No hi ha contingut d'ajuda disponible.
               </p>
-              <ul class="list-group">
-                <li class="list-group-item">
-                  <strong>Nombre d'alumnes:</strong> Indica quants estudiants hi ha al grup.
-                </li>
-                <li class="list-group-item">
-                  <strong>Distribució per sexe i edat:</strong>
-                  Descriu com es distribueixen els alumnes segons el sexe i les franges d'edat principals.
-                </li>
-                <li class="list-group-item">
-                  <strong>Diversitat lingüística:</strong> Enumera els idiomes predominants al grup.
-                </li>
-                <li class="list-group-item">
-                  <strong>Interessos del grup:</strong>
-                  Especifica si busquen treballar, anar a la universitat o algun altre objectiu.
-                </li>
-                <li class="list-group-item">
-                  <strong>Dificultats amb els idiomes cooficials:</strong>
-                  Descriu possibles barreres relacionades amb idiomes oficials o cooficials.
-                </li>
-                <li class="list-group-item">
-                  <strong>Situació laboral i procedència:</strong>
-                  Menciona si treballen, la seua formació prèvia o d'on venen.
-                </li>
-                <li class="list-group-item">
-                  <strong>Repetidors o convalidacions:</strong>
-                  Indica si hi ha estudiants que repetixen curs o que tenen moltes assignatures convalidades.
-                </li>
-              </ul>
+              <div
+                v-for="(paragraph, index) in helpParagraphs"
+                :key="index"
+                class="text-muted mb-3"
+                v-html="paragraph"
+              />
             </div>
             <div class="modal-footer mx-auto">
               <button type="button" class="btn btn-success" @click="closeHelp">
@@ -357,5 +406,30 @@ const saveEnvironmentData = async () => {
 
 .cursor-pointer:hover {
   opacity: 0.8;
+}
+
+.help-quote-label {
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.help-quote {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #198754;
+  background-color: #f8f9fa;
+  color: #495057;
+  font-style: italic;
+  border-radius: 0.25rem;
+}
+
+.help-list {
+  margin: 0.5rem 0 0 1.25rem;
+}
+
+.help-editor {
+  width: 100%;
+  margin: 0 auto;
 }
 </style>

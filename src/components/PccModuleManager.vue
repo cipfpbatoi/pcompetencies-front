@@ -12,6 +12,8 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['help'])
+
 // Store
 const store = useDataStore()
 const { pcc, cycle } = storeToRefs(store)
@@ -42,7 +44,7 @@ const modulesByCourse = computed(() => {
     2: []
   }
 
-  currentModules.value.forEach(module => {
+  currentModules.value.forEach((module) => {
     const level = module.courseLevel || 1
     if (grouped[level]) {
       grouped[level].push(module)
@@ -52,11 +54,38 @@ const modulesByCourse = computed(() => {
   return grouped
 })
 
+const addedModulesHoursByCourse = computed(() => {
+  return {
+    1: modulesByCourse.value[1].reduce((total, module) => total + (module.numberOfHours || 0), 0),
+    2: modulesByCourse.value[2].reduce((total, module) => total + (module.numberOfHours || 0), 0)
+  }
+})
+
+const addedModulesHours = computed(() => {
+  return currentModules.value.reduce((total, module) => total + (module.numberOfHours || 0), 0)
+})
+
+const cycleHoursFallback = computed(() => {
+  if (cycle.value?.hours) return false
+  if (cycle.value?.totalHours) return false
+  if (cycle.value?.modules?.length) return false
+  return true
+})
+
+const cycleTotalHours = computed(() => {
+  if (cycle.value?.hours) return cycle.value.hours
+  if (cycle.value?.totalHours) return cycle.value.totalHours
+  if (cycle.value?.modules?.length) {
+    return cycle.value.modules.reduce((total, module) => total + (module.numberOfHours || 0), 0)
+  }
+  return 2000
+})
+
 const availableModulesToAdd = computed(() => {
   if (!cycle.value?.modules) return []
 
-  const currentModuleCodes = currentModules.value.map(m => m.code)
-  return cycle.value.modules.filter(m => !currentModuleCodes.includes(m.code))
+  const currentModuleCodes = currentModules.value.map((m) => m.code)
+  return cycle.value.modules.filter((m) => !currentModuleCodes.includes(m.code))
 })
 
 const hasModulesToAdd = computed(() => availableModulesToAdd.value.length > 0)
@@ -67,7 +96,7 @@ const availableModulesByCourse = computed(() => {
     2: []
   }
 
-  availableModulesToAdd.value.forEach(module => {
+  availableModulesToAdd.value.forEach((module) => {
     const level = module.courseLevel || 1
     if (grouped[level]) {
       grouped[level].push(module)
@@ -150,18 +179,18 @@ const confirmDelete = async () => {
 </script>
 
 <template>
-      <div class="card text-center mb-2">
-        <div class="card-header pcc fw-bold text-uppercase text-white text-start">
-        1.1 Mòduls del PCC
-      <button
-        v-if="hasModulesToAdd"
-        @click="openAddModal"
-        class="btn btn-primary btn-sm"
-        :disabled="isLoading"
-      >
-        <i class="bi bi-plus-circle me-1"></i>
-        Afegir mòduls
-      </button>
+  <div class="card text-center mb-2">
+    <div
+      class="card-header pcc fw-bold text-uppercase text-white text-start d-flex justify-content-between align-items-center"
+    >
+      <div>1.1 Mòduls del PCC</div>
+    </div>
+
+    <div class="card-body text-start pb-0">
+      <p class="text-muted mb-3">
+        Has d'indicar tots els mòduls que s'inclouen al cicle formatiu. Recorda que d'un any a altre
+        pot canviar el mòdul optatiu.
+      </p>
     </div>
 
     <!-- Lista de módulos actuales dividida por curso -->
@@ -172,6 +201,9 @@ const confirmDelete = async () => {
           <div class="card-header bg-secondary text-white fw-bold">
             <i class="bi bi-journal-text me-2"></i>
             1r Curs
+            <span class="badge bg-light text-dark ms-2">
+              Total hores afegides: {{ addedModulesHoursByCourse[1] }} h
+            </span>
           </div>
           <ul class="list-group list-group-flush">
             <li
@@ -187,7 +219,8 @@ const confirmDelete = async () => {
               class="list-group-item d-flex justify-content-between align-items-center"
             >
               <div class="flex-grow-1">
-                <strong>{{ module.code }}</strong> - {{ module.name }}
+                <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
+                h)
               </div>
               <button
                 @click="openDeleteModal(module)"
@@ -208,6 +241,9 @@ const confirmDelete = async () => {
           <div class="card-header bg-secondary text-white fw-bold">
             <i class="bi bi-journal-text me-2"></i>
             2n Curs
+            <span class="badge bg-light text-dark ms-2">
+              Total hores afegides: {{ addedModulesHoursByCourse[2] }} h
+            </span>
           </div>
           <ul class="list-group list-group-flush">
             <li
@@ -223,7 +259,8 @@ const confirmDelete = async () => {
               class="list-group-item d-flex justify-content-between align-items-center"
             >
               <div class="flex-grow-1">
-                <strong>{{ module.code }}</strong> - {{ module.name }}
+                <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
+                h)
               </div>
               <button
                 @click="openDeleteModal(module)"
@@ -242,6 +279,21 @@ const confirmDelete = async () => {
     <div v-else class="alert alert-info">
       <i class="bi bi-info-circle me-2"></i>
       No hi ha mòduls associats a aquest PCC
+    </div>
+
+    <div class="d-flex flex-column align-items-center gap-2 mt-3">
+      <button
+        @click="openAddModal"
+        class="btn btn-primary"
+        :disabled="isLoading || !hasModulesToAdd"
+      >
+        <i class="bi bi-plus-circle me-1"></i>
+        Afegir mòduls
+      </button>
+      <div class="text-muted">
+        Hores totals mòduls afegits: <strong>{{ addedModulesHours }}</strong> /
+        <span :class="{ 'text-danger': cycleHoursFallback }">{{ cycleTotalHours }}</span>
+      </div>
     </div>
 
     <!-- Modal para añadir módulos -->
@@ -276,20 +328,21 @@ const confirmDelete = async () => {
                     <div
                       v-for="module in availableModulesByCourse[1]"
                       :key="module.code"
-                      class="form-check mb-2 p-3 border rounded"
+                      class="form-check mb-2 p-3 border rounded d-flex align-items-center gap-2"
                       :class="{ 'bg-light': isModuleSelected(module.code) }"
                     >
                       <input
-                        class="form-check-input"
+                        class="form-check-input module-checkbox"
                         type="checkbox"
                         :id="`module-${module.code}`"
                         :value="module.code"
                         :checked="isModuleSelected(module.code)"
                         @change="toggleModuleSelection(module.code)"
-                      >
+                      />
                       <label
-                        class="form-check-label w-100 cursor-pointer"
+                        class="form-check-label w-100 cursor-pointer module-label"
                         :for="`module-${module.code}`"
+                        :title="`${module.code} - ${module.name}`"
                       >
                         <strong>{{ module.code }}</strong> - {{ module.name }}
                       </label>
@@ -305,20 +358,21 @@ const confirmDelete = async () => {
                     <div
                       v-for="module in availableModulesByCourse[2]"
                       :key="module.code"
-                      class="form-check mb-2 p-3 border rounded"
+                      class="form-check mb-2 p-3 border rounded d-flex align-items-center gap-2"
                       :class="{ 'bg-light': isModuleSelected(module.code) }"
                     >
                       <input
-                        class="form-check-input"
+                        class="form-check-input module-checkbox"
                         type="checkbox"
                         :id="`module-${module.code}`"
                         :value="module.code"
                         :checked="isModuleSelected(module.code)"
                         @change="toggleModuleSelection(module.code)"
-                      >
+                      />
                       <label
-                        class="form-check-label w-100 cursor-pointer"
+                        class="form-check-label w-100 cursor-pointer module-label"
                         :for="`module-${module.code}`"
+                        :title="`${module.code} - ${module.name}`"
                       >
                         <strong>{{ module.code }}</strong> - {{ module.name }}
                       </label>
@@ -348,7 +402,8 @@ const confirmDelete = async () => {
                 >
                   <span v-if="isLoading" class="spinner-border spinner-border-sm me-1"></span>
                   <i v-else class="bi bi-check-circle me-1"></i>
-                  Afegir {{ selectedModulesToAdd.length > 0 ? `(${selectedModulesToAdd.length})` : '' }}
+                  Afegir
+                  {{ selectedModulesToAdd.length > 0 ? `(${selectedModulesToAdd.length})` : '' }}
                 </button>
               </div>
             </div>
@@ -383,7 +438,8 @@ const confirmDelete = async () => {
                     Atenció: Impacte global
                   </strong>
                   <p class="mt-2 mb-0">
-                    En eliminar aquest mòdul del PCC, desapareixerà de <strong>tots els apartats i elements vinculats</strong>
+                    En eliminar aquest mòdul del PCC, desapareixerà de
+                    <strong>tots els apartats i elements vinculats</strong>
                     (metodologia, avaluació, etc.).
                   </p>
                 </div>
@@ -438,6 +494,24 @@ const confirmDelete = async () => {
 .module-list {
   max-height: 400px;
   overflow-y: auto;
+}
+
+.module-label {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.module-list .form-check {
+  padding-left: 0;
+}
+
+.module-checkbox {
+  margin-left: 0;
+  margin-top: 0;
 }
 
 .pcc-module-manager {

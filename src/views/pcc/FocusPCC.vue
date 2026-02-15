@@ -641,7 +641,7 @@ onMounted(async () => {
       </div>
 
       <div class="card mb-3 pending-card">
-        <div class="card-header fw-bold text-center">Pendents d'afegir</div>
+        <div class="card-header fw-bold text-center">Disponibles per a Afegir</div>
         <div class="card-body">
           <label for="principlesSearch" class="form-label fw-bold">Cercar principis</label>
           <div class="input-group">

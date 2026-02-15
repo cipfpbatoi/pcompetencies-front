@@ -40,16 +40,44 @@ const formErrors = ref({})
 // Computeds
 const trainingPlan = computed(() => pcc.value?.trainingPlan || null)
 const hasTrainingPlan = computed(() => !!trainingPlan.value)
-const minTotalFEHours = computed(() => pcc.value?.minTotalFEHours || 0)
+const minTotalFEHours = computed(
+  () => pcc.value?.minTotalFeHours || pcc.value?.minTotalFEHours || 0
+)
+
+const cycleTotalHours = computed(() => {
+  const cycle = pcc.value?.cycle
+  if (!cycle) return 0
+  if (cycle.hours) return cycle.hours
+  if (cycle.totalHours) return cycle.totalHours
+  if (cycle.modules?.length) {
+    return cycle.modules.reduce((total, module) => total + (module.numberOfHours || 0), 0)
+  }
+  return 0
+})
+
+const maxTotalFEHours = computed(() => {
+  return 700
+})
 
 const totalHours = computed(() => {
-  return (parseInt(form.value.firstCourseHours, 10) || 0) +
+  return (
+    (parseInt(form.value.firstCourseHours, 10) || 0) +
     (parseInt(form.value.secondCourseHours, 10) || 0)
+  )
+})
+
+const isHoursMinValid = computed(() => {
+  if (!minTotalFEHours.value) return true
+  return totalHours.value >= minTotalFEHours.value
+})
+
+const isHoursMaxValid = computed(() => {
+  if (!maxTotalFEHours.value) return true
+  return totalHours.value <= maxTotalFEHours.value
 })
 
 const isHoursValid = computed(() => {
-  if (!minTotalFEHours.value) return true
-  return totalHours.value >= minTotalFEHours.value
+  return isHoursMinValid.value && isHoursMaxValid.value
 })
 
 // Criterios de centro (se mostrarán como información, no editables)
@@ -82,20 +110,35 @@ const cancelEditing = () => {
 const validateForm = () => {
   const errors = {}
 
-  if (form.value.firstCourseHours === null || form.value.firstCourseHours === '' || form.value.firstCourseHours < 0) {
+  if (
+    form.value.firstCourseHours === null ||
+    form.value.firstCourseHours === '' ||
+    form.value.firstCourseHours < 0
+  ) {
     errors.firstCourseHours = 'Les hores de 1r curs són obligatòries i han de ser >= 0'
   }
 
-  if (form.value.secondCourseHours === null || form.value.secondCourseHours === '' || form.value.secondCourseHours < 0) {
+  if (
+    form.value.secondCourseHours === null ||
+    form.value.secondCourseHours === '' ||
+    form.value.secondCourseHours < 0
+  ) {
     errors.secondCourseHours = 'Les hores de 2n curs són obligatòries i han de ser >= 0'
   }
 
-  if (!form.value.companyAssignmentCriterias || form.value.companyAssignmentCriterias.trim().length === 0) {
-    errors.companyAssignmentCriterias = 'Els criteris d\'assignació són obligatoris'
+  if (
+    !form.value.companyAssignmentCriterias ||
+    form.value.companyAssignmentCriterias.trim().length === 0
+  ) {
+    errors.companyAssignmentCriterias = "Els criteris d'assignació són obligatoris"
   }
 
-  if (minTotalFEHours.value && !isHoursValid.value) {
-    errors.totalHours = `La suma d'hores (${totalHours.value}) ha de ser >= ${minTotalFEHours.value} hores (mínim FE del cicle)`
+  if (minTotalFEHours.value && totalHours.value < minTotalFEHours.value) {
+    errors.totalHours = `Com a mínim ${minTotalFEHours.value} hores`
+  }
+
+  if (maxTotalFEHours.value && totalHours.value > maxTotalFEHours.value) {
+    errors.totalHours = `Ha de ser <= ${maxTotalFEHours.value} hores`
   }
 
   formErrors.value = errors
@@ -154,7 +197,9 @@ const confirmDelete = async () => {
     <!-- Vista de lectura -->
     <div v-if="!isEditing">
       <div v-if="hasTrainingPlan" class="card">
-        <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
+        <div
+          class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center"
+        >
           <span>
             <i class="bi bi-building me-2"></i>
             Pla Formatiu d'Empresa
@@ -238,13 +283,14 @@ const confirmDelete = async () => {
             <label class="form-label fw-bold">
               Hores 1r Curs <span class="text-danger">*</span>
             </label>
+            <div class="form-text">Recomanació: 150 hores en 1r curs</div>
             <input
               type="number"
               class="form-control"
               v-model.number="form.firstCourseHours"
               min="0"
               :class="{ 'is-invalid': formErrors.firstCourseHours }"
-            >
+            />
             <div v-if="formErrors.firstCourseHours" class="invalid-feedback">
               {{ formErrors.firstCourseHours }}
             </div>
@@ -253,13 +299,14 @@ const confirmDelete = async () => {
             <label class="form-label fw-bold">
               Hores 2n Curs <span class="text-danger">*</span>
             </label>
+            <div class="form-text invisible">Recomanació: 150 hores en 1r curs</div>
             <input
               type="number"
               class="form-control"
               v-model.number="form.secondCourseHours"
               min="0"
               :class="{ 'is-invalid': formErrors.secondCourseHours }"
-            >
+            />
             <div v-if="formErrors.secondCourseHours" class="invalid-feedback">
               {{ formErrors.secondCourseHours }}
             </div>
@@ -270,13 +317,13 @@ const confirmDelete = async () => {
         <div class="alert" :class="isHoursValid ? 'alert-success' : 'alert-warning'">
           <strong>Total hores FE: {{ totalHours }}</strong>
           <span v-if="minTotalFEHours">
-            <span v-if="isHoursValid">
+            <span v-if="isHoursMinValid">
               <i class="bi bi-check-circle-fill ms-2"></i>
               (mínim: {{ minTotalFEHours }})
             </span>
             <span v-else>
               <i class="bi bi-exclamation-triangle-fill ms-2"></i>
-              Ha de ser >= {{ minTotalFEHours }} hores
+              Com a mínim {{ minTotalFEHours }} hores
             </span>
           </span>
         </div>
@@ -297,10 +344,20 @@ const confirmDelete = async () => {
         <div class="mb-3">
           <label class="form-label fw-bold">
             <i class="bi bi-people me-1"></i>
-            Resta de l'alumnat - Criteris d'assignació d'alumnes a l'empresa
+            Criteris d'assignació de l'alumnat a les Empreses<br />
+            1. Alumnat que busca empresa per compte propi<br />
+            2. Requisits específics per part del centre de treball<br />
+            <span class="line-3-emphasis">
+              3. Especifica ací els criteris d'assignació per a la resta de l'alumnat a l'empresa
+            </span>
+            <br />
             <span class="text-danger">*</span>
           </label>
-          <ckeditor :editor="editor" v-model="form.companyAssignmentCriterias" :config="editorConfig" />
+          <ckeditor
+            :editor="editor"
+            v-model="form.companyAssignmentCriterias"
+            :config="editorConfig"
+          />
           <div v-if="formErrors.companyAssignmentCriterias" class="text-danger small mt-2">
             {{ formErrors.companyAssignmentCriterias }}
           </div>
@@ -330,11 +387,17 @@ const confirmDelete = async () => {
                   <i class="bi bi-exclamation-triangle me-2"></i>
                   Confirmar eliminació
                 </h5>
-                <button type="button" class="btn-close btn-close-white" @click="closeDeleteModal"></button>
+                <button
+                  type="button"
+                  class="btn-close btn-close-white"
+                  @click="closeDeleteModal"
+                ></button>
               </div>
               <div class="modal-body">
                 <p>Estàs segur que vols eliminar el Pla Formatiu d'Empresa?</p>
-                <p class="text-muted small mb-0">Aquesta acció eliminarà tota la configuració d'hores i criteris d'assignació.</p>
+                <p class="text-muted small mb-0">
+                  Aquesta acció eliminarà tota la configuració d'hores i criteris d'assignació.
+                </p>
               </div>
               <div class="modal-footer">
                 <button class="btn btn-secondary" @click="closeDeleteModal" :disabled="isLoading">
@@ -354,3 +417,9 @@ const confirmDelete = async () => {
     </Teleport>
   </div>
 </template>
+
+<style scoped>
+.line-3-emphasis {
+  font-size: 1.1rem;
+}
+</style>

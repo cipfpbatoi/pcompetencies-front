@@ -121,7 +121,7 @@ const showHelp = ref(false)
 const activeHelpKey = ref('')
 const helpContent = {
   methodology: {
-    title: 'Ajuda - 2. Enfocament (Principis metodològics)',
+    title: 'Ajuda - 2. Enfocaments didàctics i métodologics del Cicle',
     body: 'Cal indicar els principis metodològics que s’aplicaran en el cicle i descriure, per a cadascun, el context i la forma d’aplicació.\n\nEn els principis obligatoris, l’aplicació ha d’estar prevista en tots els mòduls del cicle.\n\nEn els principis no obligatoris, es poden aplicar a tot el cicle o bé seleccionar mòduls concrets. En aquest últim cas, el principi s’haurà d’implementar com a mínim en dos mòduls.\n\nA més d’indicar els mòduls, cal explicar com es desenvoluparà metodològicament (tipus d’activitats, organització de l’aula, productes finals, relació amb l’entorn, etc.).\n\n<div class="help-quote-label"><strong>Exemple</strong></div><blockquote class="help-quote"><strong>Aplicarem l’aprenentatge servei</strong> en els mòduls de Mòdul A i Mòdul B de primer curs, mitjançant projectes en què l’alumnat detectarà una necessitat del seu entorn i dissenyarà una intervenció que combine l’adquisició de competències professionals amb un servei real a la comunitat.</blockquote>'
   }
 }
@@ -521,7 +521,7 @@ onMounted(async () => {
     <!-- ✅ CONTENIDO PRINCIPAL -->
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>
-        2. Enfocament
+        2. Enfocaments didàctics i métodologics del Cicle
         <span
           @click="toggleHelp('methodology')"
           class="cursor-pointer ms-2 help-icon"

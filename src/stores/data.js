@@ -347,23 +347,28 @@ export const useDataStore = defineStore('data', {
     async savePCCModuleOrganization(pccId, data) {
       try {
         const response = await api.createPCCModuleOrganization(pccId, data)
-        // La API no devuelve el objeto module, lo reconstruimos desde los módulos del PCC
-        const moduleInfo = this.pcc.modules?.find((m) => m.code === data.moduleCode)
-        const organizationData = {
-          ...response.data,
-          module: moduleInfo || { code: data.moduleCode }
-        }
-        // Actualizar la organización en el store
-        if (!this.pcc.moduleOrganizations) {
-          this.pcc.moduleOrganizations = []
-        }
-        const index = this.pcc.moduleOrganizations.findIndex(
-          (mo) => mo.module?.code === data.moduleCode
-        )
-        if (index > -1) {
-          this.pcc.moduleOrganizations[index] = organizationData
+        const cycleId = this.pcc?.cycle?.id || this.cycle?.id
+        if (cycleId) {
+          const refreshed = await api.getPCCByCycleId(cycleId)
+          this.pcc = refreshed.data
         } else {
-          this.pcc.moduleOrganizations.push(organizationData)
+          // Fallback si no hay ciclo disponible para refrescar
+          const moduleInfo = this.pcc.modules?.find((m) => m.code === data.moduleCode)
+          const organizationData = {
+            ...response.data,
+            module: moduleInfo || { code: data.moduleCode }
+          }
+          if (!this.pcc.moduleOrganizations) {
+            this.pcc.moduleOrganizations = []
+          }
+          const index = this.pcc.moduleOrganizations.findIndex(
+            (mo) => mo.module?.code === data.moduleCode
+          )
+          if (index > -1) {
+            this.pcc.moduleOrganizations[index] = organizationData
+          } else {
+            this.pcc.moduleOrganizations.push(organizationData)
+          }
         }
         return true
       } catch (error) {

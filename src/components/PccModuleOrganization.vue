@@ -33,6 +33,7 @@ const form = ref({
   classroomHours: 0,
   labHours: 0,
   language: 'ca-ES',
+  dualizable: false,
   otherConsiderations: ''
 })
 
@@ -42,9 +43,44 @@ const formErrors = ref({})
 const availableLanguages = [
   { value: 'ca-ES', label: 'Català (ca-ES)' },
   { value: 'es-ES', label: 'Castellà (es-ES)' },
+  { value: 'en-GB', label: 'Anglès (en-GB)' },
   { value: 'de-DE', label: 'Alemany (de-DE)' },
   { value: 'fr-FR', label: 'Francès (fr-FR)' }
 ]
+
+const requiredLanguages = [
+  { value: 'en-GB', label: 'Anglès' },
+  { value: 'ca-ES', label: 'Valencià' },
+  { value: 'es-ES', label: 'Castellà' }
+]
+
+const languageColors = {
+  'en-GB': '#0d6efd',
+  'ca-ES': '#198754',
+  'es-ES': '#fd7e14',
+  other: '#6c757d',
+  unassigned: '#adb5bd'
+}
+
+const normalizeLanguageValue = (language) => {
+  const raw = language?.value || language?.code || language
+  if (!raw || typeof raw !== 'string') return null
+  const normalized = raw.trim()
+  const map = {
+    ca: 'ca-ES',
+    'ca-es': 'ca-ES',
+    es: 'es-ES',
+    'es-es': 'es-ES',
+    en: 'en-GB',
+    'en-gb': 'en-GB',
+    de: 'de-DE',
+    'de-de': 'de-DE',
+    fr: 'fr-FR',
+    'fr-fr': 'fr-FR'
+  }
+  const key = normalized.toLowerCase()
+  return map[key] || normalized
+}
 
 // Computeds
 const modulesByCourse = computed(() => {
@@ -55,7 +91,7 @@ const modulesByCourse = computed(() => {
 
   if (!pcc.value?.modules) return grouped
 
-  pcc.value.modules.forEach(module => {
+  pcc.value.modules.forEach((module) => {
     const level = module.courseLevel || 1
     if (grouped[level]) {
       // Añadir información de la organización si existe
@@ -72,33 +108,124 @@ const modulesByCourse = computed(() => {
 
 const allModulesHaveOrganization = computed(() => {
   if (!pcc.value?.modules) return false
-  return pcc.value.modules.every(module => hasOrganization(module.code))
+  return pcc.value.modules.every((module) => hasOrganization(module.code))
 })
 
 const organizationCompletionPercentage = computed(() => {
   if (!pcc.value?.modules || pcc.value.modules.length === 0) return 0
   const total = pcc.value.modules.length
-  const completed = pcc.value.modules.filter(module => hasOrganization(module.code)).length
+  const completed = pcc.value.modules.filter((module) => hasOrganization(module.code)).length
   return Math.round((completed / total) * 100)
 })
 
-// Validación reactiva
-watch(() => form.value.distribution, () => {
-  if (editingModule.value) {
-    validateForm()
+const languageChart = computed(() => {
+  if (!pcc.value?.modules || pcc.value.modules.length === 0) return null
+
+  const modules = pcc.value.modules
+  const totalHours = modules.reduce((sum, module) => sum + (module.weekHours || 0), 0)
+  if (!totalHours) return null
+
+  const requiredLanguageValues = new Set(requiredLanguages.map((lang) => lang.value))
+  const hoursByLanguage = {}
+  let otherHours = 0
+  let unassignedHours = 0
+
+  modules.forEach((module) => {
+    const hours = module.weekHours || 0
+    const organization = getModuleOrganization(module.code)
+    if (!organization) {
+      unassignedHours += hours
+      return
+    }
+
+    const value = normalizeLanguageValue(organization.language)
+    if (value && requiredLanguageValues.has(value)) {
+      hoursByLanguage[value] = (hoursByLanguage[value] || 0) + hours
+    } else if (value) {
+      otherHours += hours
+    }
+  })
+
+  const segments = requiredLanguages
+    .map((lang) => {
+      const hours = hoursByLanguage[lang.value] || 0
+      if (!hours) return null
+      return {
+        key: lang.value,
+        label: lang.label,
+        hours,
+        percentage: Math.round((hours / totalHours) * 100),
+        color: languageColors[lang.value]
+      }
+    })
+    .filter(Boolean)
+
+  if (otherHours) {
+    segments.push({
+      key: 'other',
+      label: 'Altres idiomes',
+      hours: otherHours,
+      percentage: Math.round((otherHours / totalHours) * 100),
+      color: languageColors.other
+    })
+  }
+
+  if (unassignedHours) {
+    segments.push({
+      key: 'unassigned',
+      label: 'No assignades',
+      hours: unassignedHours,
+      percentage: Math.round((unassignedHours / totalHours) * 100),
+      color: languageColors.unassigned
+    })
+  }
+
+  return {
+    totalHours,
+    segments
   }
 })
 
-watch(() => [form.value.classroomHours, form.value.labHours], () => {
-  if (editingModule.value) {
-    validateForm()
+const languageDonutStyle = computed(() => {
+  if (!languageChart.value?.segments?.length) return {}
+
+  let currentHours = 0
+  const totalHours = languageChart.value.totalHours
+  const parts = languageChart.value.segments.map((segment) => {
+    const start = (currentHours / totalHours) * 100
+    currentHours += segment.hours
+    const end = (currentHours / totalHours) * 100
+    return `${segment.color} ${start}% ${end}%`
+  })
+
+  return {
+    background: `conic-gradient(${parts.join(', ')})`
   }
 })
+
+// Validación reactiva
+watch(
+  () => form.value.distribution,
+  () => {
+    if (editingModule.value) {
+      validateForm()
+    }
+  }
+)
+
+watch(
+  () => [form.value.classroomHours, form.value.labHours],
+  () => {
+    if (editingModule.value) {
+      validateForm()
+    }
+  }
+)
 
 // Métodos
 const getModuleOrganization = (moduleCode) => {
   if (!pcc.value?.moduleOrganizations) return null
-  return pcc.value.moduleOrganizations.find(mo => mo.module?.code === moduleCode)
+  return pcc.value.moduleOrganizations.find((mo) => mo.module?.code === moduleCode)
 }
 
 const hasOrganization = (moduleCode) => {
@@ -115,7 +242,8 @@ const openEditModal = (module) => {
       distribution: organization.distribution || '',
       classroomHours: organization.classroomHours || 0,
       labHours: organization.labHours || 0,
-      language: organization.language?.value || 'ca-ES',
+      language: normalizeLanguageValue(organization.language) || 'ca-ES',
+      dualizable: !!organization.dualizable,
       otherConsiderations: organization.otherConsiderations || ''
     }
   } else {
@@ -125,6 +253,7 @@ const openEditModal = (module) => {
       classroomHours: 0,
       labHours: 0,
       language: 'ca-ES',
+      dualizable: false,
       otherConsiderations: ''
     }
   }
@@ -141,6 +270,7 @@ const closeEditModal = () => {
     classroomHours: 0,
     labHours: 0,
     language: 'ca-ES',
+    dualizable: false,
     otherConsiderations: ''
   }
   formErrors.value = {}
@@ -180,6 +310,7 @@ const saveOrganization = async () => {
       classroomHours: parseInt(form.value.classroomHours, 10),
       labHours: parseInt(form.value.labHours, 10),
       language: form.value.language,
+      dualizable: !!form.value.dualizable,
       otherConsiderations: form.value.otherConsiderations?.trim() || null
     }
 
@@ -189,7 +320,7 @@ const saveOrganization = async () => {
       store.addMessage('success', 'Organització del mòdul guardada correctament')
     }
   } catch (error) {
-    store.addMessage('error', 'Error en guardar l\'organització')
+    store.addMessage('error', "Error en guardar l'organització")
   } finally {
     isLoading.value = false
   }
@@ -206,7 +337,7 @@ const confirmDelete = async () => {
       store.addMessage('success', 'Organització eliminada correctament')
     }
   } catch (error) {
-    store.addMessage('error', 'Error en eliminar l\'organització')
+    store.addMessage('error', "Error en eliminar l'organització")
   } finally {
     isLoading.value = false
   }
@@ -241,18 +372,54 @@ const hoursSum = computed(() => {
       </div>
     </div>
 
-    <!-- Progress bar -->
-    <div class="progress mb-3" style="height: 25px;">
-      <div
-        class="progress-bar"
-        :class="allModulesHaveOrganization ? 'bg-success' : 'bg-warning'"
-        role="progressbar"
-        :style="{ width: organizationCompletionPercentage + '%' }"
-        :aria-valuenow="organizationCompletionPercentage"
-        aria-valuemin="0"
-        aria-valuemax="100"
-      >
-        <strong>{{ organizationCompletionPercentage }}%</strong>
+    <div class="row g-3 align-items-start mb-4">
+      <div class="col-12 col-lg-6">
+        <div class="d-flex align-items-center mb-2">
+          <i class="bi bi-clipboard-check me-2"></i>
+          <h6 class="mb-0">Compleció de l'organització</h6>
+        </div>
+        <div class="progress" style="height: 25px">
+          <div
+            class="progress-bar"
+            :class="allModulesHaveOrganization ? 'bg-success' : 'bg-warning'"
+            role="progressbar"
+            :style="{ width: organizationCompletionPercentage + '%' }"
+            :aria-valuenow="organizationCompletionPercentage"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <strong>{{ organizationCompletionPercentage }}%</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div v-if="languageChart">
+          <div class="d-flex align-items-center mb-2">
+            <i class="bi bi-translate me-2"></i>
+            <h6 class="mb-0">Idioma seleccionat als mòduls</h6>
+          </div>
+          <div class="d-flex flex-column flex-md-row gap-3 align-items-start">
+            <div class="language-donut" :style="languageDonutStyle">
+              <div class="language-donut__center">
+                <div class="fw-bold">{{ languageChart.totalHours }}h</div>
+                <div class="small text-muted">Totals</div>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <div
+                v-for="segment in languageChart.segments"
+                :key="segment.key"
+                class="d-flex align-items-center mb-2"
+              >
+                <span class="legend-dot" :style="{ backgroundColor: segment.color }"></span>
+                <span class="me-auto">{{ segment.label }}</span>
+                <strong>{{ segment.percentage }}%</strong>
+                <span class="text-muted ms-2">{{ segment.hours }}h</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -273,11 +440,7 @@ const hoursSum = computed(() => {
               <i class="bi bi-info-circle me-1"></i>
               No hi ha mòduls de 1r curs
             </li>
-            <li
-              v-for="module in modulesByCourse[1]"
-              :key="module.code"
-              class="list-group-item"
-            >
+            <li v-for="module in modulesByCourse[1]" :key="module.code" class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center gap-2 mb-1">
@@ -291,14 +454,20 @@ const hoursSum = computed(() => {
                       class="bi bi-exclamation-circle-fill text-warning"
                       title="Organització pendent"
                     ></i>
-                    <strong>{{ module.code }}</strong>
+                    <strong>{{ module.name }} ({{ module.code }})</strong>
                     <span class="badge bg-secondary">{{ module.weekHours }}h</span>
                   </div>
-                  <div class="text-muted small">{{ module.name }}</div>
                   <div v-if="module.organization" class="mt-2 small">
                     <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
                     <span class="text-muted">
-                      Aula: {{ module.organization.classroomHours }}h | Lab: {{ module.organization.labHours }}h
+                      Aula: {{ module.organization.classroomHours }}h | Lab:
+                      {{ module.organization.labHours }}h
+                    </span>
+                    <span
+                      class="badge ms-2"
+                      :class="module.organization.dualizable ? 'bg-success' : 'bg-secondary'"
+                    >
+                      {{ module.organization.dualizable ? 'Dualitzable' : 'No dualitzable' }}
                     </span>
                   </div>
                 </div>
@@ -308,7 +477,11 @@ const hoursSum = computed(() => {
                     class="btn btn-sm"
                     :class="hasOrganization(module.code) ? 'btn-outline-primary' : 'btn-primary'"
                     :disabled="isLoading"
-                    :title="hasOrganization(module.code) ? 'Modificar organització' : 'Definir organització'"
+                    :title="
+                      hasOrganization(module.code)
+                        ? 'Modificar organització'
+                        : 'Definir organització'
+                    "
                   >
                     <i :class="hasOrganization(module.code) ? 'bi-pencil' : 'bi-plus-circle'"></i>
                   </button>
@@ -343,11 +516,7 @@ const hoursSum = computed(() => {
               <i class="bi bi-info-circle me-1"></i>
               No hi ha mòduls de 2n curs
             </li>
-            <li
-              v-for="module in modulesByCourse[2]"
-              :key="module.code"
-              class="list-group-item"
-            >
+            <li v-for="module in modulesByCourse[2]" :key="module.code" class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center gap-2 mb-1">
@@ -361,14 +530,20 @@ const hoursSum = computed(() => {
                       class="bi bi-exclamation-circle-fill text-warning"
                       title="Organització pendent"
                     ></i>
-                    <strong>{{ module.code }}</strong>
+                    <strong>{{ module.name }} ({{ module.code }})</strong>
                     <span class="badge bg-secondary">{{ module.weekHours }}h</span>
                   </div>
-                  <div class="text-muted small">{{ module.name }}</div>
                   <div v-if="module.organization" class="mt-2 small">
                     <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
                     <span class="text-muted">
-                      Aula: {{ module.organization.classroomHours }}h | Lab: {{ module.organization.labHours }}h
+                      Aula: {{ module.organization.classroomHours }}h | Lab:
+                      {{ module.organization.labHours }}h
+                    </span>
+                    <span
+                      class="badge ms-2"
+                      :class="module.organization.dualizable ? 'bg-success' : 'bg-secondary'"
+                    >
+                      {{ module.organization.dualizable ? 'Dualitzable' : 'No dualitzable' }}
                     </span>
                   </div>
                 </div>
@@ -378,7 +553,11 @@ const hoursSum = computed(() => {
                     class="btn btn-sm"
                     :class="hasOrganization(module.code) ? 'btn-outline-primary' : 'btn-primary'"
                     :disabled="isLoading"
-                    :title="hasOrganization(module.code) ? 'Modificar organització' : 'Definir organització'"
+                    :title="
+                      hasOrganization(module.code)
+                        ? 'Modificar organització'
+                        : 'Definir organització'
+                    "
                   >
                     <i :class="hasOrganization(module.code) ? 'bi-pencil' : 'bi-plus-circle'"></i>
                   </button>
@@ -420,7 +599,9 @@ const hoursSum = computed(() => {
               <div class="modal-body">
                 <div class="alert alert-info mb-3">
                   <strong>{{ editingModule.name }}</strong>
-                  <div class="mt-1">Hores setmanals: <strong>{{ editingModule.weekHours }}</strong></div>
+                  <div class="mt-1">
+                    Hores setmanals: <strong>{{ editingModule.weekHours }}</strong>
+                  </div>
                 </div>
 
                 <!-- Distribution -->
@@ -434,7 +615,7 @@ const hoursSum = computed(() => {
                     v-model="form.distribution"
                     placeholder="Ex: 2+9 o 1+2+3"
                     :class="{ 'is-invalid': formErrors.distribution }"
-                  >
+                  />
                   <div class="form-text">
                     Format: dígit(+dígit)*. Ex: "2", "2+9", "1+2+3"
                     <span v-if="form.distribution" class="ms-2">
@@ -443,10 +624,7 @@ const hoursSum = computed(() => {
                         v-if="distributionSum === editingModule.weekHours"
                         class="bi bi-check-circle-fill text-success ms-1"
                       ></i>
-                      <i
-                        v-else
-                        class="bi bi-x-circle-fill text-danger ms-1"
-                      ></i>
+                      <i v-else class="bi bi-x-circle-fill text-danger ms-1"></i>
                     </span>
                   </div>
                   <div v-if="formErrors.distribution" class="invalid-feedback d-block">
@@ -465,7 +643,7 @@ const hoursSum = computed(() => {
                     v-model.number="form.classroomHours"
                     min="0"
                     :class="{ 'is-invalid': formErrors.classroomHours }"
-                  >
+                  />
                   <div v-if="formErrors.classroomHours" class="invalid-feedback">
                     {{ formErrors.classroomHours }}
                   </div>
@@ -482,15 +660,18 @@ const hoursSum = computed(() => {
                     v-model.number="form.labHours"
                     min="0"
                     :class="{ 'is-invalid': formErrors.labHours }"
-                  >
+                  />
                   <div v-if="formErrors.labHours" class="invalid-feedback">
                     {{ formErrors.labHours }}
                   </div>
                 </div>
 
                 <!-- Hours Sum Validation -->
-                <div v-if="form.classroomHours !== null && form.labHours !== null" class="alert"
-                     :class="hoursSum === editingModule.weekHours ? 'alert-success' : 'alert-warning'">
+                <div
+                  v-if="form.classroomHours !== null && form.labHours !== null"
+                  class="alert"
+                  :class="hoursSum === editingModule.weekHours ? 'alert-success' : 'alert-warning'"
+                >
                   <strong>Total hores: {{ hoursSum }}</strong>
                   <span v-if="hoursSum === editingModule.weekHours">
                     <i class="bi bi-check-circle-fill ms-2"></i> Correcte!
@@ -514,7 +695,11 @@ const hoursSum = computed(() => {
                     v-model="form.language"
                     :class="{ 'is-invalid': formErrors.language }"
                   >
-                    <option v-for="lang in availableLanguages" :key="lang.value" :value="lang.value">
+                    <option
+                      v-for="lang in availableLanguages"
+                      :key="lang.value"
+                      :value="lang.value"
+                    >
                       {{ lang.label }}
                     </option>
                   </select>
@@ -523,11 +708,25 @@ const hoursSum = computed(() => {
                   </div>
                 </div>
 
+                <!-- Dualizable -->
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Dualitzable al centre</label>
+                  <div class="form-check form-switch">
+                    <input
+                      id="dualizable-switch"
+                      class="form-check-input"
+                      type="checkbox"
+                      v-model="form.dualizable"
+                    />
+                    <label class="form-check-label" for="dualizable-switch">
+                      Indica si el mòdul es vol dualitzar al nostre centre en aquest cicle
+                    </label>
+                  </div>
+                </div>
+
                 <!-- Other Considerations -->
                 <div class="mb-3">
-                  <label class="form-label fw-bold">
-                    Altres Consideracions
-                  </label>
+                  <label class="form-label fw-bold"> Altres Consideracions </label>
                   <textarea
                     class="form-control"
                     v-model="form.otherConsiderations"
@@ -629,5 +828,37 @@ const hoursSum = computed(() => {
 
 .btn-group-vertical {
   gap: 2px;
+}
+
+.language-donut {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9ecef;
+  flex: 0 0 auto;
+}
+
+.language-donut__center {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 0 0 1px #dee2e6;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
 }
 </style>

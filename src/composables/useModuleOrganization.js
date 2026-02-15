@@ -3,15 +3,15 @@ import { computed } from 'vue'
 export function useModuleOrganization() {
   /**
    * Valida el formato de la distribución
-   * Debe seguir el patrón: dígito(+dígito)*
-   * Ejemplo: "2", "2+9", "1+2+3"
+   * Debe seguir el patrón: 1-2 dígits(+1-2 dígits)*
+   * Ejemplo: "2", "12+9", "1+20+3"
    */
   const validateDistributionFormat = (distribution) => {
     if (!distribution || typeof distribution !== 'string') {
       return false
     }
 
-    const pattern = /^\d(\+\d){0,4}$/
+    const pattern = /^\d{1,2}(\+\d{1,2}){0,4}$/
     return pattern.test(distribution.trim())
   }
 
@@ -24,7 +24,7 @@ export function useModuleOrganization() {
       return 0
     }
 
-    const parts = distribution.split('+').map(part => parseInt(part.trim(), 10))
+    const parts = distribution.split('+').map((part) => parseInt(part.trim(), 10))
     return parts.reduce((sum, value) => sum + (isNaN(value) ? 0 : value), 0)
   }
 
@@ -42,7 +42,7 @@ export function useModuleOrganization() {
   const validateHoursSum = (classroomHours, labHours, weekHours) => {
     const classroom = parseInt(classroomHours, 10) || 0
     const lab = parseInt(labHours, 10) || 0
-    return (classroom + lab) === weekHours
+    return classroom + lab === weekHours
   }
 
   /**
@@ -55,17 +55,21 @@ export function useModuleOrganization() {
     if (!formData.distribution) {
       errors.distribution = 'La distribució és obligatòria'
     } else if (!validateDistributionFormat(formData.distribution)) {
-      errors.distribution = 'Format incorrecte. Ha de seguir el patró: 1+2+3'
+      errors.distribution = 'Format incorrecte. Ha de seguir el patró: 1+2 o 10+5'
     } else if (!validateDistributionSum(formData.distribution, weekHours)) {
       const sum = calculateDistributionSum(formData.distribution)
       errors.distribution = `La suma (${sum}) ha de coincidir amb les hores setmanals (${weekHours})`
     }
 
     // Validar classroomHours
-    if (formData.classroomHours === null || formData.classroomHours === undefined || formData.classroomHours === '') {
-      errors.classroomHours = 'Les hores d\'aula són obligatòries'
+    if (
+      formData.classroomHours === null ||
+      formData.classroomHours === undefined ||
+      formData.classroomHours === ''
+    ) {
+      errors.classroomHours = "Les hores d'aula són obligatòries"
     } else if (formData.classroomHours < 0) {
-      errors.classroomHours = 'Les hores d\'aula no poden ser negatives'
+      errors.classroomHours = "Les hores d'aula no poden ser negatives"
     }
 
     // Validar labHours
@@ -83,14 +87,15 @@ export function useModuleOrganization() {
       formData.labHours !== undefined
     ) {
       if (!validateHoursSum(formData.classroomHours, formData.labHours, weekHours)) {
-        const sum = (parseInt(formData.classroomHours, 10) || 0) + (parseInt(formData.labHours, 10) || 0)
+        const sum =
+          (parseInt(formData.classroomHours, 10) || 0) + (parseInt(formData.labHours, 10) || 0)
         errors.hoursSum = `La suma d'hores d'aula i laboratori (${sum}) ha de ser igual a ${weekHours}`
       }
     }
 
     // Validar language
     if (!formData.language) {
-      errors.language = 'L\'idioma és obligatori'
+      errors.language = "L'idioma és obligatori"
     }
 
     return errors

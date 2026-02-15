@@ -355,11 +355,7 @@ const hoursSum = computed(() => {
 <template>
   <div class="pcc-module-organization">
     <!-- Título y progreso -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="mb-0">
-        <i class="bi bi-gear me-2"></i>
-        Organització dels Mòduls
-      </h5>
+    <div class="d-flex justify-content-end align-items-center mb-3">
       <div class="text-end">
         <span v-if="allModulesHaveOrganization" class="badge bg-success fs-6">
           <i class="bi bi-check-circle me-1"></i>
@@ -367,7 +363,7 @@ const hoursSum = computed(() => {
         </span>
         <span v-else class="badge bg-warning text-dark fs-6">
           <i class="bi bi-exclamation-triangle me-1"></i>
-          {{ organizationCompletionPercentage }}% Completat
+          En progrés
         </span>
       </div>
     </div>
@@ -403,7 +399,7 @@ const hoursSum = computed(() => {
             <div class="language-donut" :style="languageDonutStyle">
               <div class="language-donut__center">
                 <div class="fw-bold">{{ languageChart.totalHours }}h</div>
-                <div class="small text-muted">Totals</div>
+                <div class="small text-muted">Setmanals</div>
               </div>
             </div>
             <div class="flex-grow-1">
@@ -415,7 +411,7 @@ const hoursSum = computed(() => {
                 <span class="legend-dot" :style="{ backgroundColor: segment.color }"></span>
                 <span class="me-auto">{{ segment.label }}</span>
                 <strong>{{ segment.percentage }}%</strong>
-                <span class="text-muted ms-2">{{ segment.hours }}h</span>
+                <span class="text-muted ms-2">{{ segment.hours }}h/setmana</span>
               </div>
             </div>
           </div>
@@ -617,7 +613,7 @@ const hoursSum = computed(() => {
                     :class="{ 'is-invalid': formErrors.distribution }"
                   />
                   <div class="form-text">
-                    Format: dígit(+dígit)*. Ex: "2", "2+9", "1+2+3"
+                    Format: 1-2 dígits(+1-2 dígits)*. Ex: "2", "12+9", "1+20+3"
                     <span v-if="form.distribution" class="ms-2">
                       - Suma: <strong>{{ distributionSum }}</strong>
                       <i

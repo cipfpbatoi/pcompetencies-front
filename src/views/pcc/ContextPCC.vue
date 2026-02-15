@@ -409,23 +409,23 @@ const saveEnvironmentData = async () => {
   opacity: 0.8;
 }
 
-.help-quote-label {
+:deep(.help-quote-label) {
   font-weight: 600;
   color: #6c757d;
   margin-bottom: 0.25rem;
 }
 
-.help-quote {
+:deep(.help-quote) {
   margin: 0;
   padding: 0.75rem 1rem;
-  border-left: 4px solid #198754;
+  border-left: 6px solid #0dcaf0;
   background-color: #f8f9fa;
   color: #495057;
   font-style: italic;
   border-radius: 0.25rem;
 }
 
-.help-list {
+:deep(.help-list) {
   margin: 0.5rem 0 0 1.25rem;
 }
 

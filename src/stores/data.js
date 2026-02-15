@@ -220,7 +220,7 @@ export const useDataStore = defineStore('data', {
       try {
         const response = await api.savePccComplementaryCriteria(id, data)
         this.pcc = response.data
-        this.addMessage('success', 'Criteris d\'activitats complementàries guardats')
+        this.addMessage('success', "Criteris d'activitats complementàries guardats")
         return 'ok'
       } catch (error) {
         if (error.response?.status != 422) {
@@ -257,7 +257,11 @@ export const useDataStore = defineStore('data', {
     },
     async deletePCCIntermodularOrientation(pccId, moduleCode, learningResultId) {
       try {
-        const response = await api.deletePCCIntermodularOrientation(pccId, moduleCode, learningResultId)
+        const response = await api.deletePCCIntermodularOrientation(
+          pccId,
+          moduleCode,
+          learningResultId
+        )
         this.pcc = response.data
         this.addMessage('success', 'Orientació eliminada')
         return true
@@ -269,9 +273,18 @@ export const useDataStore = defineStore('data', {
     async savePccMethodologicalPrinciple(id, data) {
       try {
         const response = await api.savePCCMethodologicalPrinciple(id, data)
-        const index = this.pcc.methodologicalsPrinciplesContext.findIndex(
-          (item) => item.methodologicalPrinciple.id === response.data.id
-        )
+        if (!this.pcc.methodologicalsPrinciplesContext) {
+          this.pcc.methodologicalsPrinciplesContext = []
+        }
+        const responseMethodologicalPrincipleId =
+          response.data?.methodologicalPrinciple?.id ||
+          response.data?.methodologicalPrincipleId ||
+          response.data?.id
+        const index = this.pcc.methodologicalsPrinciplesContext.findIndex((item) => {
+          const itemMethodologicalPrincipleId =
+            item.methodologicalPrinciple?.id || item.methodologicalPrincipleId || item.id
+          return itemMethodologicalPrincipleId === responseMethodologicalPrincipleId
+        })
         if (index > -1) {
           // Editamos existente
           this.pcc.methodologicalsPrinciplesContext.splice(index, 1, response.data)

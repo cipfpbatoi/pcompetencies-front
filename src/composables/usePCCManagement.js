@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 
 export function usePCCManagement() {
   const store = useDataStore()
-  
+
   const { pcc } = storeToRefs(store)
   const isLoadingPCC = ref(false)
 
@@ -18,6 +18,7 @@ export function usePCCManagement() {
 
     isLoadingPCC.value = true
     try {
+      localStorage.pccCycleId = cycleId
       const response = await api.getPCCByCycleId(cycleId)
       pcc.value = response.data
     } catch (error) {

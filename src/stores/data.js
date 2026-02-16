@@ -44,6 +44,7 @@ export const useDataStore = defineStore('data', {
       localStorage.removeItem('token')
       localStorage.removeItem('data')
       localStorage.removeItem('redirect')
+      localStorage.removeItem('pccCycleId')
       this.user = {}
       this.syllabus = {}
     },
@@ -128,6 +129,16 @@ export const useDataStore = defineStore('data', {
             this.syllabus = respSyl.data
           } catch (error) {
             this.addMessage('error', error)
+          }
+        }
+        if (localStorage.pccCycleId) {
+          try {
+            const response = await api.getPCCByCycleId(localStorage.pccCycleId)
+            this.pcc = response.data
+          } catch (error) {
+            if (error.response?.status !== 404) {
+              this.addMessage('error', error)
+            }
           }
         }
         await this.loadCurrentUser()
@@ -232,7 +243,19 @@ export const useDataStore = defineStore('data', {
     async savePCCIntermodularGuide(pccId, data) {
       try {
         const response = await api.savePCCIntermodularGuide(pccId, data)
-        this.pcc = response.data
+        const payload = response.data
+        if (
+          payload?.intermodularProjectGuide ||
+          payload?.firstCourseGuide ||
+          payload?.secondCourseGuide
+        ) {
+          if (!this.pcc) {
+            this.pcc = {}
+          }
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide || payload
+        } else {
+          this.pcc = payload
+        }
         this.addMessage('success', 'Guia del projecte intermodular guardada')
         return 'ok'
       } catch (error) {
@@ -245,7 +268,37 @@ export const useDataStore = defineStore('data', {
     async savePCCIntermodularOrientation(pccId, data) {
       try {
         const response = await api.savePCCIntermodularOrientation(pccId, data)
-        this.pcc = response.data
+        const payload = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (payload?.intermodularProjectGuide) {
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
+        } else if (payload?.intermodularProjectModuleOrientations) {
+          this.pcc.intermodularProjectModuleOrientations =
+            payload.intermodularProjectModuleOrientations
+        } else if (payload?.orientations) {
+          if (!this.pcc.intermodularProjectGuide) {
+            this.pcc.intermodularProjectGuide = {}
+          }
+          this.pcc.intermodularProjectGuide.orientations = payload.orientations
+        } else if (payload?.learningResult && payload?.module) {
+          if (!this.pcc.intermodularProjectModuleOrientations) {
+            this.pcc.intermodularProjectModuleOrientations = []
+          }
+          const index = this.pcc.intermodularProjectModuleOrientations.findIndex(
+            (orientation) =>
+              orientation.learningResult?.id === payload.learningResult?.id &&
+              orientation.module?.code === payload.module?.code
+          )
+          if (index > -1) {
+            this.pcc.intermodularProjectModuleOrientations.splice(index, 1, payload)
+          } else {
+            this.pcc.intermodularProjectModuleOrientations.push(payload)
+          }
+        } else {
+          this.pcc = payload
+        }
         this.addMessage('success', 'Orientació guardada')
         return 'ok'
       } catch (error) {
@@ -262,7 +315,32 @@ export const useDataStore = defineStore('data', {
           moduleCode,
           learningResultId
         )
-        this.pcc = response.data
+        const payload = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (payload?.intermodularProjectGuide) {
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
+        } else if (payload?.intermodularProjectModuleOrientations) {
+          this.pcc.intermodularProjectModuleOrientations =
+            payload.intermodularProjectModuleOrientations
+        } else if (payload?.orientations) {
+          if (!this.pcc.intermodularProjectGuide) {
+            this.pcc.intermodularProjectGuide = {}
+          }
+          this.pcc.intermodularProjectGuide.orientations = payload.orientations
+        } else if (this.pcc.intermodularProjectModuleOrientations) {
+          this.pcc.intermodularProjectModuleOrientations =
+            this.pcc.intermodularProjectModuleOrientations.filter(
+              (orientation) =>
+                !(
+                  orientation.learningResult?.id === learningResultId &&
+                  orientation.module?.code === moduleCode
+                )
+            )
+        } else {
+          this.pcc = payload
+        }
         this.addMessage('success', 'Orientació eliminada')
         return true
       } catch (error) {

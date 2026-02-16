@@ -49,7 +49,7 @@ export default {
           nextPath: 'criteriaPCC'
         },
         {
-          title: 'Criteris',
+          title: 'Criteris adapt Sost i Digi',
           path: 'criteriaPCC',
           nextPath: 'intermodularPCC'
         },

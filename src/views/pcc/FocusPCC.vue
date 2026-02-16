@@ -122,7 +122,7 @@ const activeHelpKey = ref('')
 const helpContent = {
   methodology: {
     title: 'Ajuda - 2. Enfocaments didàctics i métodologics del Cicle',
-    body: 'Cal indicar els principis metodològics que s’aplicaran en el cicle i descriure, per a cadascun, el context i la forma d’aplicació.\n\nEn els principis obligatoris, l’aplicació ha d’estar prevista en tots els mòduls del cicle.\n\nEn els principis no obligatoris, es poden aplicar a tot el cicle o bé seleccionar mòduls concrets. En aquest últim cas, el principi s’haurà d’implementar com a mínim en dos mòduls.\n\nA més d’indicar els mòduls, cal explicar com es desenvoluparà metodològicament (tipus d’activitats, organització de l’aula, productes finals, relació amb l’entorn, etc.).\n\n<div class="help-quote-label"><strong>Exemple</strong></div><blockquote class="help-quote"><strong>Aplicarem l’aprenentatge servei</strong> en els mòduls de Mòdul A i Mòdul B de primer curs, mitjançant projectes en què l’alumnat detectarà una necessitat del seu entorn i dissenyarà una intervenció que combine l’adquisició de competències professionals amb un servei real a la comunitat.</blockquote>'
+    body: 'Cal indicar els principis metodològics que s’aplicaran en el cicle i descriure, per a cadascun, el context i la forma d’aplicació.\n\nEn els principis obligatoris, l’aplicació ha d’estar prevista en tots els mòduls del cicle.\n\nEn els principis no obligatoris, es poden aplicar a tot el cicle o bé seleccionar mòduls concrets. En aquest últim cas, el principi s’haurà d’implementar com a mínim en dos mòduls.\n\nA més d’indicar els mòduls, cal explicar com es desenvoluparà metodològicament (tipus d’activitats, organització de l’aula, productes finals, relació amb l’entorn, etc.).\n\n<div class="help-quote-label"><strong>Exemple</strong></div><blockquote class="help-quote"><strong>Aplicarem l’aprenentatge servei</strong> mitjançant projectes en què l’alumnat detectarà una necessitat del seu entorn i dissenyarà una intervenció que combine l’adquisició de competències professionals amb un servei real a la comunitat.</blockquote>'
   }
 }
 
@@ -179,6 +179,18 @@ const nonMandatoryPending = computed(() => {
   return filterPendingByQuery(methodologicalPrinciples.value.nonMandatory).filter(
     (principle) => !hasMethodologicalPrinciple(principle.id)
   )
+})
+
+const isMandatoryPrinciple = (principleId) => {
+  return methodologicalPrinciples.value.mandatory.some((principle) => principle.id === principleId)
+}
+
+const combinedAdded = computed(() => {
+  return [...mandatoryAdded.value, ...nonMandatoryAdded.value]
+})
+
+const combinedPending = computed(() => {
+  return [...mandatoryPending.value, ...nonMandatoryPending.value]
 })
 
 const openMethodologicalPrinciple = (principle) => {
@@ -531,75 +543,26 @@ onMounted(async () => {
           <i class="bi bi-info-circle-fill text-info" />
         </span>
       </h2>
+      <p class="text-muted mb-2">
+        Sols has d'indicar aquells principis i enfocaments metodològics que vulgueu assegurar-vos
+        que s'apliquen; la resta es contextualitzaran a les programacions didàctiques de cada mòdul.
+      </p>
       <div class="card mb-2">
         <div class="card-header pcc text-white fw-bold">Principis afegits</div>
-        <div class="card-header bg-success text-white fw-bold">
-          <i class="bi bi-check-circle-fill me-2"></i>
-          Obligatoris ({{ mandatoryAdded.length }})
-        </div>
         <ul class="list-group list-group-flush principles-list">
-          <li v-if="mandatoryAdded.length === 0" class="list-group-item text-muted">
-            Encara no hi ha obligatoris afegits
-          </li>
-          <li v-for="principle in mandatoryAdded" :key="principle.id" class="list-group-item">
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                  <i class="bi bi-check-circle-fill text-success" title="Afegit"></i>
-                  <strong>{{ principle.name }}</strong>
-                  <span class="badge bg-danger">Obligatori</span>
-                  <span class="badge bg-success">Afegit</span>
-                </div>
-                <div class="mt-2">
-                  <span
-                    v-if="getMethodologicalPrincipleModules(principle.id).length === 0"
-                    class="text-muted small"
-                  >
-                    Aplica a tots els mòduls
-                  </span>
-                  <div v-else class="d-flex flex-wrap gap-1">
-                    <span
-                      v-for="module in getMethodologicalPrincipleModules(principle.id)"
-                      :key="module.code"
-                      class="badge bg-light text-dark border"
-                      :title="module.name"
-                    >
-                      {{ module.code }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="btn-group-vertical" role="group">
-                <button
-                  @click="openMethodologicalPrinciple(principle)"
-                  class="btn btn-sm btn-outline-primary"
-                >
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button
-                  @click="deleteMethodologicalPrinciple(principle.id)"
-                  class="btn btn-sm btn-outline-danger"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </div>
-          </li>
-        </ul>
-        <div class="card-header bg-success text-white fw-bold">
-          <i class="bi bi-check-circle-fill me-2"></i>
-          No obligatoris ({{ nonMandatoryAdded.length }})
-        </div>
-        <ul class="list-group list-group-flush principles-list">
-          <li v-if="nonMandatoryAdded.length === 0" class="list-group-item text-muted">
+          <li v-if="combinedAdded.length === 0" class="list-group-item text-muted">
             Encara no hi ha principis afegits
           </li>
-          <li v-for="principle in nonMandatoryAdded" :key="principle.id" class="list-group-item">
+          <li v-for="principle in combinedAdded" :key="principle.id" class="list-group-item">
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2 mb-1">
                   <i class="bi bi-check-circle-fill text-success" title="Afegit"></i>
                   <strong>{{ principle.name }}</strong>
+                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                    Obligatori
+                  </span>
+                  <span v-else class="badge bg-secondary">No obligatori</span>
                   <span class="badge bg-success">Afegit</span>
                 </div>
                 <div class="mt-2">
@@ -656,48 +619,25 @@ onMounted(async () => {
           </div>
           <div v-if="searchQuery" class="form-text">Mostrant resultats per "{{ searchQuery }}"</div>
         </div>
-        <div class="card-header bg-warning text-dark fw-bold">
-          <i class="bi bi-exclamation-circle me-2"></i>
-          Obligatoris ({{ mandatoryPending.length }})
-        </div>
         <ul class="list-group list-group-flush principles-list">
-          <li v-if="mandatoryPending.length === 0" class="list-group-item text-success">
-            Tots els obligatoris estan afegits
-          </li>
-          <li v-for="principle in mandatoryPending" :key="principle.id" class="list-group-item">
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-exclamation-circle-fill text-warning" title="Pendent"></i>
-                  <strong>{{ principle.name }}</strong>
-                  <span class="badge bg-danger">Obligatori</span>
-                </div>
-              </div>
-              <div class="btn-group-vertical" role="group">
-                <button
-                  @click="openMethodologicalPrinciple(principle)"
-                  class="btn btn-sm btn-primary"
-                >
-                  <i class="bi bi-plus-circle"></i>
-                </button>
-              </div>
-            </div>
-          </li>
-        </ul>
-        <div class="card-header bg-warning text-dark fw-bold">
-          <i class="bi bi-circle me-2"></i>
-          No obligatoris ({{ nonMandatoryPending.length }})
-        </div>
-        <ul class="list-group list-group-flush principles-list">
-          <li v-if="nonMandatoryPending.length === 0" class="list-group-item text-muted">
+          <li v-if="combinedPending.length === 0" class="list-group-item text-muted">
             No hi ha principis pendents
           </li>
-          <li v-for="principle in nonMandatoryPending" :key="principle.id" class="list-group-item">
+          <li v-for="principle in combinedPending" :key="principle.id" class="list-group-item">
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-circle text-secondary" title="No afegit"></i>
+                  <i
+                    v-if="isMandatoryPrinciple(principle.id)"
+                    class="bi bi-exclamation-circle-fill text-warning"
+                    title="Pendent"
+                  ></i>
+                  <i v-else class="bi bi-circle text-secondary" title="No afegit"></i>
                   <strong>{{ principle.name }}</strong>
+                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                    Obligatori
+                  </span>
+                  <span v-else class="badge bg-secondary">No obligatori</span>
                 </div>
               </div>
               <div class="btn-group-vertical" role="group">

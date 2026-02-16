@@ -456,7 +456,7 @@ const hoursSum = computed(() => {
                   <div v-if="module.organization" class="mt-2 small">
                     <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
                     <span class="text-muted">
-                      Aula: {{ module.organization.classroomHours }}h | Lab:
+                      Aula: {{ module.organization.classroomHours }}h | Lab/Taller:
                       {{ module.organization.labHours }}h
                     </span>
                     <span
@@ -532,7 +532,7 @@ const hoursSum = computed(() => {
                   <div v-if="module.organization" class="mt-2 small">
                     <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
                     <span class="text-muted">
-                      Aula: {{ module.organization.classroomHours }}h | Lab:
+                      Aula: {{ module.organization.classroomHours }}h | Lab/Taller:
                       {{ module.organization.labHours }}h
                     </span>
                     <span
@@ -648,7 +648,7 @@ const hoursSum = computed(() => {
                 <!-- Lab Hours -->
                 <div class="mb-3">
                   <label class="form-label fw-bold">
-                    Hores de Laboratori <span class="text-danger">*</span>
+                    Hores de Laboratori/Taller <span class="text-danger">*</span>
                   </label>
                   <input
                     type="number"

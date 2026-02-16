@@ -51,13 +51,26 @@ export const api = {
   // PCC
   getPCCByCycleId: (cycleId) => instance.get(`/pcc/cycle/${cycleId}`),
   createPCC: (data) => instance.post('/pcc', data),
-  createPccOportunities: (id, text) => instance.post(`/pcc/${id}/opportunities`, { opportunities: text }),
-  createPccEnvironment: (id, text) => instance.post(`/pcc/${id}/sep-environment`, { SEPEnvironment: text }),
-  savePccSustainabilityCriteria: (id, text) => instance.post(`/pcc/${id}/criteria-sostenibility-digital`, { criteriaAdaptingSostenibilityAndDigitalModules: text }),
-  savePccComplementaryCriteria: (id, text) => instance.post(`/pcc/${id}/criteria-complementary-extracurricular`, { criteriaForComplementaryAndExtraActivities: text }),
-  savePCCIntermodularGuide: (pccId, data) => instance.post(`/pcc/${pccId}/intermodular-project-guide`, data),
-  savePCCIntermodularOrientation: (pccId, data) => instance.post(`/pcc/${pccId}/intermodular-project-guide/orientations`, data),
-  deletePCCIntermodularOrientation: (pccId, moduleCode, learningResultId) => instance.delete(`/pcc/${pccId}/intermodular-project-guide/orientations/${moduleCode}/${learningResultId}`),
+  createPccOportunities: (id, text) =>
+    instance.post(`/pcc/${id}/opportunities`, { opportunities: text }),
+  createPccEnvironment: (id, text) =>
+    instance.post(`/pcc/${id}/sep-environment`, { SEPEnvironment: text }),
+  savePccSustainabilityCriteria: (id, text) =>
+    instance.post(`/pcc/${id}/criteria-sostenibility-digital`, {
+      criteriaAdaptingSostenibilityAndDigitalModules: text
+    }),
+  savePccComplementaryCriteria: (id, text) =>
+    instance.post(`/pcc/${id}/criteria-complementary-extracurricular`, {
+      criteriaForComplementaryAndExtraActivities: text
+    }),
+  savePCCIntermodularGuide: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/intermodular-project-guide`, data),
+  savePCCIntermodularOrientation: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/intermodular-project-guide/orientations`, data),
+  deletePCCIntermodularOrientation: (pccId, moduleCode, learningResultId) =>
+    instance.delete(
+      `/pcc/${pccId}/intermodular-project-guide/orientations/${moduleCode}/${learningResultId}`
+    ),
   getPCCPdf: (pccId) =>
     axios.get(`${BASE_URL}pcc/${pccId}/pdf`, {
       headers: {
@@ -66,23 +79,38 @@ export const api = {
       responseType: 'blob'
     }),
 
-  getPCCMethodologicalPrinciples: (pccId, mpContext) => instance.get(`/pcc/${pccId}/mp-context`, mpContext),
+  getPCCMethodologicalPrinciples: (pccId, mpContext) =>
+    instance.get(`/pcc/${pccId}/mp-context`, mpContext),
   savePCCMethodologicalPrinciple: (pccId, data) => instance.post(`/pcc/${pccId}/mp-context`, data),
-  deletePCCMethodologicalPrinciple: (pccId, mpId) => instance.delete(`/pcc/${pccId}/mp-context/${mpId}`),
+  deletePCCMethodologicalPrinciple: (pccId, mpId) =>
+    instance.delete(`/pcc/${pccId}/mp-context/${mpId}`),
   addPCCModules: (pccId, moduleCodes) => instance.post(`/pcc/${pccId}/modules`, { moduleCodes }),
   removePCCModule: (pccId, moduleCode) => instance.delete(`/pcc/${pccId}/modules/${moduleCode}`),
-  createPCCModuleOrganization: (pccId, data) => instance.post(`/pcc/${pccId}/module-organization`, data),
-  deletePCCModuleOrganization: (pccId, moduleCode) => instance.delete(`/pcc/${pccId}/module-organization/module/${moduleCode}`),
+  createPCCModuleOrganization: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/module-organization`, data),
+  deletePCCModuleOrganization: (pccId, moduleCode) =>
+    instance.delete(`/pcc/${pccId}/module-organization/module/${moduleCode}`),
   getCycleAssessmentTools: (cycleId) => instance.get(`/cycle/${cycleId}/assessment-tools`),
   getPCCAgreedAssessmentTools: (pccId) => instance.get(`/pcc/${pccId}/agreed-assessment-tools`),
-  createPCCAgreedAssessmentTool: (pccId, data) => instance.post(`/pcc/${pccId}/agreed-assessment-tool`, data),
-  deletePCCAgreedAssessmentTool: (pccId, assessmentToolId) => instance.delete(`/pcc/${pccId}/agreed-assessment-tools/${assessmentToolId}`),
+  createPCCAgreedAssessmentTool: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/agreed-assessment-tool`, data),
+  deletePCCAgreedAssessmentTool: (pccId, assessmentToolId) =>
+    instance.delete(`/pcc/${pccId}/agreed-assessment-tools/${assessmentToolId}`),
   savePCCTrainingPlan: (pccId, data) => instance.post(`/pcc/${pccId}/training_plan`, data),
   deletePCCTrainingPlan: (pccId) => instance.delete(`/pcc/${pccId}/training_plan`),
   getCenterProjects: () => instance.get('/center-projects'),
-  getModuleCenterProjects: (pccId, moduleCode) => instance.get(`/curricular-projects/${pccId}/module/${moduleCode}/center-projects`),
-  addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) => instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, { centerProjectIds }),
-  removeModuleCenterProject: (pccId, moduleCode, centerProjectId) => instance.delete(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects/${centerProjectId}`),
+  getModuleCenterProjects: (pccId, moduleCode) =>
+    instance.get(`/curricular-projects/${pccId}/module/${moduleCode}/center-projects`),
+  getModuleCenterProjectsCollection: (pccId) =>
+    instance.get(`/curricular-projects/${pccId}/module-organizations/center-projects`),
+  addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) =>
+    instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, {
+      centerProjectIds
+    }),
+  removeModuleCenterProject: (pccId, moduleCode, centerProjectId) =>
+    instance.delete(
+      `/curricular-projects/${pccId}/modules/${moduleCode}/center-projects/${centerProjectId}`
+    ),
 
   // Center
   getAsessmentTool: () => instance.get('/assessmentTool'),
@@ -117,8 +145,13 @@ export const api = {
     instance.put(`/syllabus/${lsId}/schedule/${data.nameGroup}/learning_situation_entry`, data),
   saveSchedule: (id, data) => instance.post(`/syllabus/${id}/schedule`, data),
   deleteSchedule: (id, shId) => instance.delete(`/syllabus/${id}/schedule/${shId}`),
-  generateSchedule: (id, schedule) => instance.post(`/syllabus/${id}/schedule/${schedule.nameGroup}/generate-learning-situations`, schedule),
-  getInCompanyTrainingRestrictions: (id) => instance.get(`/syllabus/${id}/restrictions/InCompanyTraining`),
+  generateSchedule: (id, schedule) =>
+    instance.post(
+      `/syllabus/${id}/schedule/${schedule.nameGroup}/generate-learning-situations`,
+      schedule
+    ),
+  getInCompanyTrainingRestrictions: (id) =>
+    instance.get(`/syllabus/${id}/restrictions/InCompanyTraining`),
   createTransversalObjective: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/transversal-objectives`, data),
   getTrasversalObjectives: () => instance.get('/transversal-objectives'),

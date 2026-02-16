@@ -29,7 +29,7 @@ const showMissingPcc = computed(() => {
 const showHelp = ref(false)
 const helpContent = {
   title: "Ajuda - 4. Instruments d'Avaluació Consensuats",
-  body: 'Defineix els instruments mínims d’avaluació comuns que s’utilitzaran al llarg dels mòduls del cicle i acorda el seu pes dins del procés d’avaluació. Aquests acords no impedixen que cada professorat puga utilitzar altres instruments complementaris en el seu mòdul.\n\nPer a cada instrument pots:\n\n<div class="help-list"><ul><li><strong>Assignar un percentatge,</strong> respectant els mínims establerts. També es pot consensuar la utilització d’un instrument sense necessitat d’assignar-li un pes mínim.</li><li><strong>Seleccionar els mòduls</strong> en què s’aplicarà. Si no se’n selecciona cap, s’entendrà que s’aplica a tots els mòduls del cicle. En cas de seleccionar-ne, haurà de ser com a mínim en dos mòduls.</li></ul></div>\n\n<div class="help-quote-label"><strong>Coses a tindre en compte</strong></div><blockquote class="help-quote">Els instruments han de ser coherents amb les metodologies acordades. Per exemple, si s’ha decidit aplicar l’aprenentatge servei en determinats mòduls, caldrà preveure instruments adequats per valorar aquestes activitats.</blockquote>'
+  body: 'Defineix els instruments mínims d’avaluació comuns que s’utilitzaran al llarg dels mòduls del cicle i acorda (si és el cas) el seu pes mínim dins del procés d’avaluació. Aquests acords no impedixen que cada professorat puga utilitzar altres instruments complementaris en el seu mòdul.\n\nPer a cada instrument pots:\n\n<div class="help-list"><ul><li><strong>Assignar un percentatge,</strong> respectant els mínims establerts. També es pot consensuar la utilització d’un instrument sense necessitat d’assignar-li un pes mínim.</li><li><strong>Seleccionar els mòduls</strong> en què s’aplicarà. Si no se’n selecciona cap, s’entendrà que s’aplica a tots els mòduls del cicle. En cas de seleccionar-ne, haurà de ser com a mínim en dos mòduls.</li></ul></div>\n\n<div class="help-quote-label"><strong>Coses a tindre en compte</strong></div><blockquote class="help-quote">Els instruments han de ser coherents amb les metodologies acordades. Per exemple, si s’ha decidit aplicar l’aprenentatge servei en determinats mòduls, caldrà preveure instruments adequats per valorar aquestes activitats.</blockquote>'
 }
 const helpParagraphs = computed(() => {
   if (!helpContent.body) return []
@@ -63,6 +63,11 @@ const closeHelp = () => {
           <i class="bi bi-info-circle-fill text-info" />
         </span>
       </h2>
+      <p class="text-muted mb-2">
+        Sols has d'indicar els instruments d'avaluació mínims que vulgueu assegurar-vos que
+        apareguen en un més mòduls; la resta els ficarem a les programacions didàctiques de
+        cadasqún.
+      </p>
 
       <!-- Componente de instrumentos de evaluación -->
       <PccAssessmentTools v-if="hasPcc" :pcc-id="pcc.id" :cycle-id="pcc.cycle.id" />

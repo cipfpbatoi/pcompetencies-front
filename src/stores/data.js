@@ -487,6 +487,19 @@ export const useDataStore = defineStore('data', {
         return []
       }
     },
+    async loadModuleCenterProjectsCollection(pccId) {
+      try {
+        const response = await api.getModuleCenterProjectsCollection(pccId)
+        const data = response.data
+        if (Array.isArray(data)) return data
+        if (data?.['hydra:member']) return data['hydra:member']
+        if (data?.items) return data.items
+        return []
+      } catch (error) {
+        this.addMessage('error', error)
+        return []
+      }
+    },
     async addModuleCenterProjects(pccId, moduleCode, centerProjectIds) {
       try {
         await api.addModuleCenterProjects(pccId, moduleCode, centerProjectIds)

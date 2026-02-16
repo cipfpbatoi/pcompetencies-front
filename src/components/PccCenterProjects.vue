@@ -15,6 +15,7 @@ const store = useDataStore()
 const { pcc } = storeToRefs(store)
 const {
   loadCenterProjects,
+  loadModuleCenterProjectsCollection,
   loadModuleCenterProjects,
   addModuleCenterProjects,
   removeModuleCenterProject
@@ -31,7 +32,7 @@ const modules = computed(() => pcc.value?.modules || [])
 
 const modulesByCourse = computed(() => {
   const grouped = { 1: [], 2: [] }
-  modules.value.forEach(m => {
+  modules.value.forEach((m) => {
     const level = m.courseLevel || 1
     if (grouped[level]) grouped[level].push(m)
   })
@@ -41,10 +42,79 @@ const modulesByCourse = computed(() => {
 // Methods
 const isChecked = (moduleCode, projectId) => {
   const projects = moduleCenterProjects.value[moduleCode] || []
-  return projects.some(p => p.id === projectId)
+  return projects.some((p) => p.id === projectId)
 }
 
 const getCellKey = (moduleCode, projectId) => `${moduleCode}-${projectId}`
+
+const extractProjectId = (project) => {
+  return project?.id || project?.projectId || project?.centerProjectId || null
+}
+
+const extractModuleCode = (item) => {
+  return (
+    item?.moduleCode ||
+    item?.module?.code ||
+    item?.module?.moduleCode ||
+    item?.moduleOrganization?.module?.code ||
+    item?.moduleOrganization?.moduleCode ||
+    item?.moduleOrganization?.module?.moduleCode ||
+    item?.module
+  )
+}
+
+const extractProject = (item) => {
+  if (Array.isArray(item?.centerProjects)) return item.centerProjects
+  if (item?.centerProject) return item.centerProject
+  if (item?.project) return item.project
+  if (item?.centerProjectId || item?.projectId) {
+    return { id: item.centerProjectId || item.projectId }
+  }
+  if (item?.centerProject?.id) return item.centerProject
+  return null
+}
+
+const buildModuleCenterProjects = (items) => {
+  const mapped = {}
+  items.forEach((item) => {
+    const moduleCode = extractModuleCode(item)
+    const project = extractProject(item)
+    if (!moduleCode || !project) return
+    const projects = Array.isArray(project) ? project : [project]
+    projects.forEach((proj) => {
+      const projectId = extractProjectId(proj)
+      if (!projectId) return
+      if (!mapped[moduleCode]) mapped[moduleCode] = []
+      if (!mapped[moduleCode].some((p) => p.id === projectId)) {
+        mapped[moduleCode].push(proj)
+      }
+    })
+  })
+  return mapped
+}
+
+const refreshModuleCenterProjects = async () => {
+  const relations = await loadModuleCenterProjectsCollection(props.pccId)
+  if (relations.length > 0) {
+    const mapped = buildModuleCenterProjects(relations)
+    moduleCenterProjects.value = modules.value.reduce((acc, module) => {
+      acc[module.code] = mapped[module.code] || []
+      return acc
+    }, {})
+    return
+  }
+
+  const projectsByModule = await Promise.all(
+    modules.value.map(async (module) => {
+      const projects = await loadModuleCenterProjects(props.pccId, module.code)
+      return { moduleCode: module.code, projects }
+    })
+  )
+  moduleCenterProjects.value = projectsByModule.reduce((acc, entry) => {
+    acc[entry.moduleCode] = entry.projects
+    return acc
+  }, {})
+}
 
 const toggleProject = async (module, project) => {
   const cellKey = getCellKey(module.code, project.id)
@@ -56,14 +126,12 @@ const toggleProject = async (module, project) => {
     if (isChecked(module.code, project.id)) {
       const success = await removeModuleCenterProject(props.pccId, module.code, project.id)
       if (success) {
-        const projects = await loadModuleCenterProjects(props.pccId, module.code)
-        moduleCenterProjects.value[module.code] = projects
+        await refreshModuleCenterProjects()
       }
     } else {
       const success = await addModuleCenterProjects(props.pccId, module.code, [project.id])
       if (success) {
-        const projects = await loadModuleCenterProjects(props.pccId, module.code)
-        moduleCenterProjects.value[module.code] = projects
+        await refreshModuleCenterProjects()
       }
     }
   } finally {
@@ -75,11 +143,7 @@ const loadAllData = async () => {
   isLoading.value = true
   try {
     allCenterProjects.value = await loadCenterProjects()
-    const promises = modules.value.map(async (m) => {
-      const projects = await loadModuleCenterProjects(props.pccId, m.code)
-      moduleCenterProjects.value[m.code] = projects
-    })
-    await Promise.all(promises)
+    await refreshModuleCenterProjects()
   } finally {
     isLoading.value = false
   }
@@ -110,9 +174,15 @@ onMounted(() => {
               <thead class="table-light">
                 <tr>
                   <th class="module-col">Mòdul</th>
-                  <th v-for="project in allCenterProjects" :key="project.id"
-                    class="text-center project-col" :title="project.name">
-                    <span class="d-inline-block text-truncate project-header">{{ project.name }}</span>
+                  <th
+                    v-for="project in allCenterProjects"
+                    :key="project.id"
+                    class="text-center project-col"
+                    :title="project.name"
+                  >
+                    <span class="d-inline-block text-truncate project-header">{{
+                      project.name
+                    }}</span>
                   </th>
                 </tr>
               </thead>
@@ -130,9 +200,11 @@ onMounted(() => {
                         :checked="isChecked(module.code, project.id)"
                         :disabled="processingCell === getCellKey(module.code, project.id)"
                         @change="toggleProject(module, project)"
-                      >
-                      <span v-if="processingCell === getCellKey(module.code, project.id)"
-                        class="spinner-border spinner-border-sm ms-1"></span>
+                      />
+                      <span
+                        v-if="processingCell === getCellKey(module.code, project.id)"
+                        class="spinner-border spinner-border-sm ms-1"
+                      ></span>
                     </div>
                   </td>
                 </tr>

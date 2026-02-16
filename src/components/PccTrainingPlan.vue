@@ -249,8 +249,15 @@ const confirmDelete = async () => {
           <div>
             <h6 class="fw-bold text-secondary">
               <i class="bi bi-people me-1"></i>
-              Resta de l'alumnat - Criteris d'assignació
+              Criteris d'assignació de l'alumnat a les Empreses
             </h6>
+            <div class="text-muted mb-2">
+              1. Alumnat que busca empresa per compte propi<br />
+              2. Requisits específics per part del centre de treball<br />
+              <span class="line-3-emphasis">
+                3. Els criteris d'assignació per a la resta de alumnat són:
+              </span>
+            </div>
             <div class="border rounded p-3" v-html="trainingPlan.companyAssignmentCriterias"></div>
           </div>
         </div>

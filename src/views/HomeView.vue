@@ -208,10 +208,15 @@ const modalCopySyllabusData = ref({
   selectedSyllabusToCopy: '',
   saving: false
 })
+const copySyllabusTurn = ref('')
 
 const handleCopySyllabusFromOther = async () => {
-  if (modalCopySyllabusData.value.selectedSyllabusToCopy == '') {
+  if (modalCopySyllabusData.value.selectedSyllabusToCopy === '') {
     copySyllabusErrors.value.selectedSyllabusToCopy = true
+    return
+  }
+  if (!copySyllabusTurn.value) {
+    addMessage('error', "No s'ha pogut determinar el torn de destí")
     return
   }
   const isValid = await validateCopySyllabus({ proposals: modalCopySyllabusData.value.proposals })
@@ -220,21 +225,17 @@ const handleCopySyllabusFromOther = async () => {
     syllabusesToCopy.value[modalCopySyllabusData.value.selectedSyllabusToCopy]
   try {
     modalCopySyllabusData.value.saving = true
-    const response = await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
+    await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
       destinationCycleId: parseInt(cycleSelect.value),
-      destinationTurn: actualSyllabus.value.turn
+      destinationTurn: copySyllabusTurn.value
     })
-    if (response.ok) {
-      addMessage('success', 'Programació creada')
-      copySyllabusModalRef.value?.hide()
-      modalCopySyllabusData.value.selectedSyllabusToCopy = ''
-      copySyllabusErrors.value.selectedSyllabusToCopy = false
-      await loadSyllabuses(cycleSelect.value, moduleSelect.value)
-      return
-    } else {
-      handleCopySyllabusServerError(response)
-      return
-    }
+    addMessage('success', 'Programació creada')
+    copySyllabusModalRef.value?.hide()
+    modalCopySyllabusData.value.selectedSyllabusToCopy = ''
+    copySyllabusErrors.value.selectedSyllabusToCopy = false
+    copySyllabusTurn.value = ''
+    await loadSyllabuses(cycleSelect.value, moduleSelect.value)
+    return
   } catch (error) {
     addMessage('error', error)
     handleCopySyllabusServerError(error)
@@ -257,13 +258,17 @@ const handleCopySyllabusFromLastYear = async (turn) => {
 // ==========================================
 // 🔄 WATCHERS
 // ==========================================
-watch(cycleSelect, async (newValue) => {
-  if (newValue) {
-    startPCCLoading()
-    await handleCycleChange()
-    await loadPCC(newValue)
-  }
-})
+watch(
+  cycleSelect,
+  async (newValue) => {
+    if (newValue) {
+      startPCCLoading()
+      await handleCycleChange()
+      await loadPCC(newValue)
+    }
+  },
+  { flush: 'sync' }
+)
 
 watch(moduleSelect, async (newValue) => {
   if (newValue && cycleSelect.value) {
@@ -431,7 +436,8 @@ const getTurnLabel = (turn) => {
         <label class="form-label fw-bold">Cicle</label>
         <select
           v-model="cycleSelect"
-          class="form-select form-control"
+          @change="startPCCLoading"
+          class="form-select form-control cycle-module-select"
           aria-label="Selecciona cicle"
         >
           <option value="">-- Selecciona cicle --</option>
@@ -449,15 +455,12 @@ const getTurnLabel = (turn) => {
           </div>
           <div class="card-body text-center">
             <!-- Loading spinner -->
-            <div v-show="isLoadingPCC" class="text-center py-3">
+            <div v-if="isLoadingPCC" class="text-center py-3">
               <span class="spinner-border text-primary"></span>
               <p class="mt-2 text-muted">Carregant PCC...</p>
             </div>
             <!-- Contenido cuando no está cargando -->
-            <div
-              v-show="!isLoadingPCC && hasLoadedPCC"
-              class="d-flex flex-column align-items-center gap-2"
-            >
+            <div v-else-if="hasLoadedPCC" class="d-flex flex-column align-items-center gap-2">
               <!-- PCC Existe: Mostrar botones de acción -->
               <template v-if="hasPCC()">
                 <ActionButton
@@ -512,9 +515,9 @@ const getTurnLabel = (turn) => {
       <!-- ================================ -->
       <!-- SELECTOR: MÒDUL -->
       <!-- ================================ -->
-      <div v-if="cycleSelect" class="form-group fw-bold mt-3">
+      <div v-if="cycleSelect" class="form-group fw-bold mt-3 mb-5">
         <label>Mòdul</label>
-        <select v-model="moduleSelect" class="form-select form-control">
+        <select v-model="moduleSelect" class="form-select form-control cycle-module-select">
           <option value="">-- Selecciona mòdul --</option>
           <option v-for="mod in cycle.modules" :key="mod.code" :value="mod.code">
             {{ mod.name }}
@@ -550,7 +553,7 @@ const getTurnLabel = (turn) => {
                     role="tab"
                   >
                     <i class="bi bi-file-earmark-text"></i>
-                    Propostes Didàctiques Actuals
+                    Programacions Actuals
                   </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -605,8 +608,7 @@ const getTurnLabel = (turn) => {
                       />
                     </div>
 
-                    <div>
-                      <!-- v-else  -->
+                    <div v-if="!getSyllabusByTurn(turn).id">
                       <ActionButton
                         title="Crear programació"
                         buttonClass="btn-success col-12 col-sm-4"
@@ -621,7 +623,7 @@ const getTurnLabel = (turn) => {
                           iconClass="bi bi-node-plus-fill"
                           data-bs-toggle="modal"
                           data-bs-target="#copySylModal"
-                          @click="actualSyllabus = getSyllabusByTurn(turn)"
+                          @click="copySyllabusTurn = turn"
                         />
                       </div>
                     </div>
@@ -723,5 +725,10 @@ const getTurnLabel = (turn) => {
 <style scoped>
 [v-cloak] {
   display: none;
+}
+
+.cycle-module-select {
+  min-height: 3rem;
+  line-height: 1.5;
 }
 </style>

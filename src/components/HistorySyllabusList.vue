@@ -6,28 +6,28 @@
 
     <table class="table table-bordered table-striped align-middle">
       <thead class="table-light">
-      <tr>
-        <th>Curs</th>
-        <th>Versió</th>
-        <th>Data de creació</th>
-        <th class="text-center">Descarregar</th>
-      </tr>
+        <tr>
+          <th>Curs</th>
+          <th>Versió</th>
+          <th>Data de creació</th>
+          <th class="text-center">Descarregar</th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="(item, index) in syllabusHistory" :key="index">
-        <td>{{ item.schoolYear.course }}</td>
-        <td>{{ item.fileVersions[0].version }}</td>
-        <td>{{ formatDate(item.fileVersions[0].createdOn.date) }}</td>
-        <td class="text-center">
-          <button
-            class="btn btn-outline-danger btn-sm"
-            @click="downloadPdf(item.id)"
-            title="Descarregar PDF"
-          >
-            <i class="bi bi-file-earmark-pdf-fill"></i>
-          </button>
-        </td>
-      </tr>
+        <tr v-for="(item, index) in syllabusHistory" :key="index">
+          <td>{{ item.schoolYear.course }}</td>
+          <td>{{ item.fileVersions[0].version }}</td>
+          <td>{{ formatDate(item.fileVersions[0].createdOn.date) }}</td>
+          <td class="text-center">
+            <button
+              class="btn btn-outline-danger btn-sm"
+              @click="downloadPdf(item.id)"
+              title="Descarregar PDF"
+            >
+              <i class="bi bi-file-earmark-pdf-fill"></i>
+            </button>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -37,7 +37,7 @@
   </div>
 
   <div v-else class="alert alert-secondary mt-4 text-center">
-    No hi ha cap proposta didàctica aprovada de cursos anteriors.
+    No hi ha cap programació aprovada de cursos anteriors.
   </div>
 </template>
 
@@ -75,8 +75,8 @@ export default {
             const lastVersion = doc.fileVersions.sort((a, b) => b.version - a.version)[0]
             return { ...doc, fileVersions: [lastVersion] }
           })
-        this.syllabusHistory = filtered.sort(
-          (a, b) => a.schoolYear.course.localeCompare(b.schoolYear.course)
+        this.syllabusHistory = filtered.sort((a, b) =>
+          a.schoolYear.course.localeCompare(b.schoolYear.course)
         )
       } catch (error) {
         this.error = 'Error carregant l’històric'

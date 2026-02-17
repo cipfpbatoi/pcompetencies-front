@@ -198,7 +198,7 @@ export default {
 </script>
 
 <template>
-  <div class="border-bottom border-3 border-info"></div>
+  <div class="border-bottom border-3 pcc"></div>
   <main class="border shadow view-main">
     <ModalComponent @save="reject" modalId="rejectPccModal" title="Rebutjar PCC" @submit="reject">
       <div class="row">
@@ -217,7 +217,7 @@ export default {
     </ModalComponent>
     <div class="p-lg-4 p-1 overflow-auto">
       <h2 class="fw-bold">Gestió dels projectes curriculars</h2>
-      <div class="p-3 alert bg-info border-primary border text-white">
+      <div class="p-3 alert pcc border text-white">
         <div class="row mb-3">
           <div class="row align-items-center">
             <label class="col-12 col-lg-1 p-2 fw-bold">Cicle:</label>

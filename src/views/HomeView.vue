@@ -1,10 +1,9 @@
 <script setup>
-import { reactive, computed, watch, onMounted, ref } from 'vue'
+import { computed, watch, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '../stores/data'
 import { api } from '../repositories/api.js'
-import { statusClass } from '../utils/utils.js'
 import * as yup from 'yup'
 
 // Composables
@@ -26,7 +25,7 @@ import HistorySyllabusList from '../components/HistorySyllabusList.vue'
 const store = useDataStore()
 const route = useRoute()
 const router = useRouter()
-const { cycle, module, user } = storeToRefs(store)
+const { cycle, module } = storeToRefs(store)
 const { addMessage, fetchData, fetchCycle } = store
 
 // ==========================================
@@ -42,38 +41,79 @@ const errors = ref({})
 // 🎯 COMPOSABLES
 // ==========================================
 const {
-  syllabuses,
   syllabusesToCopy,
   isLoading,
   getSyllabusByTurn,
   loadSyllabuses,
   createSyllabus,
-  copySyllabusFromOther,
-  copySyllabusFromLastYear,
-  saveImprovementProposals,
   copySyllabusUrl,
   openPdf
 } = useSyllabusManagement()
 
-const { pcc, isLoadingPCC, loadPCC, hasPCC, createPCC, editPCC } = usePCCManagement()
+const { pcc, isLoadingPCC, hasLoadedPCC, startPCCLoading, loadPCC, hasPCC, createPCC } =
+  usePCCManagement()
 
 const { canEdit } = useDateValidation(currentData)
 
-// ==========================================
-// 📋 ESTADO DE MODALES
-// ==========================================
-// Métodos genéricos para manejar modales
-const showModal = (modalKey) => {
-  modalRefs[modalKey].value?.show()
+const PCC_STATUS_LABELS = {
+  pending: 'pendent',
+  pendent: 'pendent',
+  sent: 'enviat',
+  enviat: 'enviat',
+  approved: 'aprovat',
+  aprovat: 'aprovat',
+  rejected: 'rebutjat',
+  rebutjat: 'rebutjat',
+  verified: 'verificat',
+  verificat: 'verificat'
 }
 
-const hideModal = (modalKey) => {
-  modalRefs[modalKey].value?.hide()
-}
+const pccStatusLabel = computed(() => {
+  return PCC_STATUS_LABELS[pcc.value?.status] || pcc.value?.status || ''
+})
+
+const canEditPcc = computed(() => {
+  const status = pcc.value?.status
+  return ['pending', 'pendent', 'rejected', 'rebutjat', 'rebutjada'].includes(status)
+})
+
+const isPccRejected = computed(() => {
+  return ['rejected', 'rebutjat', 'rebutjada'].includes(pcc.value?.status)
+})
+
+const pccRejectionReason = computed(() => {
+  return (
+    pcc.value?.rejectedMessage?.reason ||
+    pcc.value?.rejectedMessage?.message ||
+    pcc.value?.rejectionReason ||
+    pcc.value?.rejectReason ||
+    pcc.value?.reason ||
+    ''
+  )
+})
+
+const selectedModule = computed(() => {
+  const modules = cycle.value?.modules || []
+  return modules.find((item) => item.code === moduleSelect.value) || null
+})
+
+const isIntermodularProjectModule = computed(() => {
+  if (!selectedModule.value) return false
+  return Boolean(
+    selectedModule.value.proyect ||
+      selectedModule.value.isIntermodularProject ||
+      selectedModule.value.intermodularProject
+  )
+})
 
 const handleModalClose = (modalKey) => {
   if (modalKey === 'improvement') clearImprovementErrors()
   if (modalKey === 'copySyllabus') clearCopySyllabusErrors()
+}
+
+const handleImprovementEditClick = () => {
+  modalImprovementData.value.isEditing = true
+  modalImprovementData.value.showSaveButton = true
 }
 
 // ==========================================
@@ -87,29 +127,28 @@ const modalImprovementData = ref({
   isEditing: false,
   proposals: '',
   saving: false,
-  showSaveButton: false,
+  showSaveButton: false
 })
-const improvementValidation = useFormValidation(yup.object({
-  proposals: yup
-    .string()
-    .trim()
-    .min(5, 'Les propostes han de tenir almenys 5 caràcters'),
-}))
+const improvementValidation = useFormValidation(
+  yup.object({
+    proposals: yup.string().trim().min(5, 'Les propostes han de tenir almenys 5 caràcters')
+  })
+)
 // Si quieres, desestructura para que sea más cómodo:
 const {
   errors: improvementErrors,
   validate: validateImprovement,
   handleServerError: handleImprovementServerError,
-  clearErrors: clearImprovementErrors,
+  clearErrors: clearImprovementErrors
 } = improvementValidation
 
 const setActualSyllabus = (turn) => {
   actualSyllabus.value = getSyllabusByTurn(turn)
-  modalImprovementData.value.proposals = actualSyllabus.value.currentImprovementProposal?.proposals || ''
+  modalImprovementData.value.proposals =
+    actualSyllabus.value.currentImprovementProposal?.proposals || ''
 }
 
 const handleSaveImprovementProposals = async () => {
-
   if (!modalImprovementData.value.isEditing) {
     return
   }
@@ -129,7 +168,7 @@ const handleSaveImprovementProposals = async () => {
     })
     actualSyllabus.value.currentImprovementProposal.proposals = response.data.proposals
     if (actualSyllabus.value.status == 'pendent') {
-      actualSyllabus.value.lastYearImprovementProposal = response.data.proposals;
+      actualSyllabus.value.lastYearImprovementProposal = response.data.proposals
     }
     addMessage('success', 'Propostes de millora guardades')
     modalImprovementData.value.proposals = ''
@@ -137,7 +176,6 @@ const handleSaveImprovementProposals = async () => {
     modalImprovementData.value.isEditing = false
     errors.value.proposals = false
     improvementModalRef.value?.hide()
-
   } catch (error) {
     addMessage('error', error)
     handleImprovementServerError(error)
@@ -151,24 +189,24 @@ const handleSaveImprovementProposals = async () => {
 // MODAL: COPIAR PROGRAMACIÓ
 // ================================
 const copySyllabusModalRef = ref(null)
-const copySyllabusValidation = useFormValidation(yup.object({
-  proposals: yup
-    .string()
-    .trim(),
-}))
+const copySyllabusValidation = useFormValidation(
+  yup.object({
+    proposals: yup.string().trim()
+  })
+)
 // Si quieres, desestructura para que sea más cómodo:
 const {
   errors: copySyllabusErrors,
   validate: validateCopySyllabus,
   handleServerError: handleCopySyllabusServerError,
-  clearErrors: clearCopySyllabusErrors,
+  clearErrors: clearCopySyllabusErrors
 } = copySyllabusValidation
 
 const modalCopySyllabusData = ref({
   modalId: 'copySylModal',
   title: 'Tria quina programació vols copiar',
   selectedSyllabusToCopy: '',
-  saving: false,
+  saving: false
 })
 
 const handleCopySyllabusFromOther = async () => {
@@ -178,7 +216,8 @@ const handleCopySyllabusFromOther = async () => {
   }
   const isValid = await validateCopySyllabus({ proposals: modalCopySyllabusData.value.proposals })
   if (!isValid) return
-  const syllabusToCopyFrom = syllabusesToCopy.value[modalCopySyllabusData.value.selectedSyllabusToCopy]
+  const syllabusToCopyFrom =
+    syllabusesToCopy.value[modalCopySyllabusData.value.selectedSyllabusToCopy]
   try {
     modalCopySyllabusData.value.saving = true
     const response = await api.createSyllabusFromOther(syllabusToCopyFrom.id, {
@@ -209,7 +248,6 @@ const handleCopySyllabusFromLastYear = async (turn) => {
   try {
     await api.createSyllabusCourseYear(syllabus.id)
     addMessage('success', 'Programació creada')
-    getSyllabuses()
   } catch (error) {
     addMessage('error', error)
     return
@@ -217,17 +255,11 @@ const handleCopySyllabusFromLastYear = async (turn) => {
 }
 
 // ==========================================
-// 💡 COMPUTED PROPERTIES
-// ==========================================
-const selectedModule = computed(() => {
-  return cycle.value.modules?.find(item => item.code === moduleSelect.value) || {}
-})
-
-// ==========================================
 // 🔄 WATCHERS
 // ==========================================
 watch(cycleSelect, async (newValue) => {
   if (newValue) {
+    startPCCLoading()
     await handleCycleChange()
     await loadPCC(newValue)
   }
@@ -250,10 +282,7 @@ onMounted(async () => {
 
 const initializeComponent = async () => {
   try {
-    const [respCycles, respData] = await Promise.all([
-      api.getCycles(),
-      api.getCurrentData()
-    ])
+    const [respCycles, respData] = await Promise.all([api.getCycles(), api.getCurrentData()])
 
     cycles.value = respCycles.data
     currentData.value = respData.data
@@ -270,6 +299,7 @@ const restoreStateFromRoute = async () => {
 
   if (cycleId || cycle.value.id) {
     cycleSelect.value = cycleId || cycle.value.id
+    startPCCLoading()
     await handleCycleChange()
     await loadPCC(cycleSelect.value)
 
@@ -340,18 +370,23 @@ const getTurnLabel = (turn) => {
     <!-- ================================ -->
     <!-- MODAL: PROPOSTES DE MILLORA -->
     <!-- ================================ -->
-    <ModalComponent v-bind="modalImprovementData" ref="improvementModalRef" @save="handleSaveImprovementProposals"
-      @close="handleModalClose('improvement')">
+    <ModalComponent
+      v-bind="modalImprovementData"
+      ref="improvementModalRef"
+      @save="handleSaveImprovementProposals"
+      @close="handleModalClose('improvement')"
+    >
       <div class="row">
         <div v-show="modalImprovementData.isEditing">
-          <textarea v-model="modalImprovementData.proposals" class="form-control border-secondary" rows="6" />
+          <textarea
+            v-model="modalImprovementData.proposals"
+            class="form-control border-secondary"
+            rows="6"
+          />
         </div>
         <div v-show="!modalImprovementData.isEditing">
           <pre>{{ modalImprovementData.proposals || 'No hi ha cap proposta' }}</pre>
-          <button class="btn btn-secondary"
-            @click="modalImprovementData.isEditing = true; modalImprovementData.showSaveButton = true;">
-            Editar
-          </button>
+          <button class="btn btn-secondary" @click="handleImprovementEditClick">Editar</button>
         </div>
         <p v-if="improvementErrors.proposals" class="text-danger">
           {{ improvementErrors.proposals }}
@@ -362,8 +397,12 @@ const getTurnLabel = (turn) => {
     <!-- ================================ -->
     <!-- MODAL: COPIAR SYLLABUS -->
     <!-- ================================ -->
-    <ModalComponent @save="handleCopySyllabusFromOther" @close="handleModalClose('copySyllabus')"
-      v-bind="modalCopySyllabusData" ref="copySyllabusModalRef">
+    <ModalComponent
+      @save="handleCopySyllabusFromOther"
+      @close="handleModalClose('copySyllabus')"
+      v-bind="modalCopySyllabusData"
+      ref="copySyllabusModalRef"
+    >
       <div class="row p-4">
         <select v-model="modalCopySyllabusData.selectedSyllabusToCopy">
           <option value="">--- Selecciona la programació ---</option>
@@ -390,7 +429,11 @@ const getTurnLabel = (turn) => {
       <!-- ================================ -->
       <div class="form-group">
         <label class="form-label fw-bold">Cicle</label>
-        <select v-model="cycleSelect" class="form-select form-control" aria-label="Selecciona cicle">
+        <select
+          v-model="cycleSelect"
+          class="form-select form-control"
+          aria-label="Selecciona cicle"
+        >
           <option value="">-- Selecciona cicle --</option>
           <option v-for="cicle in cycles" :key="cicle.id" :value="cicle.id">
             {{ cicle.completeName }}
@@ -399,40 +442,68 @@ const getTurnLabel = (turn) => {
       </div>
 
       <!-- ✅ SECCIÓN PCC -->
-      <div v-if="cycleSelect" class="form-group mt-4">
+      <div v-if="cycleSelect && !isIntermodularProjectModule" class="form-group mt-4">
         <div class="card">
-          <div class="card-header pcc text-white fw-bold"> <i class="bi bi-file-earmark-text-fill me-2"></i>
-            Projecte Curricular de Cicle (PCC) </div>
-          <div class="card-body text-center"> <!-- Loading spinner -->
-            <div v-show="isLoadingPCC" class="text-center py-3"> <span class="spinner-border text-primary"></span>
+          <div class="card-header pcc text-white fw-bold">
+            <i class="bi bi-file-earmark-text-fill me-2"></i> Projecte Curricular de Cicle (PCC)
+          </div>
+          <div class="card-body text-center">
+            <!-- Loading spinner -->
+            <div v-show="isLoadingPCC" class="text-center py-3">
+              <span class="spinner-border text-primary"></span>
               <p class="mt-2 text-muted">Carregant PCC...</p>
-            </div> <!-- Contenido cuando no está cargando -->
-            <div v-show="!isLoadingPCC" class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-              <!-- PCC Existe: Mostrar botones de acción --> <template v-if="hasPCC()">
-                <ActionButton title="Editar PCC" buttonClass="btn-success text-white col-12 col-sm-auto"
-                  iconClass="bi bi-pencil-fill" :disabled="pcc.status !== 'pendent'" @clicked="handleEditPCC" />
-                <ShowPdfButton type="pcc" :pcc="pcc" title="Veure PDF del PCC"
-                  buttonClass="btn btn-danger col-12 col-sm-auto" @waiting="isLoadingPCC = $event" />
+            </div>
+            <!-- Contenido cuando no está cargando -->
+            <div
+              v-show="!isLoadingPCC && hasLoadedPCC"
+              class="d-flex flex-column align-items-center gap-2"
+            >
+              <!-- PCC Existe: Mostrar botones de acción -->
+              <template v-if="hasPCC()">
+                <ActionButton
+                  title="Editar PCC"
+                  buttonClass="btn-success text-white col-12 col-sm-auto"
+                  iconClass="bi bi-pencil-fill"
+                  :status="pcc.status"
+                  :status-label="pccStatusLabel"
+                  :disabled="!canEditPcc"
+                  @clicked="handleEditPCC"
+                />
+                <ShowPdfButton
+                  type="pcc"
+                  :pcc="pcc"
+                  title="Veure PDF del PCC"
+                  buttonClass="btn btn-danger col-12 col-sm-auto"
+                  @waiting="isLoadingPCC = $event"
+                />
                 <!-- <span class="badge bg-success align-self-center fs-6">
                   <i class="bi bi-check-circle-fill me-1"></i>
                   PCC Creat
                 </span> -->
               </template>
-              <!-- PCC No Existe: Botón de crear --> <template v-else>
-                <ActionButton title="Crear nou PCC" buttonClass="btn-success col-12 col-sm-auto"
-                  iconClass="bi bi-plus-circle-fill" @clicked="handleCreatePCC" />
+              <!-- PCC No Existe: Botón de crear -->
+              <template v-else>
+                <ActionButton
+                  title="Crear nou PCC"
+                  buttonClass="btn-success col-12 col-sm-auto"
+                  iconClass="bi bi-plus-circle-fill"
+                  @clicked="handleCreatePCC"
+                />
                 <!-- <span class="badge bg-warning text-dark align-self-center fs-6">
                     <i class="bi bi-exclamation-triangle-fill me-1"></i>
                     Sense PCC
                   </span> -->
               </template>
             </div>
+            <div v-if="isPccRejected && pccRejectionReason" class="alert alert-danger mt-3">
+              <strong>Rebutjat!</strong> Motiu: {{ pccRejectionReason }}
+            </div>
             <!-- Información adicional -->
             <div v-if="hasPCC()" class="mt-3">
               <small class="text-muted">
-                <i class="bi bi-info-circle me-1"></i> Última
-                modificació:
-                {{ pcc.updatedAt ? new Date(pcc.updatedAt).toLocaleDateString('ca-ES') : 'N/A' }} </small>
+                <i class="bi bi-info-circle me-1"></i> Última modificació:
+                {{ pcc.updatedAt ? new Date(pcc.updatedAt).toLocaleDateString('ca-ES') : 'N/A' }}
+              </small>
             </div>
           </div>
         </div>
@@ -471,15 +542,25 @@ const getTurnLabel = (turn) => {
               <!-- Tabs -->
               <ul class="nav nav-tabs justify-content-center" role="tablist">
                 <li class="nav-item" role="presentation">
-                  <button class="nav-link active" :data-bs-target="`#current-${turn}`" data-bs-toggle="tab"
-                    type="button" role="tab">
+                  <button
+                    class="nav-link active"
+                    :data-bs-target="`#current-${turn}`"
+                    data-bs-toggle="tab"
+                    type="button"
+                    role="tab"
+                  >
                     <i class="bi bi-file-earmark-text"></i>
                     Propostes Didàctiques Actuals
                   </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                  <button class="nav-link" :data-bs-target="`#history-${turn}`" data-bs-toggle="tab" type="button"
-                    role="tab">
+                  <button
+                    class="nav-link"
+                    :data-bs-target="`#history-${turn}`"
+                    data-bs-toggle="tab"
+                    type="button"
+                    role="tab"
+                  >
                     <i class="bi bi-clock-history"></i> Històric
                   </button>
                 </li>
@@ -487,60 +568,104 @@ const getTurnLabel = (turn) => {
 
               <div class="tab-content mt-3">
                 <!-- TAB: ACTUALS -->
-                <div :id="`current-${turn}`" class="tab-pane fade show active text-center" role="tabpanel">
+                <div
+                  :id="`current-${turn}`"
+                  class="tab-pane fade show active text-center"
+                  role="tabpanel"
+                >
                   <!-- Período de edición abierto -->
                   <div v-if="canEdit">
                     <div v-if="getSyllabusByTurn(turn).id" class="my-2">
-                      <p v-if="getSyllabusByTurn(turn).status === 'rebutjada'"
-                        class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start">
+                      <p
+                        v-if="getSyllabusByTurn(turn).status === 'rebutjada'"
+                        class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start"
+                      >
                         <strong>Rebutjada!</strong> Raó:
                         {{ getSyllabusByTurn(turn).rejectedMessage?.reason }}
                       </p>
 
-                      <ActionButton v-if="isSyllabusOfCurrentYear(turn)"
-                        :disabled="!['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)"
-                        :status="getSyllabusByTurn(turn).status" title="Editar programació"
-                        buttonClass="btn-success col-12 col-sm-4 text-white" iconClass="bi bi-pencil-fill"
-                        @clicked="editSyllabus(turn)" />
+                      <ActionButton
+                        v-if="isSyllabusOfCurrentYear(turn)"
+                        :disabled="
+                          !['pendent', 'rebutjada'].includes(getSyllabusByTurn(turn).status)
+                        "
+                        :status="getSyllabusByTurn(turn).status"
+                        title="Editar programació"
+                        buttonClass="btn-success col-12 col-sm-4 text-white"
+                        iconClass="bi bi-pencil-fill"
+                        @clicked="editSyllabus(turn)"
+                      />
 
-                      <ActionButton v-else title="Crear programació a partir de la del curs anterior"
-                        buttonClass="btn-primary col-12 col-sm-4" iconClass="bi bi-plus-circle-fill"
-                        @clicked="handleCopySyllabusFromLastYear(turn)" />
+                      <ActionButton
+                        v-else
+                        title="Crear programació a partir de la del curs anterior"
+                        buttonClass="btn-primary col-12 col-sm-4"
+                        iconClass="bi bi-plus-circle-fill"
+                        @clicked="handleCopySyllabusFromLastYear(turn)"
+                      />
                     </div>
 
-                    <div> <!-- v-else  -->
-                      <ActionButton title="Crear programació" buttonClass="btn-success col-12 col-sm-4"
-                        iconClass="bi bi-plus-circle-fill" @clicked="handleCreateSyllabus(turn)" />
+                    <div>
+                      <!-- v-else  -->
+                      <ActionButton
+                        title="Crear programació"
+                        buttonClass="btn-success col-12 col-sm-4"
+                        iconClass="bi bi-plus-circle-fill"
+                        @clicked="handleCreateSyllabus(turn)"
+                      />
 
                       <div v-if="syllabusesToCopy.length > 0" class="mt-3">
-                        <ActionButton title="Crear a partir d'altra programació"
-                          buttonClass="btn-primary mt-2 mt-sm-0 col-12 col-sm-4" iconClass="bi bi-node-plus-fill"
-                          data-bs-toggle="modal" data-bs-target="#copySylModal"
-                          @click="actualSyllabus = getSyllabusByTurn(turn)" />
+                        <ActionButton
+                          title="Crear a partir d'altra programació"
+                          buttonClass="btn-primary mt-2 mt-sm-0 col-12 col-sm-4"
+                          iconClass="bi bi-node-plus-fill"
+                          data-bs-toggle="modal"
+                          data-bs-target="#copySylModal"
+                          @click="actualSyllabus = getSyllabusByTurn(turn)"
+                        />
                       </div>
                     </div>
                   </div>
 
                   <!-- Botón de propuestas de mejora -->
                   <div>
-                    <ActionButton v-if="['pendent', 'aprovada'].includes(getSyllabusByTurn(turn)?.status)"
+                    <ActionButton
+                      v-if="['pendent', 'aprovada'].includes(getSyllabusByTurn(turn)?.status)"
                       buttonClass="btn btn-warning col-12 col-sm-4 mb-2 text-white"
-                      title="Veure/Modificar propostes de millora" icon-class="bi bi-lightbulb-fill"
-                      data-bs-toggle="modal" data-bs-target="#improvementModal" @click="setActualSyllabus(turn)" />
+                      title="Veure/Modificar propostes de millora"
+                      icon-class="bi bi-lightbulb-fill"
+                      data-bs-toggle="modal"
+                      data-bs-target="#improvementModal"
+                      @click="setActualSyllabus(turn)"
+                    />
                   </div>
                   <!-- Syllabus aprobado -->
                   <div v-if="getSyllabusByTurn(turn)?.status === 'aprovada'">
-                    <ActionButton v-if="getSyllabusByTurn(turn).id" buttonClass="btn btn-danger col-12 col-sm-4"
-                      title="Veure PDF" icon-class="bi bi-file-earmark-pdf-fill"
-                      @click="openPdf(getSyllabusByTurn(turn))" />
-                    <ShowPdfButton v-if="getSyllabusByTurn(turn).id" type="syllabus" :syllabus="getSyllabusByTurn(turn)"
-                      title="Veure PDF" buttonClass="btn btn-danger col-12 col-sm-4" @waiting="isLoading = $event" />
+                    <ActionButton
+                      v-if="getSyllabusByTurn(turn).id"
+                      buttonClass="btn btn-danger col-12 col-sm-4"
+                      title="Veure PDF"
+                      icon-class="bi bi-file-earmark-pdf-fill"
+                      @click="openPdf(getSyllabusByTurn(turn))"
+                    />
+                    <ShowPdfButton
+                      v-if="getSyllabusByTurn(turn).id"
+                      type="syllabus"
+                      :syllabus="getSyllabusByTurn(turn)"
+                      title="Veure PDF"
+                      buttonClass="btn btn-danger col-12 col-sm-4"
+                      @waiting="isLoading = $event"
+                    />
 
                     <p class="alert alert-info col-12 col-lg-10 text-center m-auto mt-2">
-                      Esta programació ja està aprovada i, per tant, és pública.
-                      Pots copiar l'enllaç per a passar-li-ho als alumnes.
-                      <button type="button" class="btn btn-secondary btn-sm" title="Copiar enllaç"
-                        @click="copySyllabusUrl(getSyllabusByTurn(turn))">
+                      Esta programació ja està aprovada i, per tant, és pública. Pots copiar
+                      l'enllaç per a passar-li-ho als alumnes.
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        title="Copiar enllaç"
+                        @click="copySyllabusUrl(getSyllabusByTurn(turn))"
+                      >
                         <i class="bi bi-copy"></i>
                       </button>
                     </p>
@@ -548,16 +673,29 @@ const getTurnLabel = (turn) => {
 
                   <!-- Vista previa PDF -->
                   <div v-else>
-                    <ShowPdfButton v-if="getSyllabusByTurn(turn).id" type="syllabus" :syllabus="getSyllabusByTurn(turn)"
-                      title="Veure esborrany" buttonClass="btn btn-danger col-12 col-sm-4"
-                      @waiting="isLoading = $event" />
+                    <ShowPdfButton
+                      v-if="getSyllabusByTurn(turn).id"
+                      type="syllabus"
+                      :syllabus="getSyllabusByTurn(turn)"
+                      title="Veure esborrany"
+                      buttonClass="btn btn-danger col-12 col-sm-4"
+                      @waiting="isLoading = $event"
+                    />
                   </div>
 
                   <!-- Exportar Excel -->
-                  <div v-if="getSyllabusByTurn(turn)?.status && getSyllabusByTurn(turn)?.status !== 'pendent'">
-                    <BtnGetExcel :module-name="getSyllabusByTurn(turn).module.name"
-                      :schedules="getSyllabusByTurn(turn).schedules" :syllabus-id="getSyllabusByTurn(turn).id"
-                      btnClass="col-sm-4 col-12" />
+                  <div
+                    v-if="
+                      getSyllabusByTurn(turn)?.status &&
+                      getSyllabusByTurn(turn)?.status !== 'pendent'
+                    "
+                  >
+                    <BtnGetExcel
+                      :module-name="getSyllabusByTurn(turn).module.name"
+                      :schedules="getSyllabusByTurn(turn).schedules"
+                      :syllabus-id="getSyllabusByTurn(turn).id"
+                      btnClass="col-sm-4 col-12"
+                    />
                   </div>
                 </div>
 
@@ -565,8 +703,11 @@ const getTurnLabel = (turn) => {
                 <div :id="`history-${turn}`" class="tab-pane fade text-center" role="tabpanel">
                   <div class="row text-center">
                     <div v-if="getSyllabusByTurn(turn).id" class="mb-3">
-                      <HistorySyllabusList :key="getSyllabusByTurn(turn).id" :syllabus-id="getSyllabusByTurn(turn).id"
-                        :turn-label="turn" />
+                      <HistorySyllabusList
+                        :key="getSyllabusByTurn(turn).id"
+                        :syllabus-id="getSyllabusByTurn(turn).id"
+                        :turn-label="turn"
+                      />
                     </div>
                   </div>
                 </div>

@@ -9,6 +9,10 @@ export default {
       required: true
     },
     status: String,
+    statusLabel: {
+      type: String,
+      default: ''
+    },
     buttonClass: {
       type: String,
       default: 'btn-primary'
@@ -31,15 +35,14 @@ export default {
 
 <template>
   <button @click="handleClick" class="btn btn-primary position-relative" :class="buttonClass">
-    <i v-if="iconClass"
-       :class="iconClass"></i>
+    <i v-if="iconClass" :class="iconClass"></i>
     {{ title }}
     <span
       v-if="status"
       class="position-absolute top-0 start-100 translate-middle badge rounded-pill border"
       :class="statusClass(status)"
     >
-      {{ status }}
+      {{ statusLabel || status }}
     </span>
   </button>
 </template>

@@ -8,14 +8,23 @@ export function usePCCManagement() {
 
   const { pcc } = storeToRefs(store)
   const isLoadingPCC = ref(false)
+  const hasLoadedPCC = ref(false)
+
+  const startPCCLoading = () => {
+    isLoadingPCC.value = true
+    hasLoadedPCC.value = false
+    pcc.value = {}
+  }
 
   // Cargar PCC por ciclo
   const loadPCC = async (cycleId) => {
     if (!cycleId) {
       pcc.value = {}
+      hasLoadedPCC.value = false
       return
     }
 
+    hasLoadedPCC.value = false
     isLoadingPCC.value = true
     try {
       localStorage.pccCycleId = cycleId
@@ -29,6 +38,7 @@ export function usePCCManagement() {
       }
     } finally {
       isLoadingPCC.value = false
+      hasLoadedPCC.value = true
     }
   }
 
@@ -84,6 +94,8 @@ export function usePCCManagement() {
   return {
     pcc,
     isLoadingPCC,
+    hasLoadedPCC,
+    startPCCLoading,
     loadPCC,
     hasPCC,
     createPCC,

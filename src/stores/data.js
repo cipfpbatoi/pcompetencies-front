@@ -191,6 +191,18 @@ export const useDataStore = defineStore('data', {
         this.addMessage('error', error)
       }
     },
+    async refreshPccByCycleId(cycleId) {
+      try {
+        const response = await api.getPCCByCycleId(cycleId)
+        this.pcc = response.data
+        return response.data
+      } catch (error) {
+        if (error.response?.status !== 404) {
+          this.addMessage('error', error)
+        }
+        return null
+      }
+    },
     async savePccOportunities(id, data) {
       try {
         const response = await api.createPccOportunities(id, data)

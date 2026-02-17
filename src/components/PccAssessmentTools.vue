@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
@@ -46,6 +46,7 @@ const form = ref({
 })
 
 const formErrors = ref({})
+const applyToAllModules = ref(true)
 
 // Computeds
 const currentModules = computed(() => pcc.value?.modules || [])
@@ -158,7 +159,13 @@ const isFormValid = computed(() => {
   }
 
   // Validar módulos: si se seleccionan, deben ser al menos 2
-  if (!editingTool.value?.isMandatory && form.value.moduleCodes.length === 1) return false
+  if (
+    !editingTool.value?.isMandatory &&
+    !applyToAllModules.value &&
+    form.value.moduleCodes.length < 2
+  ) {
+    return false
+  }
 
   return true
 })
@@ -204,6 +211,8 @@ const openEditModal = (tool) => {
     moduleCodes: isMandatory ? [] : agreed?.modules?.map((m) => m.code) || []
   }
 
+  applyToAllModules.value = isMandatory || form.value.moduleCodes.length === 0
+
   formErrors.value = {}
   showEditModal.value = true
 }
@@ -216,6 +225,7 @@ const closeEditModal = () => {
     percentage: null,
     moduleCodes: []
   }
+  applyToAllModules.value = true
   formErrors.value = {}
 }
 
@@ -240,8 +250,12 @@ const validateForm = () => {
   }
 
   // Validar módulos
-  if (!editingTool.value?.isMandatory && form.value.moduleCodes.length === 1) {
-    errors.modules = 'Has de seleccionar almenys 2 mòduls o cap (aplica a tots)'
+  if (
+    !editingTool.value?.isMandatory &&
+    !applyToAllModules.value &&
+    form.value.moduleCodes.length < 2
+  ) {
+    errors.modules = 'Has de seleccionar almenys 2 mòduls'
   }
 
   formErrors.value = errors
@@ -272,9 +286,7 @@ const saveAgreed = async () => {
       assessmentToolId: form.value.assessmentToolId,
       minPercentage: form.value.percentage,
       moduleCodes:
-        editingTool.value?.isMandatory || form.value.moduleCodes.length === 0
-          ? []
-          : form.value.moduleCodes
+        editingTool.value?.isMandatory || applyToAllModules.value ? [] : form.value.moduleCodes
     }
 
     const success = await savePCCAgreedAssessmentTool(props.pccId, data)
@@ -287,6 +299,12 @@ const saveAgreed = async () => {
     isSaving.value = false
   }
 }
+
+watch(applyToAllModules, (nextValue) => {
+  if (nextValue) {
+    form.value.moduleCodes = []
+  }
+})
 
 const confirmDelete = async () => {
   if (!deleteTarget.value) return
@@ -533,32 +551,61 @@ onMounted(() => {
 
                 <!-- Módulos -->
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Mòduls</label>
+                  <label class="form-label fw-bold">Aplicació de l'instrument</label>
                   <div v-if="editingTool.isMandatory" class="alert alert-info py-2">
                     Aquest instrument és obligatori i s'aplica a tots els mòduls del cicle.
                   </div>
-                  <div v-else class="form-text mb-2">
-                    Selecciona els mòduls als quals aplica (mínim 2 o cap per aplicar a tots)
-                  </div>
-                  <div class="module-selection">
-                    <div v-for="module in currentModules" :key="module.code" class="form-check">
+                  <template v-else>
+                    <div class="form-check">
                       <input
                         class="form-check-input"
-                        type="checkbox"
-                        :id="`mod-${module.code}`"
-                        :value="module.code"
-                        :checked="form.moduleCodes.includes(module.code)"
-                        :disabled="editingTool.isMandatory"
-                        @change="toggleModule(module.code)"
+                        type="radio"
+                        name="moduleSelectionTools"
+                        id="allModulesTools"
+                        :value="true"
+                        v-model="applyToAllModules"
                       />
-                      <label class="form-check-label" :for="`mod-${module.code}`">
-                        <strong>{{ module.code }}</strong> - {{ module.name }}
+                      <label class="form-check-label" for="allModulesTools">
+                        Aplicar a tots els mòduls del cicle
                       </label>
                     </div>
-                  </div>
-                  <div v-if="formErrors.modules" class="text-danger small mt-2">
-                    {{ formErrors.modules }}
-                  </div>
+
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="radio"
+                        name="moduleSelectionTools"
+                        id="specificModulesTools"
+                        :value="false"
+                        v-model="applyToAllModules"
+                      />
+                      <label class="form-check-label" for="specificModulesTools">
+                        Aplicar només a mòduls específics
+                      </label>
+                    </div>
+
+                    <div v-if="!applyToAllModules" class="mt-3">
+                      <label class="form-label">Selecciona els mòduls</label>
+                      <div class="module-selection">
+                        <div v-for="module in currentModules" :key="module.code" class="form-check">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            :id="`mod-${module.code}`"
+                            :value="module.code"
+                            :checked="form.moduleCodes.includes(module.code)"
+                            @change="toggleModule(module.code)"
+                          />
+                          <label class="form-check-label" :for="`mod-${module.code}`">
+                            <strong>{{ module.code }}</strong> - {{ module.name }}
+                          </label>
+                        </div>
+                      </div>
+                      <div v-if="formErrors.modules" class="text-danger small mt-2">
+                        {{ formErrors.modules }}
+                      </div>
+                    </div>
+                  </template>
                 </div>
               </div>
               <div class="modal-footer">

@@ -80,6 +80,11 @@ const isHoursValid = computed(() => {
   return isHoursMinValid.value && isHoursMaxValid.value
 })
 
+const hasProjectModuleFirstCourse = computed(() => {
+  const modules = pcc.value?.modules || []
+  return modules.some((module) => module.proyect && (module.courseLevel || 1) === 1)
+})
+
 // Criterios de centro (se mostrarán como información, no editables)
 const centerCriterias = computed(() => pcc.value?.center?.companyAssignmentCriterias || null)
 
@@ -116,6 +121,10 @@ const validateForm = () => {
     form.value.firstCourseHours < 0
   ) {
     errors.firstCourseHours = 'Les hores de 1r curs són obligatòries i han de ser >= 0'
+  }
+
+  if (hasProjectModuleFirstCourse.value && form.value.firstCourseHours < 100) {
+    errors.firstCourseHours = 'Si hi ha mòdul de projecte en 1r curs, cal un mínim de 100 hores'
   }
 
   if (
@@ -290,7 +299,10 @@ const confirmDelete = async () => {
             <label class="form-label fw-bold">
               Hores 1r Curs <span class="text-danger">*</span>
             </label>
-            <div class="form-text">Recomanació: 150 hores en 1r curs</div>
+            <div class="form-text">
+              Recomanació: 150 hores en 1r curs
+              <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
+            </div>
             <input
               type="number"
               class="form-control"
@@ -323,16 +335,12 @@ const confirmDelete = async () => {
         <!-- Validación suma de horas -->
         <div class="alert" :class="isHoursValid ? 'alert-success' : 'alert-warning'">
           <strong>Total hores FE: {{ totalHours }}</strong>
-          <span v-if="minTotalFEHours">
-            <span v-if="isHoursMinValid">
-              <i class="bi bi-check-circle-fill ms-2"></i>
-              (mínim: {{ minTotalFEHours }})
-            </span>
-            <span v-else>
-              <i class="bi bi-exclamation-triangle-fill ms-2"></i>
-              Com a mínim {{ minTotalFEHours }} hores
-            </span>
-          </span>
+        </div>
+        <div
+          v-if="hasProjectModuleFirstCourse && form.firstCourseHours < 100"
+          class="alert alert-danger"
+        >
+          Atenció en 1r curs, el mínim son 100 hores
         </div>
         <div v-if="formErrors.totalHours" class="alert alert-danger">
           {{ formErrors.totalHours }}

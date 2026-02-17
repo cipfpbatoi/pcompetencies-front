@@ -83,7 +83,7 @@ header {
 </style>
 
 <style>
-div.card-header.pcc {
+.pcc {
   background-color: #2c4a7a;
   border-color: #1f3b60;
 }

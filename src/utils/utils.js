@@ -8,7 +8,7 @@ function makeCheckeableArray(array, selected) {
       selectedArray = selected
     }
   }
-  return array.map(item => {
+  return array.map((item) => {
     return {
       ...item,
       checked: selectedArray.includes(item.id)
@@ -43,20 +43,25 @@ function statusClass(status) {
   switch (status) {
     case 'pendent':
       return 'badge bg-warning'
+    case 'pending':
+      return 'badge bg-warning'
     case 'enviada':
+      return 'badge bg-info'
+    case 'sent':
       return 'badge bg-info'
     case 'rebutjada':
       return 'badge bg-danger'
+    case 'rejected':
+      return 'badge bg-danger'
     case 'aprovada':
+      return 'badge bg-success'
+    case 'approved':
+      return 'badge bg-success'
+    case 'verified':
       return 'badge bg-success'
     default:
       return 'badge bg-dark'
   }
 }
 
-export {
-  makeCheckeableArray,
-  getObjectsIds,
-  validateFormErrors,
-  statusClass,
-}
+export { makeCheckeableArray, getObjectsIds, validateFormErrors, statusClass }

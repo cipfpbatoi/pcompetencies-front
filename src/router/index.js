@@ -24,6 +24,7 @@ import CenterProjectsPCC from '../views/pcc/CenterProjectsPCC.vue'
 import CriteriaPCC from '../views/pcc/CriteriaPCC.vue'
 import IntermodularPCC from '../views/pcc/IntermodularPCC.vue'
 import ValidatePCC from '../views/pcc/ValidatePCC.vue'
+import PccManage from '../views/pcc/PccManage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -181,6 +182,12 @@ const router = createRouter({
       path: '/pcc/validate',
       name: 'validatePCC',
       component: ValidatePCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/manage',
+      name: 'pccManage',
+      component: PccManage,
       meta: { requiresAuth: true }
     },
     {

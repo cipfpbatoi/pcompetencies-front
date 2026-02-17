@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import AppBreadcrumb from '@/components/AppPccBreadcrumb.vue'
@@ -8,7 +8,7 @@ import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api'
 
 const store = useDataStore()
-const { pcc } = storeToRefs(store)
+const { pcc, cycle } = storeToRefs(store)
 const { addMessage } = store
 
 const isValid = ref(false)
@@ -17,8 +17,13 @@ const isValidating = ref(false)
 const isSending = ref(false)
 
 const hasErrors = computed(() => Boolean(errors.value) && !isValid.value)
-const isSent = computed(() => pcc.value?.status === 'sent')
-const sendButtonLabel = computed(() => (isSent.value ? 'PCC enviat' : 'Enviar PCC al departament'))
+const isSent = computed(() => ['sent', 'enviat'].includes(pcc.value?.status))
+const isRejected = computed(() => ['rejected', 'rebutjat'].includes(pcc.value?.status))
+const sendButtonLabel = computed(() => {
+  if (isSent.value) return 'PCC enviat'
+  if (isRejected.value) return 'Reenviar PCC al departament'
+  return 'Enviar PCC al departament'
+})
 
 const KEY_LABELS = {
   employabilityCompetences: "Competències per a l'ocupabilitat",
@@ -33,6 +38,19 @@ const KEY_LABELS = {
   centerProjects: 'Projectes de centre',
   intermodularProjectGuide: 'Guia del projecte intermodular',
   intermodularOrientations: 'Orientacions del projecte intermodular'
+}
+
+const STATUS_LABELS = {
+  pending: 'pendent',
+  pendent: 'pendent',
+  sent: 'enviat',
+  enviat: 'enviat',
+  approved: 'aprovat',
+  aprovat: 'aprovat',
+  rejected: 'rebutjat',
+  rebutjat: 'rebutjat',
+  verified: 'verificat',
+  verificat: 'verificat'
 }
 
 const resolveKeyLabel = (keyPath) => {
@@ -68,6 +86,32 @@ const flattenReasons = (reasons, prefix = '') => {
 }
 
 const formattedErrors = computed(() => flattenReasons(errors.value))
+const statusLabel = computed(() => STATUS_LABELS[pcc.value?.status] || pcc.value?.status || '-')
+const rejectionReason = computed(() => {
+  return (
+    pcc.value?.rejectedMessage?.reason ||
+    pcc.value?.rejectedMessage?.message ||
+    pcc.value?.rejectionReason ||
+    pcc.value?.rejectReason ||
+    pcc.value?.reason ||
+    ''
+  )
+})
+
+const refreshPcc = async () => {
+  const storedData = localStorage.data ? JSON.parse(localStorage.data) : null
+  const cycleId =
+    pcc.value?.cycle?.id || cycle.value?.id || localStorage.pccCycleId || storedData?.cycleId
+  if (!cycleId) return
+  try {
+    const response = await api.getPCCByCycleId(cycleId)
+    pcc.value = response.data
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      addMessage('error', error)
+    }
+  }
+}
 
 const validatePcc = async () => {
   if (!pcc.value?.id) return
@@ -102,6 +146,10 @@ const sendPcc = async () => {
     isSending.value = false
   }
 }
+
+onMounted(() => {
+  refreshPcc()
+})
 </script>
 
 <template>
@@ -113,9 +161,16 @@ const sendPcc = async () => {
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>9. Validar i enviar el PCC</h2>
 
-      <div v-if="!isSent && !isValid && !errors">
+      <div v-if="isRejected">
+        <div class="alert alert-danger p-2 col-sm-12 col-12 mx-auto text-center">
+          El Projecte curricular ha sigut {{ statusLabel }}
+          <div v-if="rejectionReason" class="mt-2">Motiu: {{ rejectionReason }}</div>
+        </div>
+      </div>
+
+      <div v-else-if="!isSent && !isValid && !errors">
         <div class="alert alert-info p-2 col-sm-12 col-12 mx-auto text-center">
-          <strong>Atenció! </strong>Has de validar el PCC abans d'enviar-lo
+          El Projecte curricular ha sigut {{ statusLabel }}
         </div>
       </div>
 
@@ -125,19 +180,19 @@ const sendPcc = async () => {
         </div>
       </div>
 
-      <div v-if="isValid">
+      <div v-if="isValid && !isSent">
         <div class="alert alert-success p-2 col-sm-12 col-12 mx-auto text-center">
           <strong>Validat! </strong> El PCC està preparat per a ser enviat per a la seva aprovació.
         </div>
       </div>
 
-      <div v-if="isValid" class="text-center m-2 row">
+      <div v-if="isValid && !isSent" class="text-center m-2 row">
         <div class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
           <strong>ATENCIÓ:</strong> Un cop enviat el PCC ja no es pot modificar
         </div>
       </div>
 
-      <div class="text-center m-2">
+      <div v-if="!isSent && !['approved', 'aprovat'].includes(pcc?.status)" class="text-center m-2">
         <button
           @click="validatePcc"
           class="btn btn-info col-sm-5 col-12"

@@ -50,6 +50,7 @@ instance.interceptors.response.use(
 export const api = {
   // PCC
   getPCCByCycleId: (cycleId) => instance.get(`/pcc/cycle/${cycleId}`),
+  getPccsPaginated: (filter) => instance.get('/pcc?' + filter),
   createPCC: (data) => instance.post('/pcc', data),
   createPccOportunities: (id, text) =>
     instance.post(`/pcc/${id}/opportunities`, { opportunities: text }),
@@ -80,6 +81,10 @@ export const api = {
     }),
   pccValidate: (id) => instance.post(`/pcc/${id}/valida`, {}),
   pccSend: (id) => instance.post(`/pcc/${id}/send`, {}),
+  pccPending: (id) => instance.post(`/pcc/${id}/pending`, {}),
+  pccReject: (id, data) => instance.post(`/pcc/${id}/reject`, data),
+  pccApprove: (id) => instance.post(`/pcc/${id}/approve`, {}),
+  pccVerify: (id) => instance.post(`/pcc/${id}/verify`, {}),
 
   getPCCMethodologicalPrinciples: (pccId, mpContext) =>
     instance.get(`/pcc/${pccId}/mp-context`, mpContext),

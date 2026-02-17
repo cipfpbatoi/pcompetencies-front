@@ -6,13 +6,16 @@ export default {
   computed: {
     ...mapState(useDataStore, ['user']),
     isAdminOrHeadOfDepartament() {
-      return this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT') || this.user.info?.roles.includes('ROLE_ADMIN');
+      return (
+        this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT') ||
+        this.user.info?.roles.includes('ROLE_ADMIN')
+      )
     },
     isLogged() {
       return this.user.token
     },
     getUserInfo() {
-      return this.user.info;
+      return this.user.info
     },
     isloginPage() {
       return window.location.pathname.startsWith('/login')
@@ -29,14 +32,15 @@ export default {
         ev.stopPropagation()
       }
     }
-  },
+  }
 }
 </script>
 
 <template>
-  <p class="text-center text-lg-end text-secondary" v-if="getUserInfo">Hola
-    <span class="fw-bold m-0 p-0">{{getUserInfo.name + ' ' + getUserInfo.surname}}</span>
-    <span class=text-secondary> ({{getUserInfo.department.shortName}})</span>
+  <p class="text-center text-lg-end text-secondary" v-if="getUserInfo">
+    Hola
+    <span class="fw-bold m-0 p-0">{{ getUserInfo.name + ' ' + getUserInfo.surname }}</span>
+    <span class="text-secondary"> ({{ getUserInfo.department.shortName }})</span>
     ·
     <span class="link-primary">
       <RouterLink @click.prevent="logout" to="/login">Eixir</RouterLink>
@@ -48,8 +52,28 @@ export default {
         <RouterLink class="nav-link" to="/">Inici</RouterLink>
       </li>
       <template v-if="isLogged">
-        <li class="nav-item" v-if="isAdminOrHeadOfDepartament">
-          <RouterLink class="nav-link" to="/syl-manage">Gestionar programacions</RouterLink>
+        <li class="nav-item dropdown" v-if="isAdminOrHeadOfDepartament">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            Cap de Departament
+          </a>
+          <ul class="dropdown-menu">
+            <li>
+              <RouterLink class="dropdown-item" to="/syl-manage"
+                >Gestionar programacions</RouterLink
+              >
+            </li>
+            <li>
+              <RouterLink class="dropdown-item" to="/pcc/manage"
+                >Gestionar projectes curriculars</RouterLink
+              >
+            </li>
+          </ul>
         </li>
       </template>
       <template v-else>

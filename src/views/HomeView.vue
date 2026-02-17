@@ -249,6 +249,7 @@ const handleCopySyllabusFromLastYear = async (turn) => {
   try {
     await api.createSyllabusCourseYear(syllabus.id)
     addMessage('success', 'Programació creada')
+    await loadSyllabuses(cycleSelect.value, moduleSelect.value)
   } catch (error) {
     addMessage('error', error)
     return

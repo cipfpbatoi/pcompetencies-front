@@ -221,6 +221,7 @@ const confirmDelete = async () => {
               <div class="flex-grow-1">
                 <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
                 h)
+                <span v-if="module.proyect" class="badge bg-info text-dark ms-2">Projecte</span>
               </div>
               <button
                 @click="openDeleteModal(module)"
@@ -261,6 +262,7 @@ const confirmDelete = async () => {
               <div class="flex-grow-1">
                 <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
                 h)
+                <span v-if="module.proyect" class="badge bg-info text-dark ms-2">Projecte</span>
               </div>
               <button
                 @click="openDeleteModal(module)"
@@ -345,6 +347,9 @@ const confirmDelete = async () => {
                         :title="`${module.code} - ${module.name}`"
                       >
                         <strong>{{ module.code }}</strong> - {{ module.name }}
+                        <span v-if="module.proyect" class="badge bg-info text-dark ms-2"
+                          >Projecte</span
+                        >
                       </label>
                     </div>
                   </div>
@@ -375,6 +380,9 @@ const confirmDelete = async () => {
                         :title="`${module.code} - ${module.name}`"
                       >
                         <strong>{{ module.code }}</strong> - {{ module.name }}
+                        <span v-if="module.proyect" class="badge bg-info text-dark ms-2"
+                          >Projecte</span
+                        >
                       </label>
                     </div>
                   </div>

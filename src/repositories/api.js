@@ -78,6 +78,8 @@ export const api = {
       },
       responseType: 'blob'
     }),
+  pccValidate: (id) => instance.post(`/pcc/${id}/valida`, {}),
+  pccSend: (id) => instance.post(`/pcc/${id}/send`, {}),
 
   getPCCMethodologicalPrinciples: (pccId, mpContext) =>
     instance.get(`/pcc/${pccId}/mp-context`, mpContext),

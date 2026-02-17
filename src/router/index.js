@@ -23,6 +23,7 @@ import TrainingPlanPCC from '../views/pcc/TrainingPlanPCC.vue'
 import CenterProjectsPCC from '../views/pcc/CenterProjectsPCC.vue'
 import CriteriaPCC from '../views/pcc/CriteriaPCC.vue'
 import IntermodularPCC from '../views/pcc/IntermodularPCC.vue'
+import ValidatePCC from '../views/pcc/ValidatePCC.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -84,57 +85,57 @@ const router = createRouter({
       name: 'LSsDevelopment',
       component: LSsDevelopment,
       meta: { requiresAuth: true }
-    },        
+    },
     {
       path: '/learning-situation/:lsId',
       name: 'LSDevelop',
       component: LSDevelop,
       props: true,
       meta: { requiresAuth: true }
-    },    
+    },
     {
       path: '/schedule',
       name: 'SyllabusSchedule',
       component: SyllabusSchedule,
       meta: { requiresAuth: true }
-    },   
+    },
     {
       path: '/qualify',
       name: 'SyllabusQualify',
       component: SyllabusQualify,
       meta: { requiresAuth: true }
-    },   
+    },
     {
       path: '/final-qualify',
       name: 'FinalQualify',
       component: FinalQualify,
       meta: { requiresAuth: true }
-    },  
+    },
     {
       path: '/method-principles',
       name: 'MethodologicalPrinciples',
       component: MethodologicalPrinciples,
       meta: { requiresAuth: true }
-    }, 
+    },
     {
       path: '/validate',
       name: 'ValidateSyllabus',
       component: ValidateSyllabus,
       meta: { requiresAuth: true }
-    }, 
+    },
     {
       path: '/syl-manage',
       name: 'SyllabusesManage',
       component: SyllabusesManage,
       meta: { requiresAuth: true }
     },
-        {
+    {
       path: '/pcc/context',
       name: 'contextPCC',
       component: ContextPCC,
       meta: { requiresAuth: true }
     },
-            {
+    {
       path: '/pcc/focus',
       name: 'focusPCC',
       component: FocusPCC,
@@ -177,6 +178,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/pcc/validate',
+      name: 'validatePCC',
+      component: ValidatePCC,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
@@ -196,7 +203,7 @@ router.beforeEach((to, from, next) => {
       query: {
         message: `
             <p>Has d'introduir les credencials per accedir a aquesta pàgina.</p>`,
-            redirectTo: to.path
+        redirectTo: to.path
       }
     })
   } else {

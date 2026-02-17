@@ -116,13 +116,16 @@ export const useDataStore = defineStore('data', {
           const data = JSON.parse(localStorage.data)
           this.syllabus = { id: data.syllabusId }
           try {
-            const [respPCC, respCycle, respMod, respSyl] = await Promise.all([
-              api.getPCCByCycleId(data.cycleId),
+            const shouldLoadPccFromSyllabus = !window.location.pathname.startsWith('/pcc')
+            const [respCycle, respMod, respSyl, respPCC] = await Promise.all([
               api.getCycleById(data.cycleId),
               api.getModuleByCode(data.moduleCode),
-              api.getSyllabusById(data.syllabusId)
+              api.getSyllabusById(data.syllabusId),
+              shouldLoadPccFromSyllabus ? api.getPCCByCycleId(data.cycleId) : Promise.resolve(null)
             ])
-            this.pcc = respPCC.data
+            if (respPCC) {
+              this.pcc = respPCC.data
+            }
             this.cycle = respCycle.data
             this.filterModules()
             this.module = respMod.data
@@ -131,7 +134,7 @@ export const useDataStore = defineStore('data', {
             this.addMessage('error', error)
           }
         }
-        if (localStorage.pccCycleId) {
+        if (localStorage.pccCycleId && window.location.pathname.startsWith('/pcc')) {
           try {
             const response = await api.getPCCByCycleId(localStorage.pccCycleId)
             this.pcc = response.data

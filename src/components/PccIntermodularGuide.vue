@@ -56,6 +56,13 @@ const resetValidationErrors = () => {
   validationErrors.value = {}
 }
 
+const orientationErrors = ref({})
+const getOrientationErrors = (path) => orientationErrors.value[path] || []
+const hasOrientationError = (path) => getOrientationErrors(path).length > 0
+const resetOrientationErrors = () => {
+  orientationErrors.value = {}
+}
+
 // Temporalization options
 const tempOptions = [
   { value: 'center_attendance', label: 'Assistència al centre' },
@@ -262,6 +269,7 @@ const getUsedModuleCodesForLR = (lrId) => {
 }
 
 const openOrientationModal = (module, lr, orientation = null) => {
+  resetOrientationErrors()
   orientationForm.projectModuleCode = module.code
   orientationForm.projectModuleName = module.name
   orientationForm.courseLevel = module.courseLevel || 1
@@ -275,6 +283,7 @@ const openOrientationModal = (module, lr, orientation = null) => {
 
 const closeOrientationModal = () => {
   showOrientationModal.value = false
+  resetOrientationErrors()
   orientationForm.projectModuleCode = ''
   orientationForm.projectModuleName = ''
   orientationForm.courseLevel = null
@@ -302,6 +311,7 @@ const closeHelpOrientations = () => {
 }
 
 const saveOrientation = async () => {
+  resetOrientationErrors()
   if (!orientationForm.relatedModuleCode || !orientationForm.supportActivitiesGuidance.trim()) {
     return
   }
@@ -316,6 +326,18 @@ const saveOrientation = async () => {
     })
     if (result === 'ok') {
       closeOrientationModal()
+      return
+    }
+    if (result?.response?.status === 422) {
+      const violations = result.response.data?.violations || []
+      const nextErrors = {}
+      violations.forEach((violation) => {
+        if (!nextErrors[violation.propertyPath]) {
+          nextErrors[violation.propertyPath] = []
+        }
+        nextErrors[violation.propertyPath].push(violation.message)
+      })
+      orientationErrors.value = nextErrors
     }
   } finally {
     isLoading.value = false
@@ -791,7 +813,10 @@ const deleteOrientation = async (moduleCode, learningResultId, moduleLabel, raNu
                   <label class="form-label fw-bold">Mòdul relacionat (mateix curs)</label>
                   <select
                     v-model="orientationForm.relatedModuleCode"
-                    class="form-select"
+                    :class="[
+                      'form-select',
+                      { 'is-invalid': hasOrientationError('relatedModuleCode') }
+                    ]"
                     :disabled="isLoading || !!orientationForm.editingModuleCode"
                   >
                     <option value="">Selecciona un mòdul</option>
@@ -808,6 +833,17 @@ const deleteOrientation = async (moduleCode, learningResultId, moduleLabel, raNu
                       {{ module.code }} - {{ module.name }}
                     </option>
                   </select>
+                  <div
+                    v-if="hasOrientationError('relatedModuleCode')"
+                    class="invalid-feedback d-block"
+                  >
+                    <div
+                      v-for="(message, index) in getOrientationErrors('relatedModuleCode')"
+                      :key="index"
+                    >
+                      {{ message }}
+                    </div>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label fw-bold">
@@ -817,10 +853,24 @@ const deleteOrientation = async (moduleCode, learningResultId, moduleLabel, raNu
                   </label>
                   <textarea
                     v-model="orientationForm.supportActivitiesGuidance"
-                    class="form-control"
+                    :class="[
+                      'form-control',
+                      { 'is-invalid': hasOrientationError('supportActivitiesGuidance') }
+                    ]"
                     rows="5"
                     placeholder="Descriu les activitats de suport i orientació proposades..."
                   ></textarea>
+                  <div
+                    v-if="hasOrientationError('supportActivitiesGuidance')"
+                    class="invalid-feedback d-block"
+                  >
+                    <div
+                      v-for="(message, index) in getOrientationErrors('supportActivitiesGuidance')"
+                      :key="index"
+                    >
+                      {{ message }}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="modal-footer">

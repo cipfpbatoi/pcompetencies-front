@@ -146,6 +146,33 @@ const hasMethodologicalPrinciple = (principleId) => {
   return Boolean(getPccMethodologicalPrinciple(principleId))
 }
 
+const getPrincipleCategory = (principle) => {
+  const translations = {
+    principle: 'Principi',
+    focus: 'Enfocament',
+    methodology: 'Metodología'
+  }
+  if (principle?.category) return translations[principle.category] || principle.category
+  const added = getPccMethodologicalPrinciple(principle?.id)
+  const category = added?.methodologicalPrinciple?.category
+  return translations[category] || category || ''
+}
+
+const isMethodologyCategory = (category) => category === 'methodology'
+
+const getCategoryBadgeClass = (category) => {
+  switch (category) {
+    case 'principle':
+      return 'bg-primary'
+    case 'focus':
+      return 'bg-warning text-dark'
+    case 'methodology':
+      return 'bg-success'
+    default:
+      return 'bg-info text-dark'
+  }
+}
+
 const getMethodologicalPrincipleModules = (principleId) => {
   const principle = getPccMethodologicalPrinciple(principleId)
   return principle?.modules || []
@@ -289,18 +316,25 @@ watch(selectedIsMandatory, (value) => {
 // Guarda el principio metodológico seleccionado y abre el modal
 const openMP = (mode, mp) => {
   modalMode.value = mode
+  const defaultContextDescription =
+    !isMethodologyCategory(mp?.category) && mp?.description ? mp.description : ''
   modalFields.editMp =
     mode === 'add'
       ? {
           methodologicalPrincipleId: mp.id,
           methodologicalPrincipleName: mp.name,
-          contextDescription: '',
+          contextDescription: defaultContextDescription,
           moduleCodes: []
         }
       : {
           methodologicalPrincipleId: mp.methodologicalPrinciple.id,
           methodologicalPrincipleName: mp.methodologicalPrinciple.name,
-          contextDescription: mp.contextDescription,
+          contextDescription:
+            mp.contextDescription ||
+            (!isMethodologyCategory(mp.methodologicalPrinciple?.category) &&
+            mp.methodologicalPrinciple?.description
+              ? mp.methodologicalPrinciple.description
+              : ''),
           moduleCodes: (mp.modules || []).map((module) => module.code)
         }
   modalFields.editMp._mode = mode
@@ -559,6 +593,13 @@ onMounted(async () => {
                 <div class="d-flex align-items-center gap-2 mb-1">
                   <i class="bi bi-check-circle-fill text-success" title="Afegit"></i>
                   <strong>{{ principle.name }}</strong>
+                  <span
+                    v-if="getPrincipleCategory(principle)"
+                    class="badge"
+                    :class="getCategoryBadgeClass(principle.category)"
+                  >
+                    {{ getPrincipleCategory(principle) }}
+                  </span>
                   <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
                     Obligatori
                   </span>
@@ -634,6 +675,13 @@ onMounted(async () => {
                   ></i>
                   <i v-else class="bi bi-circle text-secondary" title="No afegit"></i>
                   <strong>{{ principle.name }}</strong>
+                  <span
+                    v-if="getPrincipleCategory(principle)"
+                    class="badge"
+                    :class="getCategoryBadgeClass(principle.category)"
+                  >
+                    {{ getPrincipleCategory(principle) }}
+                  </span>
                   <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
                     Obligatori
                   </span>

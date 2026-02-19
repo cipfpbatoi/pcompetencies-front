@@ -11,6 +11,12 @@ export default {
         this.user.info?.roles.includes('ROLE_ADMIN')
       )
     },
+    canManagePcc() {
+      return (
+        this.user.info?.roles.includes('ROLE_ADMIN') ||
+        this.user.info?.roles.includes('ROLE_DEVELOPER')
+      )
+    },
     isLogged() {
       return this.user.token
     },
@@ -68,7 +74,7 @@ export default {
                 >Gestionar programacions</RouterLink
               >
             </li>
-            <li>
+            <li v-if="canManagePcc">
               <RouterLink class="dropdown-item" to="/pcc/manage"
                 >Gestionar projectes curriculars</RouterLink
               >

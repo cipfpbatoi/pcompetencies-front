@@ -148,7 +148,7 @@ const hasMethodologicalPrinciple = (principleId) => {
 
 const getPrincipleCategory = (principle) => {
   const translations = {
-    principle: 'Principi',
+    principle: 'Principi Metodològic',
     focus: 'Enfocament',
     methodology: 'Metodología'
   }

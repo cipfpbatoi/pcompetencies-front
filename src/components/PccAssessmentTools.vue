@@ -308,7 +308,7 @@ watch(applyToAllModules, (nextValue) => {
 
 const confirmDelete = async () => {
   if (!deleteTarget.value) return
-  const toolId = deleteTarget.value.id || deleteTarget.value.assessmentTool?.id
+  const toolId = deleteTarget.value.assessmentTool?.id || deleteTarget.value.id
   if (!toolId) return
   isSaving.value = true
   try {
@@ -354,7 +354,7 @@ onMounted(() => {
             Encara no hi ha instruments afegits
           </li>
           <li v-for="tool in addedTools" :key="tool.id" class="list-group-item">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="tool-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2 mb-1">
                   <i class="bi bi-check-circle-fill text-success" title="Consensuat"></i>
@@ -383,7 +383,7 @@ onMounted(() => {
                   </span>
                 </div>
               </div>
-              <div class="btn-group-vertical" role="group">
+              <div class="tool-actions btn-group-vertical" role="group">
                 <button
                   @click="openEditModal(tool.original)"
                   class="btn btn-sm btn-outline-primary"
@@ -392,7 +392,6 @@ onMounted(() => {
                   <i class="bi bi-pencil"></i>
                 </button>
                 <button
-                  v-if="!tool.isMandatory"
                   @click="openDeleteConfirm(tool.original)"
                   class="btn btn-sm btn-outline-danger"
                   :disabled="isSaving"
@@ -438,7 +437,7 @@ onMounted(() => {
               :key="tool.assessmentTool.id"
               class="list-group-item"
             >
-              <div class="d-flex justify-content-between align-items-start">
+              <div class="tool-row d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center gap-2 mb-1">
                     <i
@@ -454,7 +453,7 @@ onMounted(() => {
                     </span>
                   </div>
                 </div>
-                <div class="btn-group-vertical" role="group">
+                <div class="tool-actions btn-group-vertical" role="group">
                   <button
                     @click="openEditModal(tool)"
                     class="btn btn-sm btn-primary"
@@ -475,7 +474,7 @@ onMounted(() => {
               No hi ha instruments pendents
             </li>
             <li v-for="tool in nonMandatoryPending" :key="tool.id" class="list-group-item">
-              <div class="d-flex justify-content-between align-items-start">
+              <div class="tool-row d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center gap-2 mb-1">
                     <i class="bi bi-circle text-secondary" title="No consensuat"></i>
@@ -485,7 +484,7 @@ onMounted(() => {
                     </span>
                   </div>
                 </div>
-                <div class="btn-group-vertical" role="group">
+                <div class="tool-actions btn-group-vertical" role="group">
                   <button
                     @click="openEditModal(tool)"
                     class="btn btn-sm btn-primary"
@@ -527,7 +526,8 @@ onMounted(() => {
                 <!-- Porcentaje -->
                 <div class="mb-3">
                   <label class="form-label fw-bold">
-                    Percentatge
+                    Percentatge mínim
+                    <span v-if="!editingTool.isMandatory" class="text-muted">(opcional)</span>
                     <span v-if="editingTool.minPercentage" class="text-danger">
                       (mínim: {{ editingTool.minPercentage }}%)
                     </span>
@@ -545,7 +545,7 @@ onMounted(() => {
                     {{ formErrors.percentage }}
                   </div>
                   <div class="form-text">
-                    Pots deixar-ho en blanc si no vols assignar un percentatge específic
+                    Pots deixar-ho en blanc si no vols assignar un percentatge mínim
                   </div>
                 </div>
 
@@ -701,5 +701,21 @@ onMounted(() => {
 
 .available-panel .card-body {
   padding: 0.75rem;
+}
+
+@media (max-width: 576px) {
+  .tool-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tool-actions {
+    align-self: center;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.5rem;
+  }
 }
 </style>

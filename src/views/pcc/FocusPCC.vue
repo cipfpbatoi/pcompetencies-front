@@ -94,7 +94,11 @@ const canEdit = computed(() => modalMode.value === 'add' || modalMode.value === 
 
 const mpModalConfig = computed(() => {
   let title = 'Principis metodològics'
-  if (modalMode.value === 'add') title = 'Afegir principi metodològic'
+  if (modalMode.value === 'add') {
+    title = selectedCategoryLabel.value
+      ? `Afegir ${selectedCategoryLabel.value}`
+      : 'Afegir principi metodològic'
+  }
   if (modalMode.value === 'edit') title = 'Editar principi metodològic'
   if (modalMode.value === 'view') title = 'Veure principi metodològic'
   if (modalMode.value === 'delete') title = 'Eliminar principi metodològic'
@@ -157,6 +161,24 @@ const getPrincipleCategory = (principle) => {
   const category = added?.methodologicalPrinciple?.category
   return translations[category] || category || ''
 }
+
+const selectedPrinciple = computed(() => {
+  const principleId = modalFields.editMp.methodologicalPrincipleId
+  if (!principleId) return null
+  const allPrinciples = [
+    ...methodologicalPrinciples.value.mandatory,
+    ...methodologicalPrinciples.value.nonMandatory
+  ]
+  const found = allPrinciples.find((principle) => principle.id === principleId)
+  if (found) return found
+  const added = getPccMethodologicalPrinciple(principleId)
+  return added?.methodologicalPrinciple || null
+})
+
+const selectedCategoryLabel = computed(() => {
+  if (!selectedPrinciple.value) return ''
+  return getPrincipleCategory(selectedPrinciple.value)
+})
 
 const isMethodologyCategory = (category) => category === 'methodology'
 
@@ -441,6 +463,10 @@ onMounted(async () => {
       @save="saveMpData"
     >
       <form v-if="hasSelection">
+        <div v-if="modalMode === 'add' && selectedCategoryLabel" class="alert alert-info mb-3">
+          <i class="bi bi-plus-circle-fill me-2"></i>
+          Afegir "{{ selectedCategoryLabel }}"
+        </div>
         <div v-if="selectedIsMandatory" class="alert alert-danger mb-3">
           <i class="bi bi-exclamation-triangle-fill me-2"></i>
           <strong>Principi obligatori</strong> pel Projecte Funcional del centre
@@ -449,7 +475,9 @@ onMounted(async () => {
           Estàs a punt d'eliminar aquest principi del PCC.
         </div>
         <div class="mb-3">
-          <label for="mpMethodologicalPrincipleId" class="form-label">Principi metodològic</label>
+          <label for="mpMethodologicalPrincipleId" class="form-label">
+            {{ selectedCategoryLabel || 'Principi metodològic' }}
+          </label>
           <input
             type="text"
             class="form-control"
@@ -588,7 +616,7 @@ onMounted(async () => {
             Encara no hi ha principis afegits
           </li>
           <li v-for="principle in combinedAdded" :key="principle.id" class="list-group-item">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="principle-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2 mb-1">
                   <i class="bi bi-check-circle-fill text-success" title="Afegit"></i>
@@ -625,7 +653,7 @@ onMounted(async () => {
                   </div>
                 </div>
               </div>
-              <div class="btn-group-vertical" role="group">
+              <div class="principle-actions btn-group-vertical" role="group">
                 <button
                   @click="openMethodologicalPrinciple(principle)"
                   class="btn btn-sm btn-outline-primary"
@@ -665,7 +693,7 @@ onMounted(async () => {
             No hi ha principis pendents
           </li>
           <li v-for="principle in combinedPending" :key="principle.id" class="list-group-item">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="principle-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2">
                   <i
@@ -688,7 +716,7 @@ onMounted(async () => {
                   <span v-else class="badge bg-secondary">No obligatori</span>
                 </div>
               </div>
-              <div class="btn-group-vertical" role="group">
+              <div class="principle-actions btn-group-vertical" role="group">
                 <button
                   @click="openMethodologicalPrinciple(principle)"
                   class="btn btn-sm btn-primary"
@@ -821,5 +849,21 @@ onMounted(async () => {
 
 .help-close-btn {
   font-size: 1rem;
+}
+
+@media (max-width: 576px) {
+  .principle-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .principle-actions {
+    align-self: center;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.5rem;
+  }
 }
 </style>

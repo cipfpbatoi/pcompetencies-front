@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { isTokenExpired, clearAuthStorage } from '../utils/auth.js'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 const instance = axios.create({
@@ -10,6 +11,17 @@ instance.interceptors.request.use(
   (config) => {
     const token = localStorage.token
     if (token) {
+      if (isTokenExpired(token)) {
+        clearAuthStorage()
+        if (!['/login', '/login/'].includes(window.location.pathname)) {
+          localStorage.redirect = JSON.stringify({
+            path: window.location.pathname,
+            message: 'La sessió ha caducat. Per favor, loguejat de nou'
+          })
+          window.location.replace('/login')
+        }
+        return Promise.reject(new Error('Token expired'))
+      }
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -31,8 +43,8 @@ instance.interceptors.response.use(
       if (isExpiredJWT && !localStorage.getItem('token')) {
         return
       }
-      localStorage.removeItem('token')
-      if (!['login/', '/login'].includes(window.location.pathname)) {
+      clearAuthStorage()
+      if (!['/login', '/login/'].includes(window.location.pathname)) {
         localStorage.redirect = JSON.stringify({
           path: window.location.pathname,
           message: isExpiredJWT

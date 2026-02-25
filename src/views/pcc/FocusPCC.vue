@@ -618,21 +618,23 @@ onMounted(async () => {
           <li v-for="principle in combinedAdded" :key="principle.id" class="list-group-item">
             <div class="principle-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="d-flex align-items-center gap-2 mb-1 principle-title-row">
                   <i class="bi bi-check-circle-fill text-success" title="Afegit"></i>
-                  <strong>{{ principle.name }}</strong>
-                  <span
-                    v-if="getPrincipleCategory(principle)"
-                    class="badge"
-                    :class="getCategoryBadgeClass(principle.category)"
-                  >
-                    {{ getPrincipleCategory(principle) }}
-                  </span>
-                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
-                    Obligatori
-                  </span>
-                  <span v-else class="badge bg-secondary">No obligatori</span>
-                  <span class="badge bg-success">Afegit</span>
+                  <strong class="principle-title">{{ principle.name }}</strong>
+                  <div class="principle-badges d-flex align-items-center gap-1">
+                    <span
+                      v-if="getPrincipleCategory(principle)"
+                      class="badge"
+                      :class="getCategoryBadgeClass(principle.category)"
+                    >
+                      {{ getPrincipleCategory(principle) }}
+                    </span>
+                    <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                      Obligatori
+                    </span>
+                    <span v-else class="badge bg-secondary">No obligatori</span>
+                    <span class="badge bg-success">Afegit</span>
+                  </div>
                 </div>
                 <div class="mt-2">
                   <span
@@ -695,25 +697,27 @@ onMounted(async () => {
           <li v-for="principle in combinedPending" :key="principle.id" class="list-group-item">
             <div class="principle-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 principle-title-row">
                   <i
                     v-if="isMandatoryPrinciple(principle.id)"
                     class="bi bi-exclamation-circle-fill text-warning"
                     title="Pendent"
                   ></i>
                   <i v-else class="bi bi-circle text-secondary" title="No afegit"></i>
-                  <strong>{{ principle.name }}</strong>
-                  <span
-                    v-if="getPrincipleCategory(principle)"
-                    class="badge"
-                    :class="getCategoryBadgeClass(principle.category)"
-                  >
-                    {{ getPrincipleCategory(principle) }}
-                  </span>
-                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
-                    Obligatori
-                  </span>
-                  <span v-else class="badge bg-secondary">No obligatori</span>
+                  <strong class="principle-title">{{ principle.name }}</strong>
+                  <div class="principle-badges d-flex align-items-center gap-1">
+                    <span
+                      v-if="getPrincipleCategory(principle)"
+                      class="badge"
+                      :class="getCategoryBadgeClass(principle.category)"
+                    >
+                      {{ getPrincipleCategory(principle) }}
+                    </span>
+                    <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                      Obligatori
+                    </span>
+                    <span v-else class="badge bg-secondary">No obligatori</span>
+                  </div>
                 </div>
               </div>
               <div class="principle-actions btn-group-vertical" role="group">
@@ -855,6 +859,16 @@ onMounted(async () => {
   .principle-row {
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .principle-title-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .principle-badges {
+    flex-basis: 100%;
+    width: 100%;
   }
 
   .principle-actions {

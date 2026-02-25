@@ -184,13 +184,20 @@ export default {
         this.addMessage('error', error)
       }
     },
-    openPcc(pcc) {
+    async openPcc(pcc) {
       const cycleId = this.getCycleId(pcc)
       if (!cycleId) {
         this.addMessage('error', "No s'ha pogut determinar el cicle del PCC")
         return
       }
       localStorage.pccCycleId = cycleId
+      this.loading = true
+      const refreshed = await this.refreshPccByCycleId(cycleId)
+      this.loading = false
+      if (!refreshed) {
+        this.addMessage('error', "No s'ha pogut carregar el PCC")
+        return
+      }
       this.$router.push('/pcc/context')
     }
   }

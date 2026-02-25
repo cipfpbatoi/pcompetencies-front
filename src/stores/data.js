@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '../repositories/api.js'
+import { isTokenExpired } from '../utils/auth.js'
 
 const DELMSG_TIMEOUT = 8000
 let id = 1
@@ -110,6 +111,12 @@ export const useDataStore = defineStore('data', {
       }
     },
     async loadData() {
+      if (!localStorage.token || isTokenExpired(localStorage.token)) {
+        if (localStorage.token) {
+          this.logoutUser()
+        }
+        return
+      }
       if (localStorage.token) {
         this.user.token = localStorage.token
         if (localStorage.data) {

@@ -170,6 +170,23 @@ const isFormValid = computed(() => {
   return true
 })
 
+const getAddedToolBadgeCount = (tool) => {
+  let count = 1
+  if (tool.isMandatory) count += 1
+  if (tool.minPercentage) count += 1
+  return count
+}
+
+const getMandatoryPendingBadgeCount = (tool) => {
+  let count = 1
+  if (tool.minPercentage) count += 1
+  return count
+}
+
+const getNonMandatoryPendingBadgeCount = (tool) => {
+  return tool.minPercentage ? 1 : 0
+}
+
 // Métodos
 const loadData = async () => {
   isLoading.value = true
@@ -356,14 +373,19 @@ onMounted(() => {
           <li v-for="tool in addedTools" :key="tool.id" class="list-group-item">
             <div class="tool-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2 mb-1">
+                <div
+                  class="d-flex align-items-center gap-2 mb-1 tool-title-row"
+                  :class="{ 'tool-title-row--wrap': getAddedToolBadgeCount(tool) > 1 }"
+                >
                   <i class="bi bi-check-circle-fill text-success" title="Consensuat"></i>
-                  <strong>{{ tool.name + ' (' + tool.code + ')' }}</strong>
-                  <span v-if="tool.isMandatory" class="badge bg-danger">Obligatori</span>
-                  <span class="badge bg-success">Afegit</span>
-                  <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
-                    Mínim: {{ tool.minPercentage }}% IC
-                  </span>
+                  <strong class="tool-title">{{ tool.name + ' (' + tool.code + ')' }}</strong>
+                  <div class="tool-badges d-flex align-items-center gap-1">
+                    <span v-if="tool.isMandatory" class="badge bg-danger">Obligatori</span>
+                    <span class="badge bg-success">Afegit</span>
+                    <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
+                      Mínim: {{ tool.minPercentage }}% IC
+                    </span>
+                  </div>
                 </div>
                 <div class="mt-2">
                   <span
@@ -439,7 +461,10 @@ onMounted(() => {
             >
               <div class="tool-row d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
-                  <div class="d-flex align-items-center gap-2 mb-1">
+                  <div
+                    class="d-flex align-items-center gap-2 mb-1 tool-title-row"
+                    :class="{ 'tool-title-row--wrap': getMandatoryPendingBadgeCount(tool) > 1 }"
+                  >
                     <i
                       class="bi bi-exclamation-circle-fill text-warning"
                       title="Obligatori - pendent de configurar"
@@ -447,10 +472,12 @@ onMounted(() => {
                     <strong>{{
                       tool.assessmentTool.name + ' (' + tool.assessmentTool.code + ')'
                     }}</strong>
-                    <span class="badge bg-danger">Obligatori</span>
-                    <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
-                      Mínim: {{ tool.minPercentage }}% IC
-                    </span>
+                    <div class="tool-badges d-flex align-items-center gap-1">
+                      <span class="badge bg-danger">Obligatori</span>
+                      <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
+                        Mínim: {{ tool.minPercentage }}% IC
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div class="tool-actions btn-group-vertical" role="group">
@@ -476,12 +503,17 @@ onMounted(() => {
             <li v-for="tool in nonMandatoryPending" :key="tool.id" class="list-group-item">
               <div class="tool-row d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
-                  <div class="d-flex align-items-center gap-2 mb-1">
+                  <div
+                    class="d-flex align-items-center gap-2 mb-1 tool-title-row"
+                    :class="{ 'tool-title-row--wrap': getNonMandatoryPendingBadgeCount(tool) > 1 }"
+                  >
                     <i class="bi bi-circle text-secondary" title="No consensuat"></i>
-                    <strong>{{ tool.name + ' (' + tool.code + ')' }}</strong>
-                    <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
-                      Mínim: {{ tool.minPercentage }}% IC
-                    </span>
+                    <strong class="tool-title">{{ tool.name + ' (' + tool.code + ')' }}</strong>
+                    <div class="tool-badges d-flex align-items-center gap-1">
+                      <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
+                        Mínim: {{ tool.minPercentage }}% IC
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div class="tool-actions btn-group-vertical" role="group">
@@ -704,6 +736,16 @@ onMounted(() => {
 }
 
 @media (max-width: 576px) {
+  .tool-title-row--wrap {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .tool-title-row--wrap .tool-badges {
+    flex-basis: 100%;
+    width: 100%;
+  }
+
   .tool-row {
     flex-direction: column;
     gap: 0.75rem;

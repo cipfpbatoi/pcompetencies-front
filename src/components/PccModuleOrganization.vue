@@ -390,19 +390,19 @@ const hoursSum = computed(() => {
       </div>
 
       <div class="col-12 col-lg-6">
-        <div v-if="languageChart">
+        <div v-if="languageChart" class="language-chart-panel w-100">
           <div class="d-flex align-items-center mb-2">
             <i class="bi bi-translate me-2"></i>
             <h6 class="mb-0">Idioma seleccionat als mòduls</h6>
           </div>
-          <div class="d-flex flex-column flex-md-row gap-3 align-items-start">
+          <div class="d-flex flex-column flex-md-row gap-3 align-items-start w-100">
             <div class="language-donut" :style="languageDonutStyle">
               <div class="language-donut__center">
                 <div class="fw-bold">{{ languageChart.totalHours }}h</div>
                 <div class="small text-muted">Setmanals</div>
               </div>
             </div>
-            <div class="flex-grow-1">
+            <div class="flex-grow-1 w-100">
               <div
                 v-for="segment in languageChart.segments"
                 :key="segment.key"
@@ -856,5 +856,23 @@ const hoursSum = computed(() => {
   border-radius: 50%;
   display: inline-block;
   margin-right: 8px;
+}
+
+@media (max-width: 576px) {
+  .language-chart-panel {
+    padding: 0.75rem;
+  }
+
+  .language-donut {
+    width: 50%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+  }
+
+  .language-donut__center {
+    width: 62%;
+    height: 62%;
+  }
 }
 </style>

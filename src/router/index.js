@@ -25,6 +25,7 @@ import CriteriaPCC from '../views/pcc/CriteriaPCC.vue'
 import IntermodularPCC from '../views/pcc/IntermodularPCC.vue'
 import ValidatePCC from '../views/pcc/ValidatePCC.vue'
 import PccManage from '../views/pcc/PccManage.vue'
+import { isTokenExpired, clearAuthStorage } from '../utils/auth.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -199,17 +200,23 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.token
+  const token = localStorage.token
+  const isExpired = token ? isTokenExpired(token) : false
+  const isAuthenticated = token && !isExpired
 
   if (to.meta.requiresAuth && !isAuthenticated) {
+    if (token && isExpired) {
+      clearAuthStorage()
+    }
     if (!['/', '/login'].includes(to.fullPath)) {
       localStorage.setItem('redirectPath', to.fullPath)
     }
     next({
       name: 'login',
       query: {
-        message: `
-            <p>Has d'introduir les credencials per accedir a aquesta pàgina.</p>`,
+        message: isExpired
+          ? `<p>La sessió ha caducat. Per favor, loguejat de nou.</p>`
+          : `<p>Has d'introduir les credencials per accedir a aquesta pàgina.</p>`,
         redirectTo: to.path
       }
     })

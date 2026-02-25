@@ -66,7 +66,7 @@ export default {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            Cap de Departament
+            Gestió
           </a>
           <ul class="dropdown-menu">
             <li>
@@ -78,6 +78,9 @@ export default {
               <RouterLink class="dropdown-item" to="/pcc/manage"
                 >Gestionar projectes curriculars</RouterLink
               >
+            </li>
+            <li v-if="user.info?.roles.includes('ROLE_ADMIN')">
+              <RouterLink class="dropdown-item" to="/pcc/stats">Estadistiques PCC</RouterLink>
             </li>
           </ul>
         </li>

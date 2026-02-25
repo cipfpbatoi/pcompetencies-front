@@ -97,6 +97,8 @@ export const api = {
   pccReject: (id, data) => instance.post(`/pcc/${id}/reject`, data),
   pccApprove: (id) => instance.post(`/pcc/${id}/approve`, {}),
   pccVerify: (id) => instance.post(`/pcc/${id}/verify`, {}),
+  getPccStats: () => instance.get('/pcc/stats'),
+  getPccDepartmentStats: (departmentId) => instance.get(`/pcc/department/${departmentId}/stats`),
 
   getPCCMethodologicalPrinciples: (pccId, mpContext) =>
     instance.get(`/pcc/${pccId}/mp-context`, mpContext),

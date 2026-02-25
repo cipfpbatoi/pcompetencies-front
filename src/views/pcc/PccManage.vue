@@ -59,6 +59,11 @@ export default {
     },
     formatStatus(status) {
       const labels = {
+        pendent: 'pendent',
+        enviat: 'enviat',
+        aprovat: 'aprovat',
+        rebutjat: 'rebutjat',
+        verificat: 'verificat',
         pending: 'pendent',
         sent: 'enviat',
         approved: 'aprovat',

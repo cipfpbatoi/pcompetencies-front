@@ -25,6 +25,7 @@ import CriteriaPCC from '../views/pcc/CriteriaPCC.vue'
 import IntermodularPCC from '../views/pcc/IntermodularPCC.vue'
 import ValidatePCC from '../views/pcc/ValidatePCC.vue'
 import PccManage from '../views/pcc/PccManage.vue'
+import PccStats from '../views/pcc/PccStats.vue'
 import { isTokenExpired, clearAuthStorage } from '../utils/auth.js'
 
 const router = createRouter({
@@ -189,6 +190,12 @@ const router = createRouter({
       path: '/pcc/manage',
       name: 'pccManage',
       component: PccManage,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/stats',
+      name: 'pccStats',
+      component: PccStats,
       meta: { requiresAuth: true }
     },
     {

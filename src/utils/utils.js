@@ -47,17 +47,25 @@ function statusClass(status) {
       return 'badge bg-warning'
     case 'enviada':
       return 'badge bg-info'
+    case 'enviat':
+      return 'badge bg-info'
     case 'sent':
       return 'badge bg-info'
     case 'rebutjada':
+      return 'badge bg-danger'
+    case 'rebutjat':
       return 'badge bg-danger'
     case 'rejected':
       return 'badge bg-danger'
     case 'aprovada':
       return 'badge bg-success'
+    case 'aprovat':
+      return 'badge bg-success'
     case 'approved':
       return 'badge bg-success'
     case 'verified':
+      return 'badge bg-success'
+    case 'verificat':
       return 'badge bg-success'
     default:
       return 'badge bg-dark'

@@ -91,6 +91,7 @@ export const api = {
       },
       responseType: 'blob'
     }),
+  getApprovedDocumentsByPccId: (pccId) => instance.get(`/pcc/${pccId}/approvedDocument`),
   pccValidate: (id) => instance.post(`/pcc/${id}/valida`, {}),
   pccSend: (id) => instance.post(`/pcc/${id}/send`, {}),
   pccPending: (id) => instance.post(`/pcc/${id}/pending`, {}),
@@ -232,6 +233,11 @@ export const api = {
 
   getApprovedDocumentPdf: (approvedDocumentId) =>
     axios.get(`${BASE_URL}public/syllabus/approvedDocument/${approvedDocumentId}`, {
+      responseType: 'blob'
+    }),
+
+  getApprovedPccDocumentPdf: (pccId, approvedDocumentId) =>
+    instance.get(`/pcc/${pccId}/approvedDocument/${approvedDocumentId}`, {
       responseType: 'blob'
     }),
 

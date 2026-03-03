@@ -229,6 +229,8 @@ onMounted(() => {
         <ShowPdfButton
           type="pcc"
           :pcc="pcc"
+          :cycle="cycle"
+          :center-code="cycle?.center?.code || cycle?.centerCode"
           title="Veure esborrany del PCC"
           buttonClass="btn btn-danger col-sm-5 col-12"
         />

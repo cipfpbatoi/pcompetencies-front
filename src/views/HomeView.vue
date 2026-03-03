@@ -18,6 +18,7 @@ import ActionButton from '../components/ActionButton.vue'
 import ShowPdfButton from '../components/ShowPdfButton.vue'
 import BtnGetExcel from '../components/BtnGetExcel.vue'
 import HistorySyllabusList from '../components/HistorySyllabusList.vue'
+import HistoryPccList from '../components/HistoryPccList.vue'
 
 // ==========================================
 // 🏪 STORE & ROUTER
@@ -50,7 +51,7 @@ const {
   openPdf
 } = useSyllabusManagement()
 
-const { pcc, isLoadingPCC, hasLoadedPCC, startPCCLoading, loadPCC, hasPCC, createPCC } =
+const { pcc, isLoadingPCC, hasLoadedPCC, startPCCLoading, loadPCC, hasPCC, createPCC, copyPccUrl } =
   usePCCManagement()
 
 const { canEdit } = useDateValidation(currentData)
@@ -79,6 +80,10 @@ const canEditPcc = computed(() => {
 
 const isPccRejected = computed(() => {
   return ['rejected', 'rebutjat', 'rebutjada'].includes(pcc.value?.status)
+})
+
+const isPccApproved = computed(() => {
+  return ['approved', 'aprovat'].includes(pcc.value?.status)
 })
 
 const pccRejectionReason = computed(() => {
@@ -306,16 +311,17 @@ const initializeComponent = async () => {
 }
 
 const restoreStateFromRoute = async () => {
-  const { cycleId, moduleCode } = route.params
+  const routeCycleId = route.params.cycleId || route.query.cycleId
+  const routeModuleCode = route.params.moduleCode || route.query.moduleCode
 
-  if (cycleId || cycle.value.id) {
-    cycleSelect.value = cycleId || cycle.value.id
+  if (routeCycleId || cycle.value.id) {
+    cycleSelect.value = routeCycleId || cycle.value.id
     startPCCLoading()
     await handleCycleChange()
     await loadPCC(cycleSelect.value)
 
-    if (moduleCode || module.value.code) {
-      moduleSelect.value = moduleCode || module.value.code
+    if (routeModuleCode || module.value.code) {
+      moduleSelect.value = routeModuleCode || module.value.code
       await loadSyllabuses(cycleSelect.value, moduleSelect.value)
     }
   }
@@ -454,10 +460,7 @@ const getTurnLabel = (turn) => {
       </div>
 
       <!-- ✅ SECCIÓN PCC -->
-      <div
-        v-if="cycleSelect && !isIntermodularProjectModule && canSeePccPanel"
-        class="form-group mt-4"
-      >
+      <div v-if="cycleSelect && canSeePccPanel" class="form-group mt-4">
         <div class="card">
           <div class="card-header pcc text-white fw-bold">
             <i class="bi bi-file-earmark-text-fill me-2"></i> Projecte Curricular de Cicle (PCC)
@@ -469,53 +472,108 @@ const getTurnLabel = (turn) => {
               <p class="mt-2 text-muted">Carregant PCC...</p>
             </div>
             <!-- Contenido cuando no está cargando -->
-            <div v-else-if="hasLoadedPCC" class="d-flex flex-column align-items-center gap-2">
-              <!-- PCC Existe: Mostrar botones de acción -->
-              <template v-if="hasPCC()">
-                <ActionButton
-                  title="Editar PCC"
-                  buttonClass="btn-success text-white col-12 col-sm-auto"
-                  iconClass="bi bi-pencil-fill"
-                  :status="pcc.status"
-                  :status-label="pccStatusLabel"
-                  :disabled="!canEditPcc"
-                  @clicked="handleEditPCC"
-                />
-                <ShowPdfButton
-                  type="pcc"
-                  :pcc="pcc"
-                  title="Veure PDF del PCC"
-                  buttonClass="btn btn-danger col-12 col-sm-auto"
-                  @waiting="isLoadingPCC = $event"
-                />
-                <!-- <span class="badge bg-success align-self-center fs-6">
-                  <i class="bi bi-check-circle-fill me-1"></i>
-                  PCC Creat
-                </span> -->
-              </template>
-              <!-- PCC No Existe: Botón de crear -->
-              <template v-else>
-                <ActionButton
-                  title="Crear nou PCC"
-                  buttonClass="btn-success col-12 col-sm-auto"
-                  iconClass="bi bi-plus-circle-fill"
-                  @clicked="handleCreatePCC"
-                />
-                <!-- <span class="badge bg-warning text-dark align-self-center fs-6">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                    Sense PCC
-                  </span> -->
-              </template>
-            </div>
-            <div v-if="isPccRejected && pccRejectionReason" class="alert alert-danger mt-3">
-              <strong>Rebutjat!</strong> Motiu: {{ pccRejectionReason }}
-            </div>
-            <!-- Información adicional -->
-            <div v-if="hasPCC()" class="mt-3">
-              <small class="text-muted">
-                <i class="bi bi-info-circle me-1"></i> Última modificació:
-                {{ pcc.updatedAt ? new Date(pcc.updatedAt).toLocaleDateString('ca-ES') : 'N/A' }}
-              </small>
+            <div v-else-if="hasLoadedPCC">
+              <ul class="nav nav-tabs justify-content-center" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    data-bs-target="#pcc-current"
+                    data-bs-toggle="tab"
+                    type="button"
+                    role="tab"
+                  >
+                    <i class="bi bi-file-earmark-text"></i>
+                    PCC actual
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    data-bs-target="#pcc-history"
+                    data-bs-toggle="tab"
+                    type="button"
+                    role="tab"
+                  >
+                    <i class="bi bi-clock-history"></i> Historic
+                  </button>
+                </li>
+              </ul>
+
+              <div class="tab-content mt-3">
+                <div id="pcc-current" class="tab-pane fade show active text-center" role="tabpanel">
+                  <div class="d-flex flex-column align-items-center gap-2">
+                    <!-- PCC Existe: Mostrar botones de acción -->
+                    <template v-if="hasPCC()">
+                      <ActionButton
+                        title="Editar PCC"
+                        buttonClass="btn-success text-white col-12 col-sm-auto"
+                        iconClass="bi bi-pencil-fill"
+                        :status="pcc.status"
+                        :status-label="pccStatusLabel"
+                        :disabled="!canEditPcc"
+                        @clicked="handleEditPCC"
+                      />
+                      <ShowPdfButton
+                        type="pcc"
+                        :pcc="pcc"
+                        :cycle="cycle"
+                        :center-code="cycle?.center?.code || cycle?.centerCode"
+                        title="Veure PDF del PCC"
+                        buttonClass="btn btn-danger col-12 col-sm-auto"
+                      />
+                      <div
+                        v-if="isPccApproved"
+                        class="alert alert-info col-12 col-lg-10 text-center m-auto mt-2"
+                      >
+                        Este PCC ja està aprovat i, per tant, és públic. Pots copiar l'enllaç per a
+                        passar-li-ho a qui corresponga.
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-sm"
+                          title="Copiar enllaç"
+                          @click="copyPccUrl(pcc, cycle, user)"
+                        >
+                          <i class="bi bi-copy"></i>
+                        </button>
+                      </div>
+                      <!-- <span class="badge bg-success align-self-center fs-6">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        PCC Creat
+                      </span> -->
+                    </template>
+                    <!-- PCC No Existe: Botón de crear -->
+                    <template v-else>
+                      <ActionButton
+                        title="Crear nou PCC"
+                        buttonClass="btn-success col-12 col-sm-auto"
+                        iconClass="bi bi-plus-circle-fill"
+                        @clicked="handleCreatePCC"
+                      />
+                      <!-- <span class="badge bg-warning text-dark align-self-center fs-6">
+                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                          Sense PCC
+                        </span> -->
+                    </template>
+                  </div>
+                  <div v-if="isPccRejected && pccRejectionReason" class="alert alert-danger mt-3">
+                    <strong>Rebutjat!</strong> Motiu: {{ pccRejectionReason }}
+                  </div>
+                  <!-- Información adicional -->
+                  <div v-if="hasPCC()" class="mt-3">
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle me-1"></i> Última modificació:
+                      {{
+                        pcc.updatedAt ? new Date(pcc.updatedAt).toLocaleDateString('ca-ES') : 'N/A'
+                      }}
+                    </small>
+                  </div>
+                </div>
+
+                <div id="pcc-history" class="tab-pane fade text-center" role="tabpanel">
+                  <HistoryPccList v-if="hasPCC()" :pcc-id="pcc.id" :pcc="pcc" :cycle="cycle" />
+                  <div v-else class="alert alert-secondary mt-3">No hi ha PCC disponible.</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

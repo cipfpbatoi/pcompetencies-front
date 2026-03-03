@@ -91,6 +91,32 @@ export function usePCCManagement() {
     }
   }
 
+  const copyPccUrl = async (pcc, cycle, user) => {
+    const centerCode =
+      pcc?.center?.code ||
+      pcc?.centerCode ||
+      pcc?.cycle?.center?.code ||
+      pcc?.cycle?.centerCode ||
+      cycle?.center?.code ||
+      cycle?.centerCode ||
+      user?.info?.center?.code ||
+      user?.info?.centerCode ||
+      user?.info?.department?.center?.code ||
+      user?.info?.department?.centerCode
+    const cycleId = pcc?.cycle?.id || cycle?.id
+    if (!centerCode || !cycleId) {
+      store.addMessage('error', "No s'ha pogut generar l'enllaç public del PCC")
+      return
+    }
+    const url = `${window.location.origin}/api/public/pcc/${centerCode}/${cycleId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      store.addMessage('success', 'Enllaç copiat al portapapers')
+    } catch (error) {
+      store.addMessage('error', `Error al copiar: ${error}`)
+    }
+  }
+
   return {
     pcc,
     isLoadingPCC,
@@ -101,6 +127,7 @@ export function usePCCManagement() {
     createPCC,
     editPCC,
     addModulesToPCC,
-    removeModuleFromPCC
+    removeModuleFromPCC,
+    copyPccUrl
   }
 }

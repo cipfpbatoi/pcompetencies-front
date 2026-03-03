@@ -203,7 +203,7 @@ export default {
         this.addMessage('error', "No s'ha pogut carregar el PCC")
         return
       }
-      this.$router.push('/pcc/context')
+      this.$router.push({ name: 'selectSyllabus', query: { cycleId } })
     }
   }
 }

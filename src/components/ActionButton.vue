@@ -20,6 +20,10 @@ export default {
     iconClass: {
       type: String,
       default: null
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
@@ -34,9 +38,17 @@ export default {
 </script>
 
 <template>
-  <button @click="handleClick" class="btn btn-primary position-relative" :class="buttonClass">
-    <i v-if="iconClass" :class="iconClass"></i>
-    {{ title }}
+  <button
+    @click="handleClick"
+    class="btn btn-primary position-relative"
+    :class="buttonClass"
+    :disabled="disabled"
+  >
+    <slot v-if="$slots.default"></slot>
+    <template v-else>
+      <i v-if="iconClass" :class="iconClass"></i>
+      {{ title }}
+    </template>
     <span
       v-if="status"
       class="position-absolute top-0 start-100 translate-middle badge rounded-pill border"

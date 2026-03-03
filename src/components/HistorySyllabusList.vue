@@ -16,8 +16,8 @@
       <tbody>
         <tr v-for="(item, index) in syllabusHistory" :key="index">
           <td>{{ item.schoolYear.course }}</td>
-          <td>{{ item.fileVersions[0].version }}</td>
-          <td>{{ formatDate(item.fileVersions[0].createdOn.date) }}</td>
+          <td>{{ formatVersion(item.lastVersion, item.versionsCount) }}</td>
+          <td>{{ formatDate(item.lastVersion?.createdOn?.date) }}</td>
           <td class="text-center">
             <button
               class="btn btn-outline-danger btn-sm"
@@ -72,8 +72,13 @@ export default {
         const filtered = response.data
           .filter((doc) => !doc.schoolYear.effective)
           .map((doc) => {
-            const lastVersion = doc.fileVersions.sort((a, b) => b.version - a.version)[0]
-            return { ...doc, fileVersions: [lastVersion] }
+            const versions = Array.isArray(doc.fileVersions) ? [...doc.fileVersions] : []
+            const lastVersion = versions.sort((a, b) => b.version - a.version)[0] || null
+            return {
+              ...doc,
+              lastVersion,
+              versionsCount: versions.length
+            }
           })
         this.syllabusHistory = filtered.sort((a, b) =>
           a.schoolYear.course.localeCompare(b.schoolYear.course)
@@ -86,6 +91,9 @@ export default {
     },
 
     formatDate(dateStr) {
+      if (!dateStr) {
+        return '-'
+      }
       const date = new Date(dateStr)
       return date.toLocaleString('ca-ES', {
         day: '2-digit',
@@ -94,6 +102,13 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+
+    formatVersion(version, count) {
+      if (!version?.version) {
+        return '-'
+      }
+      return `v${version.version}`
     },
 
     async downloadPdf(approvedDocumentId) {

@@ -18,6 +18,14 @@ const props = defineProps({
     type: Object,
     default: null
   },
+  cycle: {
+    type: Object,
+    default: null
+  },
+  centerCode: {
+    type: String,
+    default: ''
+  },
   // Tipo de documento: 'syllabus' | 'pcc'
   type: {
     type: String,
@@ -67,15 +75,43 @@ const getDocumentData = () => {
   return props.syllabus
 }
 
+const sanitizeFilePart = (value) => {
+  if (!value) return ''
+  const noSpaces = String(value).replace(/\s+/g, '')
+  const normalized = noSpaces.normalize ? noSpaces.normalize('NFD') : noSpaces
+  const withoutDiacritics = normalized.replace(/[\u0300-\u036f]/g, '')
+  return withoutDiacritics.replace(/[^A-Za-z0-9_-]/g, '')
+}
+
 // Generar nombre del archivo
 const generateFileName = () => {
   const doc = getDocumentData()
-  
+
   if (props.type === 'pcc') {
-    // Nombre para PCC: CentreCode-CycleShortName-CourseYear-PCC.pdf
-    return `${doc.center?.code || 'PCC'}-${doc.cycle?.shortName?.split(' ').join('_') || 'Cicle'}-${doc.courseYear || new Date().getFullYear()}-PCC.pdf`
+    const centerCodeRaw =
+      props.centerCode ||
+      doc.center?.code ||
+      doc.centerCode ||
+      doc.cycle?.center?.code ||
+      doc.cycle?.centerCode ||
+      props.cycle?.center?.code ||
+      props.cycle?.centerCode ||
+      'PCC'
+    const cycleShortNameRaw =
+      doc.cycle?.shortName ||
+      doc.cycle?.completeName ||
+      doc.cycle?.name ||
+      props.cycle?.shortName ||
+      props.cycle?.completeName ||
+      props.cycle?.name
+    const centerCode = sanitizeFilePart(centerCodeRaw || 'PCC')
+    const cycleShortName = sanitizeFilePart(cycleShortNameRaw || 'Cicle')
+    const courseYear = doc.courseYear || new Date().getFullYear()
+    const isDraft = ['pending', 'pendent'].includes(doc.status)
+    const draftPart = isDraft ? '-borrador' : ''
+    return `${centerCode}-${cycleShortName}-${courseYear}-PCC${draftPart}.pdf`
   }
-  
+
   // Nombre para Syllabus (original)
   return `${doc.center.code}-${doc.cycle.shortName.split(' ').join('_')}-${doc.module.code}-${doc.courseYear}-${doc.turn}.pdf`
 }
@@ -83,11 +119,11 @@ const generateFileName = () => {
 // Obtener PDF desde API
 const fetchPdf = async () => {
   const doc = getDocumentData()
-  
+
   if (props.type === 'pcc') {
     return await api.getPCCPdf(doc.id) // Nuevo método API para PCC
   }
-  
+
   return await api.getPdf(doc.id) // Método existente para Syllabus
 }
 
@@ -106,9 +142,9 @@ const showPdf = async () => {
   try {
     // Obtener PDF desde API
     const response = await fetchPdf()
-    
+
     if (!response || !response.data) {
-      addMessage('error', 'No s\'ha pogut obtenir el PDF')
+      addMessage('error', "No s'ha pogut obtenir el PDF")
       return
     }
 
@@ -116,21 +152,20 @@ const showPdf = async () => {
     const blob = new Blob([response.data], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
 
-    // Opción 1: Abrir en nueva ventana (recomendado)
-    const newWindow = window.open(url, '_blank')
-    
-    if (!newWindow) {
-      // Si el navegador bloquea popups, intentar descarga
+    if (props.type === 'pcc' || props.type === 'syllabus') {
       downloadPdf(url)
     } else {
-      // Limpiar URL después de un tiempo
-      setTimeout(() => {
-        URL.revokeObjectURL(url)
-      }, 1000)
+      const newWindow = window.open(url, '_blank')
+      if (!newWindow) {
+        downloadPdf(url)
+      } else {
+        setTimeout(() => {
+          URL.revokeObjectURL(url)
+        }, 1000)
+      }
     }
 
     addMessage('success', 'PDF carregat correctament')
-
   } catch (error) {
     console.error('Error al carregar PDF:', error)
     addMessage('error', error.response?.data?.message || 'Error al carregar el PDF')
@@ -148,7 +183,7 @@ const downloadPdf = (url) => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  
+
   // Limpiar URL
   setTimeout(() => {
     URL.revokeObjectURL(url)
@@ -161,12 +196,15 @@ const downloadPdf = (url) => {
     :buttonClass="buttonClass"
     :title="computedTitle()"
     :disabled="isProcessing"
-    icon-class="bi bi-file-earmark-pdf-fill"
     @click="showPdf"
   >
     <template v-if="isProcessing">
       <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-      Carregant...
+      Descargando...
+    </template>
+    <template v-else>
+      <i class="bi bi-file-earmark-pdf-fill me-2"></i>
+      {{ computedTitle() }}
     </template>
   </ActionButton>
 </template>

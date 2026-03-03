@@ -15,6 +15,7 @@ import MethodologicalPrinciples from '../views/MethodologicalPrinciples.vue'
 import ValidateSyllabus from '../views/ValidateSyllabus.vue'
 import SyllabusesManage from '../views/SyllabusesManage.vue'
 import ViewSyllabus from '../views/ViewSyllabus.vue'
+import ViewPccPublic from '../views/ViewPccPublic.vue'
 import ContextPCC from '../views/pcc/ContextPCC.vue'
 import FocusPCC from '../views/pcc/FocusPCC.vue'
 import ModulesPCC from '../views/pcc/ModulesPCC.vue'
@@ -57,6 +58,12 @@ const router = createRouter({
       path: '/public/syllabus/:collegeCode/:cycleId/:moduleCode/:turn',
       name: 'viewSyllabus',
       component: ViewSyllabus,
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/api/public/pcc/:centerCode/:cycleId',
+      name: 'viewPccPublic',
+      component: ViewPccPublic,
       meta: { requiresAuth: false }
     },
     {

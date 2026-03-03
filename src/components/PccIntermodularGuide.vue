@@ -22,6 +22,7 @@ const {
 // State
 const isLoading = ref(false)
 const showOrientationModal = ref(false)
+const showCriteriaModal = ref(false)
 const showHelp = ref(false)
 const showHelpOrientations = ref(false)
 const orientationForm = reactive({
@@ -33,6 +34,14 @@ const orientationForm = reactive({
   relatedModuleCode: '',
   supportActivitiesGuidance: '',
   editingModuleCode: ''
+})
+
+const criteriaModal = reactive({
+  projectModuleCode: '',
+  projectModuleName: '',
+  learningResultNumber: null,
+  learningResultDescriptor: '',
+  criterias: []
 })
 
 // Temporalization form
@@ -73,12 +82,16 @@ const tempOptions = [
 // Computeds
 const guide = computed(() => pcc.value?.intermodularProjectGuide || null)
 
+const isProjectModule = (module) => {
+  return !!(module?.proyect || module?.isIntermodularProject || module?.intermodularProject)
+}
+
 const hasProjectCourse1 = computed(() => {
-  return (pcc.value?.modules || []).some((m) => m.proyect && m.courseLevel === 1)
+  return (pcc.value?.modules || []).some((m) => isProjectModule(m) && m.courseLevel === 1)
 })
 
 const hasProjectCourse2 = computed(() => {
-  return (pcc.value?.modules || []).some((m) => m.proyect && m.courseLevel === 2)
+  return (pcc.value?.modules || []).some((m) => isProjectModule(m) && m.courseLevel === 2)
 })
 
 const weightTotal = computed(() => {
@@ -121,7 +134,7 @@ const nonProjectModulesByCourse = computed(() => {
   const grouped = { 1: [], 2: [] }
   const modules = pcc.value?.modules || []
   modules.forEach((m) => {
-    if (!m.proyect) {
+    if (!isProjectModule(m)) {
       const level = m.courseLevel || 1
       if (grouped[level]) grouped[level].push(mergeModuleWithCycle(m))
     }
@@ -133,7 +146,7 @@ const projectModulesByCourse = computed(() => {
   const grouped = { 1: [], 2: [] }
   const modules = pcc.value?.modules || []
   modules.forEach((m) => {
-    if (m.proyect) {
+    if (isProjectModule(m)) {
       const level = m.courseLevel || 1
       if (grouped[level]) grouped[level].push(mergeModuleWithCycle(m))
     }
@@ -266,6 +279,34 @@ const getUsedModuleCodesForLR = (lrId) => {
   return getOrientationsForLR(lrId)
     .map((orientation) => orientation.module?.code)
     .filter(Boolean)
+}
+
+const getLearningResultCriterias = (lr) => {
+  const criterias = lr?.evaluationCriterias || lr?.evaluationCriteria || []
+  if (!Array.isArray(criterias)) return []
+  return criterias.filter((item) => item && typeof item === 'object')
+}
+
+const hasLearningResultCriterias = (lr) => {
+  return getLearningResultCriterias(lr).length > 0
+}
+
+const openCriteriaModal = (module, lr) => {
+  criteriaModal.projectModuleCode = module.code
+  criteriaModal.projectModuleName = module.name
+  criteriaModal.learningResultNumber = lr.number
+  criteriaModal.learningResultDescriptor = lr.descriptor || ''
+  criteriaModal.criterias = getLearningResultCriterias(lr)
+  showCriteriaModal.value = true
+}
+
+const closeCriteriaModal = () => {
+  showCriteriaModal.value = false
+  criteriaModal.projectModuleCode = ''
+  criteriaModal.projectModuleName = ''
+  criteriaModal.learningResultNumber = null
+  criteriaModal.learningResultDescriptor = ''
+  criteriaModal.criterias = []
 }
 
 const openOrientationModal = (module, lr, orientation = null) => {
@@ -593,6 +634,13 @@ const deleteOrientation = async (moduleCode, learningResultId, moduleLabel, raNu
         </span>
       </div>
       <div class="card-body">
+        <div
+          v-if="projectModulesByCourse[1].length === 0 && projectModulesByCourse[2].length === 0"
+          class="alert alert-warning"
+        >
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          No hi ha mòduls de projecte intermodular configurats per mostrar les orientacions.
+        </div>
         <template v-for="course in [1, 2]" :key="course">
           <div v-if="projectModulesByCourse[course].length > 0" class="mb-4">
             <h5 class="fw-bold text-secondary">
@@ -635,7 +683,19 @@ const deleteOrientation = async (moduleCode, learningResultId, moduleLabel, raNu
                       </thead>
                       <tbody>
                         <tr v-for="lr in module.learningResults" :key="lr.id">
-                          <td class="fw-bold text-center">RA{{ lr.number }}</td>
+                          <td class="fw-bold text-center">
+                            <div class="d-flex flex-column align-items-center gap-1">
+                              <span>RA{{ lr.number }}</span>
+                              <button
+                                @click="openCriteriaModal(module, lr)"
+                                class="btn btn-sm btn-outline-secondary"
+                                :disabled="!hasLearningResultCriterias(lr)"
+                                title="Consultar criteris d'avaluació"
+                              >
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
                           <td class="small">{{ lr.descriptor }}</td>
                           <td>
                             <div v-if="getOrientationsForLR(lr.id).length > 0">
@@ -779,6 +839,62 @@ const deleteOrientation = async (moduleCode, learningResultId, moduleLabel, raNu
           </div>
         </div>
         <div class="modal-backdrop fade show" @click="closeHelpOrientations"></div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div v-if="showCriteriaModal">
+        <div class="modal d-block" tabindex="-1">
+          <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">
+                  <i class="bi bi-list-check me-2"></i>
+                  Criteris d'avaluació associats al RA{{ criteriaModal.learningResultNumber }}
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close btn-close-white"
+                  @click="closeCriteriaModal"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <p class="mb-2">
+                  <strong>Mòdul de projecte:</strong>
+                  {{ criteriaModal.projectModuleCode }} - {{ criteriaModal.projectModuleName }}
+                </p>
+                <p class="text-muted small">{{ criteriaModal.learningResultDescriptor }}</p>
+
+                <div v-if="criteriaModal.criterias.length === 0" class="alert alert-warning mb-0">
+                  No hi ha criteris d'avaluació disponibles per a aquest resultat d'aprenentatge.
+                </div>
+                <table v-else class="table table-sm table-bordered mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 110px">CA</th>
+                      <th>Descripció</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(criteria, index) in criteriaModal.criterias"
+                      :key="criteria.id || criteria.code || index"
+                    >
+                      <td class="fw-semibold text-nowrap">{{ criteria?.code || '-' }}</td>
+                      <td>{{ criteria?.description || '-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="closeCriteriaModal">
+                  Tancar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-backdrop fade show" @click="closeCriteriaModal"></div>
       </div>
     </Teleport>
 

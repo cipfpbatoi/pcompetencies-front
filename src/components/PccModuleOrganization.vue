@@ -48,6 +48,11 @@ const availableLanguages = [
   { value: 'fr-FR', label: 'Francès (fr-FR)' }
 ]
 
+const availableLanguagesByValue = availableLanguages.reduce((acc, language) => {
+  acc[language.value] = language.label
+  return acc
+}, {})
+
 const requiredLanguages = [
   { value: 'en-GB', label: 'Anglès' },
   { value: 'ca-ES', label: 'Valencià' },
@@ -80,6 +85,12 @@ const normalizeLanguageValue = (language) => {
   }
   const key = normalized.toLowerCase()
   return map[key] || normalized
+}
+
+const getLanguageLabel = (language) => {
+  const normalizedLanguage = normalizeLanguageValue(language)
+  if (!normalizedLanguage) return 'No assignat'
+  return availableLanguagesByValue[normalizedLanguage] || normalizedLanguage
 }
 
 // Computeds
@@ -459,6 +470,9 @@ const hoursSum = computed(() => {
                       Aula: {{ module.organization.classroomHours }}h | Lab/Taller:
                       {{ module.organization.labHours }}h
                     </span>
+                    <span class="badge bg-light text-dark border ms-2">
+                      Idioma: {{ getLanguageLabel(module.organization.language) }}
+                    </span>
                     <span
                       class="badge ms-2"
                       :class="module.organization.dualizable ? 'bg-success' : 'bg-secondary'"
@@ -534,6 +548,9 @@ const hoursSum = computed(() => {
                     <span class="text-muted">
                       Aula: {{ module.organization.classroomHours }}h | Lab/Taller:
                       {{ module.organization.labHours }}h
+                    </span>
+                    <span class="badge bg-light text-dark border ms-2">
+                      Idioma: {{ getLanguageLabel(module.organization.language) }}
                     </span>
                     <span
                       class="badge ms-2"

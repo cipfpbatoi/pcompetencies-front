@@ -16,7 +16,6 @@ const { pcc } = storeToRefs(store)
 const {
   loadCenterProjects,
   loadModuleCenterProjectsCollection,
-  loadModuleCenterProjects,
   addModuleCenterProjects,
   removeModuleCenterProject
 } = store
@@ -95,23 +94,9 @@ const buildModuleCenterProjects = (items) => {
 
 const refreshModuleCenterProjects = async () => {
   const relations = await loadModuleCenterProjectsCollection(props.pccId)
-  if (relations.length > 0) {
-    const mapped = buildModuleCenterProjects(relations)
-    moduleCenterProjects.value = modules.value.reduce((acc, module) => {
-      acc[module.code] = mapped[module.code] || []
-      return acc
-    }, {})
-    return
-  }
-
-  const projectsByModule = await Promise.all(
-    modules.value.map(async (module) => {
-      const projects = await loadModuleCenterProjects(props.pccId, module.code)
-      return { moduleCode: module.code, projects }
-    })
-  )
-  moduleCenterProjects.value = projectsByModule.reduce((acc, entry) => {
-    acc[entry.moduleCode] = entry.projects
+  const mapped = buildModuleCenterProjects(relations)
+  moduleCenterProjects.value = modules.value.reduce((acc, module) => {
+    acc[module.code] = mapped[module.code] || []
     return acc
   }, {})
 }

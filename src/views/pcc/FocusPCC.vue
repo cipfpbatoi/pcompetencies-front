@@ -407,13 +407,11 @@ const mpSchema = yup.object({
     .array()
     .of(yup.string())
     .test(
-      'at-least-one-if-not-all',
-      'Has de seleccionar almenys un mòdul o aplicar-lo a tots',
+      'at-least-two-if-not-all',
+      'Has de seleccionar almenys 2 mòduls o aplicar-lo a tots',
       function (value) {
-        // Si applyToAllModules es true, no validamos
-        // Si es false, debe haber al menos un módulo seleccionado
         if (!applyToAllModules.value) {
-          return value && value.length > 0
+          return value && value.length >= 2
         }
         return true
       }
@@ -433,16 +431,6 @@ const methodologicalPrinciples = ref({
   nonMandatory: []
 })
 
-const methodologicalPrinciplesFiltered = computed(() => {
-  if (!pcc.value.methodologicalsPrinciplesContext) return methodologicalPrinciples.value
-  const pccMPIds = pccMethodologicalPrinciples.value.map((mp) => mp.methodologicalPrinciple.id)
-  return {
-    mandatory: methodologicalPrinciples.value.mandatory.filter((mp) => !pccMPIds.includes(mp.id)),
-    nonMandatory: methodologicalPrinciples.value.nonMandatory.filter(
-      (mp) => !pccMPIds.includes(mp.id)
-    )
-  }
-})
 onMounted(async () => {
   try {
     const response = await api.getMethodologicalPrinciples()
@@ -551,6 +539,7 @@ onMounted(async () => {
 
             <div v-if="!applyToAllModules" class="mt-3">
               <label class="form-label">Selecciona els mòduls</label>
+              <small class="text-muted d-block mb-2">Has de seleccionar almenys 2 mòduls.</small>
               <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto">
                 <div v-for="module in availableModules" :key="module.code" class="form-check">
                   <input

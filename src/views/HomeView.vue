@@ -47,8 +47,7 @@ const {
   getSyllabusByTurn,
   loadSyllabuses,
   createSyllabus,
-  copySyllabusUrl,
-  openPdf
+  copySyllabusUrl
 } = useSyllabusManagement()
 
 const { pcc, isLoadingPCC, hasLoadedPCC, startPCCLoading, loadPCC, hasPCC, createPCC, copyPccUrl } =
@@ -97,23 +96,8 @@ const pccRejectionReason = computed(() => {
   )
 })
 
-const selectedModule = computed(() => {
-  const modules = cycle.value?.modules || []
-  return modules.find((item) => item.code === moduleSelect.value) || null
-})
-
-const isIntermodularProjectModule = computed(() => {
-  if (!selectedModule.value) return false
-  return Boolean(
-    selectedModule.value.proyect ||
-      selectedModule.value.isIntermodularProject ||
-      selectedModule.value.intermodularProject
-  )
-})
-
 const canSeePccPanel = computed(() => {
-  const roles = user.value?.info?.roles || []
-  return roles.includes('ROLE_ADMIN') || roles.includes('ROLE_DEVELOPER')
+  return !!user.value?.token
 })
 
 const handleModalClose = (modalKey) => {

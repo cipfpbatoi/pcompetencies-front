@@ -261,7 +261,8 @@ const confirmDelete = async () => {
               Criteris d'assignació de l'alumnat a les Empreses
             </h6>
             <div class="text-muted mb-2">
-              1. Alumnat que busca empresa per compte propi<br />
+              1. Alumnat que busca empresa per compte propi (sense que existeixca un conveni previ
+              entre el centre i la empresa)<br />
               2. Requisits específics per part del centre de treball<br />
               <span class="line-3-emphasis">
                 3. Els criteris d'assignació per a la resta de alumnat són:
@@ -360,7 +361,8 @@ const confirmDelete = async () => {
           <label class="form-label fw-bold">
             <i class="bi bi-people me-1"></i>
             Criteris d'assignació de l'alumnat a les Empreses<br />
-            1. Alumnat que busca empresa per compte propi<br />
+            1. Alumnat que busca empresa per compte propi (sense que existeixca un conveni previ
+            entre el centre i la empresa)<br />
             2. Requisits específics per part del centre de treball<br />
             <span class="line-3-emphasis">
               3. Especifica ací els criteris d'assignació per a la resta de l'alumnat a l'empresa

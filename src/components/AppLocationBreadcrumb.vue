@@ -41,7 +41,8 @@ export default {
         'trainingPlanPCC',
         'centerProjectsPCC',
         'criteriaPCC',
-        'intermodularPCC'
+        'intermodularPCC',
+        'implementationPCC'
       ]
     },
     contextName() {

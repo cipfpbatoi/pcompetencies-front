@@ -56,6 +56,11 @@ export default {
         {
           title: 'Projecte Intermodular',
           path: 'intermodularPCC',
+          nextPath: 'implementationPCC'
+        },
+        {
+          title: 'Altres Consideracions',
+          path: 'implementationPCC',
           nextPath: 'validatePCC'
         },
         {

@@ -76,6 +76,10 @@ export const api = {
     instance.post(`/pcc/${id}/criteria-complementary-extracurricular`, {
       criteriaForComplementaryAndExtraActivities: text
     }),
+  savePccOtherConsiderations: (id, otherConsiderations) =>
+    instance.post(`/pcc/${id}/other-considerations`, {
+      otherConsiderations
+    }),
   savePCCIntermodularGuide: (pccId, data) =>
     instance.post(`/pcc/${pccId}/intermodular-project-guide`, data),
   savePCCIntermodularOrientation: (pccId, data) =>

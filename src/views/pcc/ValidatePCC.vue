@@ -35,6 +35,7 @@ const KEY_LABELS = {
   trainingPlan: 'Pla de formació en empresa',
   companyAssignmentCriteria: "Criteris d'assignació de pràctiques",
   sostenibilityDigital: 'Sostenibilitat i digitalització',
+  otherConsiderations: 'Altres consideracions',
   centerProjects: 'Projectes de centre',
   intermodularProjectGuide: 'Guia del projecte intermodular',
   intermodularOrientations: 'Orientacions del projecte intermodular'
@@ -154,12 +155,12 @@ onMounted(() => {
 
 <template>
   <main class="border shadow view-main">
-    <AppBreadcrumb :actualStep="9" :done="isValid" />
+    <AppBreadcrumb :actualStep="10" :done="isValid" />
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
       {{ pcc.cycle?.completeName }}
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>9. Validar i enviar el PCC</h2>
+      <h2>10. Validar i enviar el PCC</h2>
 
       <div v-if="isRejected">
         <div class="alert alert-danger p-2 col-sm-12 col-12 mx-auto text-center">

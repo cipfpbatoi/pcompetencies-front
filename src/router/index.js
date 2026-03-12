@@ -24,6 +24,7 @@ import TrainingPlanPCC from '../views/pcc/TrainingPlanPCC.vue'
 import CenterProjectsPCC from '../views/pcc/CenterProjectsPCC.vue'
 import CriteriaPCC from '../views/pcc/CriteriaPCC.vue'
 import IntermodularPCC from '../views/pcc/IntermodularPCC.vue'
+import ImplementationPCC from '../views/pcc/ImplementationPCC.vue'
 import ValidatePCC from '../views/pcc/ValidatePCC.vue'
 import PccManage from '../views/pcc/PccManage.vue'
 import PccStats from '../views/pcc/PccStats.vue'
@@ -185,6 +186,12 @@ const router = createRouter({
       path: '/pcc/intermodular',
       name: 'intermodularPCC',
       component: IntermodularPCC,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pcc/implementation',
+      name: 'implementationPCC',
+      component: ImplementationPCC,
       meta: { requiresAuth: true }
     },
     {

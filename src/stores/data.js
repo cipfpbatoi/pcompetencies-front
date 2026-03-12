@@ -262,6 +262,19 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
+    async savePccOtherConsiderations(id, data) {
+      try {
+        const response = await api.savePccOtherConsiderations(id, data)
+        this.pcc = response.data
+        this.addMessage('success', 'Altres consideracions guardades')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
     async savePCCIntermodularGuide(pccId, data) {
       try {
         const response = await api.savePCCIntermodularGuide(pccId, data)

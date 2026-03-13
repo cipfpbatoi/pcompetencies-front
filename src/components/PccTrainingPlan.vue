@@ -311,8 +311,7 @@ const confirmDelete = async () => {
               Hores 1r Curs <span class="text-danger">*</span>
             </label>
             <div class="form-text">
-              <span v-if="isLogseCycle">En cicles LOGSE, les hores de 1r curs no s'editen</span>
-              <span v-else>
+              <span v-if="!isLogseCycle">
                 Recomanació: 150 hores en 1r curs
                 <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
               </span>

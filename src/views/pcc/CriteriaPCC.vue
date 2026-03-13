@@ -78,7 +78,13 @@ const editorConfig = {
 }
 
 // Computed
+const isLogseCycle = computed(() => Boolean(pcc.value?.cycle?.isLogse))
+
 const isDone = computed(() => {
+  if (isLogseCycle.value) {
+    return !!pcc.value.criteriaForComplementaryAndExtraActivities
+  }
+
   return !!(
     pcc.value.criteriaAdaptingSostenibilityAndDigitalModules &&
     pcc.value.criteriaForComplementaryAndExtraActivities
@@ -117,6 +123,8 @@ const modalsConfig = {
 }
 
 const showModal = (key) => {
+  if (key === 'sustainability' && isLogseCycle.value) return
+
   if (key === 'sustainability') {
     modalFields.sustainabilityCriteria =
       pcc.value.criteriaAdaptingSostenibilityAndDigitalModules || ''
@@ -169,6 +177,8 @@ const handleModalClose = (key) => {
 
 // Guardado
 const saveSustainabilityData = async () => {
+  if (isLogseCycle.value) return
+
   const isValid = await validateSustainability({
     sustainabilityCriteria: modalFields.sustainabilityCriteria
   })
@@ -281,8 +291,11 @@ const saveComplementaryData = async () => {
           </span>
         </div>
         <div class="card-body">
+          <p v-if="isLogseCycle" class="alert alert-warning text-start mb-0">
+            Aquest punt no aplica als cicles LOGSE.
+          </p>
           <p
-            v-if="pcc.criteriaAdaptingSostenibilityAndDigitalModules"
+            v-else-if="pcc.criteriaAdaptingSostenibilityAndDigitalModules"
             class="text-start"
             v-html="pcc.criteriaAdaptingSostenibilityAndDigitalModules"
           />
@@ -294,8 +307,10 @@ const saveComplementaryData = async () => {
         <div class="card-footer text-muted">
           <button
             @click="showModal('sustainability')"
-            class="btn btn-success"
+            class="btn"
+            :class="isLogseCycle ? 'btn-secondary disabled' : 'btn-success'"
             title="Afegir/Modificar criteris d'adaptació"
+            :disabled="isLogseCycle"
           >
             <i class="bi bi-pencil-fill me-2" />
             Afegir/Modificar criteris d'adaptació

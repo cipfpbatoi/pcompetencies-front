@@ -12,7 +12,10 @@ const store = useDataStore()
 const { pcc } = storeToRefs(store)
 
 // Computed
+const isLogseCycle = computed(() => Boolean(pcc.value?.cycle?.isLogse))
+
 const isDone = computed(() => {
+  if (isLogseCycle.value) return true
   return !!pcc.value?.intermodularProjectGuide
 })
 </script>
@@ -31,16 +34,27 @@ const isDone = computed(() => {
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>8. Guia del Projecte Intermodular</h2>
 
-      <div class="alert alert-info mb-4">
+      <div v-if="isLogseCycle" class="alert alert-warning mb-4">
+        <i class="bi bi-slash-circle me-2"></i>
+        <strong>Aquest punt no aplica als cicles LOGSE.</strong>
+      </div>
+
+      <div v-else class="alert alert-info mb-4">
         <i class="bi bi-info-circle-fill me-2"></i>
         <strong>Defineix la guia del projecte intermodular per al cicle.</strong>
         <ul class="mb-0 mt-2">
-          <li><strong>Temporalització:</strong> Estableix quan es realitza el projecte, el pes i les observacions per a cada curs</li>
-          <li><strong>Orientacions:</strong> Defineix per a cada mòdul les activitats de suport i orientació proposades per resultat d'aprenentatge</li>
+          <li>
+            <strong>Temporalització:</strong> Estableix quan es realitza el projecte, el pes i les
+            observacions per a cada curs
+          </li>
+          <li>
+            <strong>Orientacions:</strong> Defineix per a cada mòdul les activitats de suport i
+            orientació proposades per resultat d'aprenentatge
+          </li>
         </ul>
       </div>
 
-      <PccIntermodularGuide v-if="pcc.id" :pcc-id="pcc.id" />
+      <PccIntermodularGuide v-if="pcc.id && !isLogseCycle" :pcc-id="pcc.id" />
     </div>
   </main>
 </template>

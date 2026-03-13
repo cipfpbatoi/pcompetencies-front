@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
@@ -40,9 +40,12 @@ const formErrors = ref({})
 // Computeds
 const trainingPlan = computed(() => pcc.value?.trainingPlan || null)
 const hasTrainingPlan = computed(() => !!trainingPlan.value)
-const minTotalFEHours = computed(
-  () => pcc.value?.minTotalFeHours || pcc.value?.minTotalFEHours || 0
-)
+const isLogseCycle = computed(() => Boolean(pcc.value?.cycle?.isLogse))
+
+const minTotalFEHours = computed(() => {
+  if (isLogseCycle.value) return 400
+  return pcc.value?.minTotalFeHours || pcc.value?.minTotalFEHours || 0
+})
 
 const cycleTotalHours = computed(() => {
   const cycle = pcc.value?.cycle
@@ -103,6 +106,11 @@ const startEditing = () => {
       companyAssignmentCriterias: ''
     }
   }
+
+  if (isLogseCycle.value) {
+    form.value.firstCourseHours = 0
+  }
+
   formErrors.value = {}
   isEditing.value = true
 }
@@ -115,16 +123,18 @@ const cancelEditing = () => {
 const validateForm = () => {
   const errors = {}
 
-  if (
-    form.value.firstCourseHours === null ||
-    form.value.firstCourseHours === '' ||
-    form.value.firstCourseHours < 0
-  ) {
-    errors.firstCourseHours = 'Les hores de 1r curs són obligatòries i han de ser >= 0'
-  }
+  if (!isLogseCycle.value) {
+    if (
+      form.value.firstCourseHours === null ||
+      form.value.firstCourseHours === '' ||
+      form.value.firstCourseHours < 0
+    ) {
+      errors.firstCourseHours = 'Les hores de 1r curs són obligatòries i han de ser >= 0'
+    }
 
-  if (hasProjectModuleFirstCourse.value && form.value.firstCourseHours < 100) {
-    errors.firstCourseHours = 'Si hi ha mòdul de projecte en 1r curs, cal un mínim de 100 hores'
+    if (hasProjectModuleFirstCourse.value && form.value.firstCourseHours < 100) {
+      errors.firstCourseHours = 'Si hi ha mòdul de projecte en 1r curs, cal un mínim de 100 hores'
+    }
   }
 
   if (
@@ -163,7 +173,7 @@ const saveTrainingPlan = async () => {
   isLoading.value = true
   try {
     const data = {
-      firstCourseHours: parseInt(form.value.firstCourseHours, 10),
+      firstCourseHours: isLogseCycle.value ? 0 : parseInt(form.value.firstCourseHours, 10),
       secondCourseHours: parseInt(form.value.secondCourseHours, 10),
       companyAssignmentCriterias: form.value.companyAssignmentCriterias.trim()
     }
@@ -301,14 +311,18 @@ const confirmDelete = async () => {
               Hores 1r Curs <span class="text-danger">*</span>
             </label>
             <div class="form-text">
-              Recomanació: 150 hores en 1r curs
-              <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
+              <span v-if="isLogseCycle">En cicles LOGSE, les hores de 1r curs no s'editen</span>
+              <span v-else>
+                Recomanació: 150 hores en 1r curs
+                <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
+              </span>
             </div>
             <input
               type="number"
               class="form-control"
               v-model.number="form.firstCourseHours"
               min="0"
+              :disabled="isLoading || isLogseCycle"
               :class="{ 'is-invalid': formErrors.firstCourseHours }"
             />
             <div v-if="formErrors.firstCourseHours" class="invalid-feedback">
@@ -338,7 +352,7 @@ const confirmDelete = async () => {
           <strong>Total hores FE: {{ totalHours }}</strong>
         </div>
         <div
-          v-if="hasProjectModuleFirstCourse && form.firstCourseHours < 100"
+          v-if="!isLogseCycle && hasProjectModuleFirstCourse && form.firstCourseHours < 100"
           class="alert alert-danger"
         >
           Atenció en 1r curs, el mínim son 100 hores

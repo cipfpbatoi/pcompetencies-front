@@ -206,16 +206,24 @@ const getAgreed = (toolId) => {
   return agreedTools.value.find((a) => a.assessmentTool?.id === toolId)
 }
 
+const getToolDescription = (tool) => {
+  const description = tool?.assessmentTool?.description || tool?.description || ''
+
+  return String(description).trim()
+}
+
 const openEditModal = (tool) => {
   // For mandatory tools, assessmentTool is nested; for nonMandatory, it's flat
   const assessmentToolId = tool.assessmentTool ? tool.assessmentTool.id : tool.id
   const toolName = tool.assessmentTool ? tool.assessmentTool.name : tool.name
+  const toolDescription = getToolDescription(tool)
   const minPct = tool.minPercentage || null
   const isMandatory = !!tool.assessmentTool
 
   editingTool.value = {
     id: assessmentToolId,
     name: toolName,
+    description: toolDescription || '',
     minPercentage: minPct,
     isMandatory
   }
@@ -465,10 +473,16 @@ onMounted(() => {
                     class="d-flex align-items-center gap-2 mb-1 tool-title-row"
                     :class="{ 'tool-title-row--wrap': getMandatoryPendingBadgeCount(tool) > 1 }"
                   >
-                    <i
-                      class="bi bi-exclamation-circle-fill text-warning"
+                    <button
+                      type="button"
+                      class="pending-icon-button"
                       title="Obligatori - pendent de configurar"
-                    ></i>
+                      aria-label="Afegir instrument obligatori"
+                      :disabled="isSaving"
+                      @click="openEditModal(tool)"
+                    >
+                      <i class="bi bi-exclamation-circle-fill text-warning"></i>
+                    </button>
                     <strong>{{
                       tool.assessmentTool.name + ' (' + tool.assessmentTool.code + ')'
                     }}</strong>
@@ -507,7 +521,16 @@ onMounted(() => {
                     class="d-flex align-items-center gap-2 mb-1 tool-title-row"
                     :class="{ 'tool-title-row--wrap': getNonMandatoryPendingBadgeCount(tool) > 1 }"
                   >
-                    <i class="bi bi-circle text-secondary" title="No consensuat"></i>
+                    <button
+                      type="button"
+                      class="pending-icon-button"
+                      title="No consensuat"
+                      aria-label="Afegir instrument no obligatori"
+                      :disabled="isSaving"
+                      @click="openEditModal(tool)"
+                    >
+                      <i class="bi bi-circle text-secondary"></i>
+                    </button>
                     <strong class="tool-title">{{ tool.name + ' (' + tool.code + ')' }}</strong>
                     <div class="tool-badges d-flex align-items-center gap-1">
                       <span v-if="tool.minPercentage" class="badge bg-warning text-dark">
@@ -550,6 +573,10 @@ onMounted(() => {
                 ></button>
               </div>
               <div class="modal-body">
+                <blockquote class="assessment-tool-quote">
+                  {{ editingTool.description || "Sense descripció disponible per a aquest instrument." }}
+                </blockquote>
+
                 <div v-if="editingTool.isMandatory" class="alert alert-danger mb-3">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i>
                   <strong>Instrument obligatori</strong> pel Projecte Educatiu de Centre
@@ -733,6 +760,28 @@ onMounted(() => {
 
 .available-panel .card-body {
   padding: 0.75rem;
+}
+
+.pending-icon-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pending-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.assessment-tool-quote {
+  border-left: 4px solid #6c757d;
+  background-color: #f8f9fa;
+  color: #495057;
+  font-style: italic;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
 }
 
 @media (max-width: 576px) {

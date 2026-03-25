@@ -310,11 +310,9 @@ const confirmDelete = async () => {
             <label class="form-label fw-bold">
               Hores 1r Curs <span class="text-danger">*</span>
             </label>
-            <div class="form-text">
-              <span v-if="!isLogseCycle">
-                Recomanació: 150 hores en 1r curs
-                <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
-              </span>
+            <div class="form-text training-plan-hours-help" :class="{ invisible: isLogseCycle }">
+              Recomanació: 150 hores en 1r curs
+              <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
             </div>
             <input
               type="number"
@@ -332,7 +330,10 @@ const confirmDelete = async () => {
             <label class="form-label fw-bold">
               Hores 2n Curs <span class="text-danger">*</span>
             </label>
-            <div class="form-text invisible">Recomanació: 150 hores en 1r curs</div>
+            <div class="form-text training-plan-hours-help invisible">
+              Recomanació: 150 hores en 1r curs
+              <span v-if="hasProjectModuleFirstCourse"> · Mínim obligatori: 100 hores</span>
+            </div>
             <input
               type="number"
               class="form-control"

@@ -163,9 +163,11 @@ onMounted(() => {
                     v-for="project in allCenterProjects"
                     :key="project.id"
                     class="text-center project-col"
-                    :title="project.name"
                   >
-                    <span class="d-inline-block text-truncate project-header">{{
+                    <span
+                      class="d-inline-block text-truncate project-header"
+                      :title="project.description || project.name"
+                    >{{
                       project.name
                     }}</span>
                   </th>

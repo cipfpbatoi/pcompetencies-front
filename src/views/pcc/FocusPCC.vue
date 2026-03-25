@@ -80,6 +80,7 @@ const modalFields = reactive({
   editMp: {
     methodologicalPrincipleId: null,
     methodologicalPrincipleName: '',
+    methodologicalPrincipleDescription: '',
     contextDescription: '',
     moduleCodes: []
   }
@@ -316,6 +317,7 @@ const resetMpForm = () => {
   modalFields.editMp = {
     methodologicalPrincipleId: null,
     methodologicalPrincipleName: '',
+    methodologicalPrincipleDescription: '',
     contextDescription: '',
     moduleCodes: []
   }
@@ -338,6 +340,8 @@ watch(selectedIsMandatory, (value) => {
 // Guarda el principio metodológico seleccionado y abre el modal
 const openMP = (mode, mp) => {
   modalMode.value = mode
+  const principleDescription =
+    mode === 'add' ? mp?.description || '' : mp?.methodologicalPrinciple?.description || ''
   const defaultContextDescription =
     !isMethodologyCategory(mp?.category) && mp?.description ? mp.description : ''
   modalFields.editMp =
@@ -345,12 +349,14 @@ const openMP = (mode, mp) => {
       ? {
           methodologicalPrincipleId: mp.id,
           methodologicalPrincipleName: mp.name,
+          methodologicalPrincipleDescription: principleDescription,
           contextDescription: defaultContextDescription,
           moduleCodes: []
         }
       : {
           methodologicalPrincipleId: mp.methodologicalPrinciple.id,
           methodologicalPrincipleName: mp.methodologicalPrinciple.name,
+          methodologicalPrincipleDescription: principleDescription,
           contextDescription:
             mp.contextDescription ||
             (!isMethodologyCategory(mp.methodologicalPrinciple?.category) &&
@@ -473,6 +479,12 @@ onMounted(async () => {
             v-model="modalFields.editMp.methodologicalPrincipleName"
             disabled
           />
+          <div class="principle-description mt-2">
+            {{
+              modalFields.editMp.methodologicalPrincipleDescription ||
+              "Sense descripció disponible per a aquest principi."
+            }}
+          </div>
         </div>
         <div class="mb-3">
           <label for="mpContextDescription" class="form-label"
@@ -687,12 +699,26 @@ onMounted(async () => {
             <div class="principle-row d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center gap-2 principle-title-row">
-                  <i
+                  <button
                     v-if="isMandatoryPrinciple(principle.id)"
-                    class="bi bi-exclamation-circle-fill text-warning"
+                    type="button"
+                    class="pending-icon-button"
                     title="Pendent"
-                  ></i>
-                  <i v-else class="bi bi-circle text-secondary" title="No afegit"></i>
+                    aria-label="Afegir principi obligatori"
+                    @click="openMethodologicalPrinciple(principle)"
+                  >
+                    <i class="bi bi-exclamation-circle-fill text-warning"></i>
+                  </button>
+                  <button
+                    v-else
+                    type="button"
+                    class="pending-icon-button"
+                    title="No afegit"
+                    aria-label="Afegir principi no obligatori"
+                    @click="openMethodologicalPrinciple(principle)"
+                  >
+                    <i class="bi bi-circle text-secondary"></i>
+                  </button>
                   <strong class="principle-title">{{ principle.name }}</strong>
                   <div class="principle-badges d-flex align-items-center gap-1">
                     <span
@@ -842,6 +868,20 @@ onMounted(async () => {
 
 .help-close-btn {
   font-size: 1rem;
+}
+
+.pending-icon-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.principle-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 @media (max-width: 576px) {

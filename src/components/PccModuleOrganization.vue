@@ -18,7 +18,7 @@ const { pcc } = storeToRefs(store)
 const { savePCCModuleOrganization, deletePCCModuleOrganization } = store
 
 // Composable de validación
-const { getValidationErrors, isFormValid, calculateDistributionSum } = useModuleOrganization()
+const { getValidationErrors, calculateDistributionSum } = useModuleOrganization()
 
 // Estado local
 const isLoading = ref(false)
@@ -33,6 +33,9 @@ const form = ref({
   classroomHours: 0,
   labHours: 0,
   language: 'ca-ES',
+  hasSecondaryLanguage: false,
+  secondaryLanguage: '',
+  secondaryLanguageHours: null,
   dualizable: false,
   otherConsiderations: ''
 })
@@ -41,7 +44,7 @@ const formErrors = ref({})
 
 // Idiomas disponibles
 const availableLanguages = [
-  { value: 'ca-ES', label: 'Català (ca-ES)' },
+  { value: 'ca-ES', label: 'Valencià (ca-ES)' },
   { value: 'es-ES', label: 'Castellà (es-ES)' },
   { value: 'en-GB', label: 'Anglès (en-GB)' },
   { value: 'de-DE', label: 'Alemany (de-DE)' },
@@ -67,6 +70,8 @@ const languageColors = {
   unassigned: '#adb5bd'
 }
 
+const PERCENTAGE_DECIMALS = 1
+
 const normalizeLanguageValue = (language) => {
   const raw = language?.value || language?.code || language
   if (!raw || typeof raw !== 'string') return null
@@ -91,6 +96,61 @@ const getLanguageLabel = (language) => {
   const normalizedLanguage = normalizeLanguageValue(language)
   if (!normalizedLanguage) return 'No assignat'
   return availableLanguagesByValue[normalizedLanguage] || normalizedLanguage
+}
+
+const formatPercentage = (percentage) => {
+  return percentage.toLocaleString('ca-ES', {
+    minimumFractionDigits: PERCENTAGE_DECIMALS,
+    maximumFractionDigits: PERCENTAGE_DECIMALS
+  })
+}
+
+const distributePercentages = (segments, totalHours) => {
+  const unitsFactor = 10 ** PERCENTAGE_DECIMALS
+  const totalUnits = 100 * unitsFactor
+
+  const normalized = segments.map((segment, index) => {
+    const rawUnits = (segment.hours / totalHours) * totalUnits
+    const units = Math.floor(rawUnits)
+
+    return {
+      ...segment,
+      index,
+      units,
+      remainder: rawUnits - units
+    }
+  })
+
+  const assignedUnits = normalized.reduce((sum, segment) => sum + segment.units, 0)
+  let pendingUnits = Math.round(totalUnits - assignedUnits)
+
+  normalized.sort((a, b) => b.remainder - a.remainder)
+
+  if (pendingUnits > 0) {
+    for (let i = 0; i < pendingUnits; i += 1) {
+      normalized[i % normalized.length].units += 1
+    }
+  } else if (pendingUnits < 0) {
+    pendingUnits = Math.abs(pendingUnits)
+    for (let i = 0; i < pendingUnits; i += 1) {
+      normalized[normalized.length - 1 - (i % normalized.length)].units -= 1
+    }
+  }
+
+  normalized.sort((a, b) => a.index - b.index)
+
+  return normalized.map((segment) => {
+    const percentage = segment.units / unitsFactor
+
+    return {
+      key: segment.key,
+      label: segment.label,
+      hours: segment.hours,
+      color: segment.color,
+      percentage,
+      percentageLabel: formatPercentage(percentage)
+    }
+  })
 }
 
 // Computeds
@@ -141,6 +201,24 @@ const languageChart = computed(() => {
   let otherHours = 0
   let unassignedHours = 0
 
+  const addLanguageHours = (language, hoursToAssign) => {
+    if (!hoursToAssign) return
+
+    const normalizedLanguage = normalizeLanguageValue(language)
+    if (!normalizedLanguage) {
+      unassignedHours += hoursToAssign
+      return
+    }
+
+    if (requiredLanguageValues.has(normalizedLanguage)) {
+      hoursByLanguage[normalizedLanguage] =
+        (hoursByLanguage[normalizedLanguage] || 0) + hoursToAssign
+      return
+    }
+
+    otherHours += hoursToAssign
+  }
+
   modules.forEach((module) => {
     const hours = module.weekHours || 0
     const organization = getModuleOrganization(module.code)
@@ -149,15 +227,21 @@ const languageChart = computed(() => {
       return
     }
 
-    const value = normalizeLanguageValue(organization.language)
-    if (value && requiredLanguageValues.has(value)) {
-      hoursByLanguage[value] = (hoursByLanguage[value] || 0) + hours
-    } else if (value) {
-      otherHours += hours
+    const secondaryLanguage = normalizeLanguageValue(organization.secondaryLanguage)
+    const rawSecondaryHours = Number(organization.secondaryLanguageHours)
+    const hasSecondaryLanguage =
+      !!secondaryLanguage && Number.isFinite(rawSecondaryHours) && rawSecondaryHours > 0
+    const secondaryLanguageHours = hasSecondaryLanguage ? Math.min(rawSecondaryHours, hours) : 0
+    const primaryLanguageHours = Math.max(hours - secondaryLanguageHours, 0)
+
+    addLanguageHours(organization.language, primaryLanguageHours)
+
+    if (secondaryLanguageHours > 0) {
+      addLanguageHours(secondaryLanguage, secondaryLanguageHours)
     }
   })
 
-  const segments = requiredLanguages
+  const baseSegments = requiredLanguages
     .map((lang) => {
       const hours = hoursByLanguage[lang.value] || 0
       if (!hours) return null
@@ -165,31 +249,30 @@ const languageChart = computed(() => {
         key: lang.value,
         label: lang.label,
         hours,
-        percentage: Math.round((hours / totalHours) * 100),
         color: languageColors[lang.value]
       }
     })
     .filter(Boolean)
 
   if (otherHours) {
-    segments.push({
+    baseSegments.push({
       key: 'other',
       label: 'Altres idiomes',
       hours: otherHours,
-      percentage: Math.round((otherHours / totalHours) * 100),
       color: languageColors.other
     })
   }
 
   if (unassignedHours) {
-    segments.push({
+    baseSegments.push({
       key: 'unassigned',
       label: 'No assignades',
       hours: unassignedHours,
-      percentage: Math.round((unassignedHours / totalHours) * 100),
       color: languageColors.unassigned
     })
   }
+
+  const segments = distributePercentages(baseSegments, totalHours)
 
   return {
     totalHours,
@@ -233,6 +316,32 @@ watch(
   }
 )
 
+watch(
+  () => [
+    form.value.language,
+    form.value.hasSecondaryLanguage,
+    form.value.secondaryLanguage,
+    form.value.secondaryLanguageHours
+  ],
+  () => {
+    if (editingModule.value) {
+      validateForm()
+    }
+  }
+)
+
+watch(
+  () => form.value.hasSecondaryLanguage,
+  (enabled) => {
+    if (!enabled) {
+      form.value.secondaryLanguage = ''
+      form.value.secondaryLanguageHours = null
+      delete formErrors.value.secondaryLanguage
+      delete formErrors.value.secondaryLanguageHours
+    }
+  }
+)
+
 // Métodos
 const getModuleOrganization = (moduleCode) => {
   if (!pcc.value?.moduleOrganizations) return null
@@ -249,11 +358,21 @@ const openEditModal = (module) => {
 
   if (organization) {
     // Editar organización existente
+    const normalizedSecondaryLanguage = normalizeLanguageValue(organization.secondaryLanguage)
+    const secondaryLanguageHours = Number(organization.secondaryLanguageHours)
+    const hasSecondaryLanguage =
+      !!normalizedSecondaryLanguage &&
+      Number.isInteger(secondaryLanguageHours) &&
+      secondaryLanguageHours > 0
+
     form.value = {
       distribution: organization.distribution || '',
       classroomHours: organization.classroomHours || 0,
       labHours: organization.labHours || 0,
       language: normalizeLanguageValue(organization.language) || 'ca-ES',
+      hasSecondaryLanguage,
+      secondaryLanguage: hasSecondaryLanguage ? normalizedSecondaryLanguage : '',
+      secondaryLanguageHours: hasSecondaryLanguage ? secondaryLanguageHours : null,
       dualizable: !!organization.dualizable,
       otherConsiderations: organization.otherConsiderations || ''
     }
@@ -264,6 +383,9 @@ const openEditModal = (module) => {
       classroomHours: 0,
       labHours: 0,
       language: 'ca-ES',
+      hasSecondaryLanguage: false,
+      secondaryLanguage: '',
+      secondaryLanguageHours: null,
       dualizable: false,
       otherConsiderations: ''
     }
@@ -281,6 +403,9 @@ const closeEditModal = () => {
     classroomHours: 0,
     labHours: 0,
     language: 'ca-ES',
+    hasSecondaryLanguage: false,
+    secondaryLanguage: '',
+    secondaryLanguageHours: null,
     dualizable: false,
     otherConsiderations: ''
   }
@@ -323,6 +448,11 @@ const saveOrganization = async () => {
       language: form.value.language,
       dualizable: !!form.value.dualizable,
       otherConsiderations: form.value.otherConsiderations?.trim() || null
+    }
+
+    if (form.value.hasSecondaryLanguage) {
+      data.secondaryLanguage = form.value.secondaryLanguage
+      data.secondaryLanguageHours = parseInt(form.value.secondaryLanguageHours, 10)
     }
 
     const success = await savePCCModuleOrganization(props.pccId, data)
@@ -421,7 +551,7 @@ const hoursSum = computed(() => {
               >
                 <span class="legend-dot" :style="{ backgroundColor: segment.color }"></span>
                 <span class="me-auto">{{ segment.label }}</span>
-                <strong>{{ segment.percentage }}%</strong>
+                <strong>{{ segment.percentageLabel }}%</strong>
                 <span class="text-muted ms-2">{{ segment.hours }}h/setmana</span>
               </div>
             </div>
@@ -472,6 +602,15 @@ const hoursSum = computed(() => {
                     </span>
                     <span class="badge bg-light text-dark border ms-2">
                       Idioma: {{ getLanguageLabel(module.organization.language) }}
+                    </span>
+                    <span
+                      v-if="module.organization.secondaryLanguage"
+                      class="badge bg-light text-dark border ms-2"
+                    >
+                      2n idioma: {{ getLanguageLabel(module.organization.secondaryLanguage) }}
+                      <template v-if="module.organization.secondaryLanguageHours">
+                        ({{ module.organization.secondaryLanguageHours }}h)
+                      </template>
                     </span>
                     <span
                       class="badge ms-2"
@@ -551,6 +690,15 @@ const hoursSum = computed(() => {
                     </span>
                     <span class="badge bg-light text-dark border ms-2">
                       Idioma: {{ getLanguageLabel(module.organization.language) }}
+                    </span>
+                    <span
+                      v-if="module.organization.secondaryLanguage"
+                      class="badge bg-light text-dark border ms-2"
+                    >
+                      2n idioma: {{ getLanguageLabel(module.organization.secondaryLanguage) }}
+                      <template v-if="module.organization.secondaryLanguageHours">
+                        ({{ module.organization.secondaryLanguageHours }}h)
+                      </template>
                     </span>
                     <span
                       class="badge ms-2"
@@ -721,6 +869,69 @@ const hoursSum = computed(() => {
                   </div>
                 </div>
 
+                <div class="mb-3">
+                  <div class="form-check form-switch">
+                    <input
+                      id="secondary-language-switch"
+                      class="form-check-input"
+                      type="checkbox"
+                      v-model="form.hasSecondaryLanguage"
+                    />
+                    <label class="form-check-label fw-bold" for="secondary-language-switch">
+                      Afegir segon idioma
+                    </label>
+                  </div>
+                </div>
+
+                <fieldset v-if="form.hasSecondaryLanguage" class="secondary-language-group mb-3">
+                  <legend class="secondary-language-group__title">Segon idioma</legend>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">
+                      Idioma secundari <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      v-model="form.secondaryLanguage"
+                      :class="{ 'is-invalid': formErrors.secondaryLanguage }"
+                    >
+                      <option value="">Selecciona un idioma</option>
+                      <option
+                        v-for="lang in availableLanguages"
+                        :key="`secondary-${lang.value}`"
+                        :value="lang.value"
+                      >
+                        {{ lang.label }}
+                      </option>
+                    </select>
+                    <div v-if="formErrors.secondaryLanguage" class="invalid-feedback">
+                      {{ formErrors.secondaryLanguage }}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="form-label fw-bold">
+                      Hores idioma secundari <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      v-model.number="form.secondaryLanguageHours"
+                      min="1"
+                      step="1"
+                      :max="editingModule?.weekHours || undefined"
+                      :class="{ 'is-invalid': formErrors.secondaryLanguageHours }"
+                    />
+                    <div v-if="formErrors.secondaryLanguageHours" class="invalid-feedback">
+                      {{ formErrors.secondaryLanguageHours }}
+                    </div>
+                    <div class="form-text">
+                      Màxim {{ Math.max(editingModule.weekHours - 1, 0) }}h per garantir hores per a
+                      l'idioma principal.
+                    </div>
+                  </div>
+                </fieldset>
+
                 <!-- Dualizable -->
                 <div class="mb-3">
                   <label class="form-label fw-bold">Dualitzable al centre</label>
@@ -873,6 +1084,22 @@ const hoursSum = computed(() => {
   border-radius: 50%;
   display: inline-block;
   margin-right: 8px;
+}
+
+.secondary-language-group {
+  border: 1px solid #b6d4fe;
+  border-radius: 0.5rem;
+  background: #eef6ff;
+  padding: 0.75rem;
+}
+
+.secondary-language-group__title {
+  width: auto;
+  padding: 0 0.4rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0a58ca;
 }
 
 @media (max-width: 576px) {

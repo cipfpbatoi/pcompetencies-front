@@ -1,5 +1,3 @@
-import { computed } from 'vue'
-
 export function useModuleOrganization() {
   /**
    * Valida el formato de la distribución
@@ -96,6 +94,31 @@ export function useModuleOrganization() {
     // Validar language
     if (!formData.language) {
       errors.language = "L'idioma és obligatori"
+    }
+
+    if (formData.hasSecondaryLanguage) {
+      if (!formData.secondaryLanguage) {
+        errors.secondaryLanguage = "L'idioma secundari és obligatori"
+      } else if (formData.secondaryLanguage === formData.language) {
+        errors.secondaryLanguage = "L'idioma secundari ha de ser diferent del principal"
+      }
+
+      if (
+        formData.secondaryLanguageHours === null ||
+        formData.secondaryLanguageHours === undefined ||
+        formData.secondaryLanguageHours === ''
+      ) {
+        errors.secondaryLanguageHours = "Les hores de l'idioma secundari són obligatòries"
+      } else if (!Number.isInteger(Number(formData.secondaryLanguageHours))) {
+        errors.secondaryLanguageHours = "Les hores de l'idioma secundari han de ser un número enter"
+      } else if (Number(formData.secondaryLanguageHours) <= 0) {
+        errors.secondaryLanguageHours = "Les hores de l'idioma secundari han de ser majors que 0"
+      } else if (Number(formData.secondaryLanguageHours) > weekHours) {
+        errors.secondaryLanguageHours = `Les hores de l'idioma secundari no poden ser majors que les del mòdul (${weekHours})`
+      } else if (Number(formData.secondaryLanguageHours) >= weekHours) {
+        errors.secondaryLanguageHours =
+          "Han de quedar hores per a l'idioma principal (mínim 1 hora)"
+      }
     }
 
     return errors

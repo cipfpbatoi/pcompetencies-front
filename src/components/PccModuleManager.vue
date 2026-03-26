@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '@/stores/data'
-import ModalComponent from '@/components/ModalComp.vue'
 
 // Props
 const props = defineProps({
@@ -11,8 +10,6 @@ const props = defineProps({
     required: true
   }
 })
-
-const emit = defineEmits(['help'])
 
 // Store
 const store = useDataStore()

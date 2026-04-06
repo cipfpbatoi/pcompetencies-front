@@ -280,7 +280,7 @@ const confirmDelete = async () => {
           <div class="mt-3">
             <h6 class="fw-bold text-secondary">
               <i class="bi bi-door-open me-1"></i>
-              Altres criteris d'accés a la FE
+              Altres criteris d'accés a la FE (Opcional)
             </h6>
             <div class="border rounded p-3 bg-light other-fe-access-criteria">
               {{ trainingPlan.otherFeAccessCriteria || "No s'han definit criteris addicionals." }}

@@ -32,7 +32,8 @@ const showDeleteModal = ref(false)
 const form = ref({
   firstCourseHours: 0,
   secondCourseHours: 0,
-  companyAssignmentCriterias: ''
+  companyAssignmentCriterias: '',
+  otherFeAccessCriteria: ''
 })
 
 const formErrors = ref({})
@@ -45,17 +46,6 @@ const isLogseCycle = computed(() => Boolean(pcc.value?.cycle?.isLogse))
 const minTotalFEHours = computed(() => {
   if (isLogseCycle.value) return 400
   return pcc.value?.minTotalFeHours || pcc.value?.minTotalFEHours || 0
-})
-
-const cycleTotalHours = computed(() => {
-  const cycle = pcc.value?.cycle
-  if (!cycle) return 0
-  if (cycle.hours) return cycle.hours
-  if (cycle.totalHours) return cycle.totalHours
-  if (cycle.modules?.length) {
-    return cycle.modules.reduce((total, module) => total + (module.numberOfHours || 0), 0)
-  }
-  return 0
 })
 
 const maxTotalFEHours = computed(() => {
@@ -97,13 +87,15 @@ const startEditing = () => {
     form.value = {
       firstCourseHours: trainingPlan.value.firstCourseHours || 0,
       secondCourseHours: trainingPlan.value.secondCourseHours || 0,
-      companyAssignmentCriterias: trainingPlan.value.companyAssignmentCriterias || ''
+      companyAssignmentCriterias: trainingPlan.value.companyAssignmentCriterias || '',
+      otherFeAccessCriteria: trainingPlan.value.otherFeAccessCriteria || ''
     }
   } else {
     form.value = {
       firstCourseHours: 0,
       secondCourseHours: 0,
-      companyAssignmentCriterias: ''
+      companyAssignmentCriterias: '',
+      otherFeAccessCriteria: ''
     }
   }
 
@@ -175,7 +167,8 @@ const saveTrainingPlan = async () => {
     const data = {
       firstCourseHours: isLogseCycle.value ? 0 : parseInt(form.value.firstCourseHours, 10),
       secondCourseHours: parseInt(form.value.secondCourseHours, 10),
-      companyAssignmentCriterias: form.value.companyAssignmentCriterias.trim()
+      companyAssignmentCriterias: form.value.companyAssignmentCriterias.trim(),
+      otherFeAccessCriteria: form.value.otherFeAccessCriteria?.trim() || null
     }
 
     const success = await savePCCTrainingPlan(props.pccId, data)
@@ -275,10 +268,23 @@ const confirmDelete = async () => {
               entre el centre i l'empresa)<br />
               2. Requisits específics per part del centre de treball<br />
               <span class="line-3-emphasis">
-                3. Els criteris d'assignació per a la resta de alumnat són:
+                3. Els criteris d'assignació per a la resta de l'alumnat són:
               </span>
             </div>
+            <div class="alert alert-info py-2 mb-2" role="alert">
+              Només cal complementar el punt 3. No cal repetir els punts 1 i 2.
+            </div>
             <div class="border rounded p-3" v-html="trainingPlan.companyAssignmentCriterias"></div>
+          </div>
+
+          <div class="mt-3">
+            <h6 class="fw-bold text-secondary">
+              <i class="bi bi-door-open me-1"></i>
+              Altres criteris d'accés a la FE
+            </h6>
+            <div class="border rounded p-3 bg-light other-fe-access-criteria">
+              {{ trainingPlan.otherFeAccessCriteria || "No s'han definit criteris addicionals." }}
+            </div>
           </div>
         </div>
       </div>
@@ -384,6 +390,10 @@ const confirmDelete = async () => {
             <br />
             <span class="text-danger">*</span>
           </label>
+          <div class="alert alert-info py-2 mb-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+            Només has de completar la resposta al punt 3
+          </div>
           <ckeditor
             :editor="editor"
             v-model="form.companyAssignmentCriterias"
@@ -392,6 +402,23 @@ const confirmDelete = async () => {
           <div v-if="formErrors.companyAssignmentCriterias" class="text-danger small mt-2">
             {{ formErrors.companyAssignmentCriterias }}
           </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold" for="otherFeAccessCriteria">
+            <i class="bi bi-door-open me-1"></i>
+            Altres criteris d'accés a la FE
+          </label>
+          <div class="form-text mb-2">
+            Camp opcional per a especificar criteris addicionals d'accés a la FE.
+          </div>
+          <textarea
+            id="otherFeAccessCriteria"
+            class="form-control"
+            v-model="form.otherFeAccessCriteria"
+            rows="4"
+            :disabled="isLoading"
+          ></textarea>
         </div>
       </div>
       <div class="card-footer d-flex justify-content-end gap-2">
@@ -452,5 +479,9 @@ const confirmDelete = async () => {
 <style scoped>
 .line-3-emphasis {
   font-size: 1.1rem;
+}
+
+.other-fe-access-criteria {
+  white-space: pre-line;
 }
 </style>

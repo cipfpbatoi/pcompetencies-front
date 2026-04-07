@@ -41,7 +41,15 @@ const formErrors = ref({})
 // Computeds
 const trainingPlan = computed(() => pcc.value?.trainingPlan || null)
 const hasTrainingPlan = computed(() => !!trainingPlan.value)
-const isLogseCycle = computed(() => Boolean(pcc.value?.cycle?.isLogse))
+const isLogseCycle = computed(() => {
+  const cycleInfo = pcc.value?.cycle || {}
+  if (cycleInfo.isLogse !== undefined && cycleInfo.isLogse !== null) {
+    return Boolean(cycleInfo.isLogse)
+  }
+  const shortName = cycleInfo.shortName || cycleInfo.short_name || ''
+  const completeName = cycleInfo.completeName || cycleInfo.complete_name || ''
+  return `${shortName} ${completeName}`.toUpperCase().includes('LOGSE')
+})
 
 const minTotalFEHours = computed(() => {
   if (isLogseCycle.value) return 400

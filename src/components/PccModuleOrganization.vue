@@ -663,7 +663,7 @@ const hoursSum = computed(() => {
               class="list-group-item text-muted text-center"
             >
               <i class="bi bi-info-circle me-1"></i>
-              No hi ha mòduls de 2n curs
+              No hi ha mòduls de formació en centre en 2n curs
             </li>
             <li v-for="module in modulesByCourse[2]" :key="module.code" class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">

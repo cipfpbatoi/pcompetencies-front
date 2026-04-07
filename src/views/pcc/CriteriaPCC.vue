@@ -78,7 +78,15 @@ const editorConfig = {
 }
 
 // Computed
-const isLogseCycle = computed(() => Boolean(pcc.value?.cycle?.isLogse))
+const isLogseCycle = computed(() => {
+  const cycleInfo = pcc.value?.cycle || {}
+  if (cycleInfo.isLogse !== undefined && cycleInfo.isLogse !== null) {
+    return Boolean(cycleInfo.isLogse)
+  }
+  const shortName = cycleInfo.shortName || cycleInfo.short_name || ''
+  const completeName = cycleInfo.completeName || cycleInfo.complete_name || ''
+  return `${shortName} ${completeName}`.toUpperCase().includes('LOGSE')
+})
 
 const isDone = computed(() => {
   if (isLogseCycle.value) {

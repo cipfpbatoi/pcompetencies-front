@@ -35,6 +35,24 @@ const currentModules = computed(() => {
   return pcc.value?.modules || []
 })
 
+const isLogseCycle = computed(() => {
+  const cycleInfo = pcc.value?.cycle || cycle.value || {}
+  if (cycleInfo.isLogse !== undefined && cycleInfo.isLogse !== null) {
+    return Boolean(cycleInfo.isLogse)
+  }
+  const shortName = cycleInfo.shortName || cycleInfo.short_name || ''
+  const completeName = cycleInfo.completeName || cycleInfo.complete_name || ''
+  return `${shortName} ${completeName}`.toUpperCase().includes('LOGSE')
+})
+
+const logseVirtualFctModule = computed(() => ({
+  code: '__LOGSE_FCT__',
+  name: 'FCT',
+  courseLevel: 2,
+  numberOfHours: Number(pcc.value?.trainingPlan?.secondCourseHours) || 0,
+  isVirtualFct: true
+}))
+
 const modulesByCourse = computed(() => {
   const grouped = {
     1: [],
@@ -48,6 +66,10 @@ const modulesByCourse = computed(() => {
     }
   })
 
+  if (isLogseCycle.value) {
+    grouped[2] = [logseVirtualFctModule.value]
+  }
+
   return grouped
 })
 
@@ -59,7 +81,10 @@ const addedModulesHoursByCourse = computed(() => {
 })
 
 const addedModulesHours = computed(() => {
-  return currentModules.value.reduce((total, module) => total + (module.numberOfHours || 0), 0)
+  return [...modulesByCourse.value[1], ...modulesByCourse.value[2]].reduce(
+    (total, module) => total + (module.numberOfHours || 0),
+    0
+  )
 })
 
 const cycleHoursFallback = computed(() => {
@@ -70,6 +95,7 @@ const cycleHoursFallback = computed(() => {
 })
 
 const cycleTotalHours = computed(() => {
+  if (isLogseCycle.value) return 1400
   if (cycle.value?.hours) return cycle.value.hours
   if (cycle.value?.totalHours) return cycle.value.totalHours
   if (cycle.value?.modules?.length) {
@@ -82,7 +108,13 @@ const availableModulesToAdd = computed(() => {
   if (!cycle.value?.modules) return []
 
   const currentModuleCodes = currentModules.value.map((m) => m.code)
-  return cycle.value.modules.filter((m) => !currentModuleCodes.includes(m.code))
+  let modules = cycle.value.modules.filter((m) => !currentModuleCodes.includes(m.code))
+
+  if (isLogseCycle.value) {
+    modules = modules.filter((m) => (m.courseLevel || 1) === 1)
+  }
+
+  return modules
 })
 
 const hasModulesToAdd = computed(() => availableModulesToAdd.value.length > 0)
@@ -115,6 +147,7 @@ const closeAddModal = () => {
 }
 
 const openDeleteModal = (module) => {
+  if (module?.isVirtualFct) return
   moduleToDelete.value = module
   showDeleteModal.value = true
 }
@@ -257,11 +290,24 @@ const confirmDelete = async () => {
               class="list-group-item d-flex justify-content-between align-items-center"
             >
               <div class="flex-grow-1">
-                <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
-                h)
-                <span v-if="module.proyect" class="badge bg-info text-dark ms-2">Projecte</span>
+                <template v-if="module.isVirtualFct">
+                  <strong>{{ module.name }}</strong>
+                  <span class="badge bg-warning text-dark ms-2">Pas 5</span>
+                  <div class="small text-muted mt-1">
+                    <span v-if="module.numberOfHours > 0"
+                      >{{ module.numberOfHours }} h definides al pas 5</span
+                    >
+                    <span v-else>Pendent de definir hores al pas 5 (Pla Formatiu d'Empresa)</span>
+                  </div>
+                </template>
+                <template v-else>
+                  <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
+                  h)
+                  <span v-if="module.proyect" class="badge bg-info text-dark ms-2">Projecte</span>
+                </template>
               </div>
               <button
+                v-if="!module.isVirtualFct"
                 @click="openDeleteModal(module)"
                 class="btn btn-danger btn-sm ms-2"
                 :disabled="isLoading"
@@ -352,7 +398,7 @@ const confirmDelete = async () => {
                   </div>
 
                   <!-- 2º Curso -->
-                  <div v-if="availableModulesByCourse[2].length > 0">
+                  <div v-if="!isLogseCycle && availableModulesByCourse[2].length > 0">
                     <h6 class="text-success fw-bold mb-2">
                       <i class="bi bi-journal-text me-1"></i>
                       2n Curs
@@ -382,6 +428,10 @@ const confirmDelete = async () => {
                         >
                       </label>
                     </div>
+                  </div>
+                  <div v-if="isLogseCycle" class="alert alert-info mt-3 mb-0">
+                    En els cicles LOGSE, l'FCT es gestiona automàticament al pas 5 (Pla Formatiu
+                    d'Empresa).
                   </div>
                 </div>
                 <div v-else class="alert alert-warning">

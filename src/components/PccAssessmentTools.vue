@@ -38,24 +38,77 @@ const editingTool = ref(null)
 const showDeleteConfirm = ref(false)
 const deleteTarget = ref(null)
 
+const TURN_OPTIONS = [
+  { value: 'presential', label: 'Presencial' },
+  { value: 'half-presential', label: 'Semi-presencial' }
+]
+
+const DEFAULT_TURN = 'presential'
+
 // Formulario
 const form = ref({
   assessmentToolId: null,
   percentage: null,
-  moduleCodes: []
+  turns: [],
+  moduleTurnSelections: []
 })
 
 const formErrors = ref({})
+const applyToAllTurns = ref(true)
 const applyToAllModules = ref(true)
 
 // Computeds
 const currentModules = computed(() => pcc.value?.modules || [])
 
-const allRequiredHavePercentage = computed(() => {
-  return availableTools.value.mandatory.every((tool) => {
-    const agreed = agreedTools.value.find((a) => a.assessmentTool?.id === tool.assessmentTool.id)
-    return agreed && agreed.minimumPercentage !== null
+const availableTurns = computed(() => {
+  const cycleAvailableTurns = Array.isArray(pcc.value?.cycle?.availableTurns)
+    ? pcc.value.cycle.availableTurns
+    : []
+  const cycleTurns = Array.isArray(pcc.value?.cycle?.turns) ? pcc.value.cycle.turns : []
+  const moduleTurns = currentModules.value
+    .map((module) => module.turn)
+    .filter((turn) => typeof turn === 'string')
+
+  const rawTurns = [...cycleAvailableTurns, ...cycleTurns, ...moduleTurns]
+  const normalizedTurns = [...new Set(rawTurns)].filter((turn) =>
+    TURN_OPTIONS.some((option) => option.value === turn)
+  )
+
+  if (normalizedTurns.length > 0) return normalizedTurns
+  return [DEFAULT_TURN]
+})
+
+const availableTurnOptions = computed(() => {
+  return TURN_OPTIONS.filter((option) => availableTurns.value.includes(option.value))
+})
+
+const effectiveTurnOptions = computed(() => {
+  return TURN_OPTIONS.filter((option) => effectiveTurns.value.includes(option.value))
+})
+
+const hasMultipleTurns = computed(() => {
+  return availableTurns.value.length > 1
+})
+
+const availableModules = computed(() => {
+  const moduleMap = new Map()
+
+  currentModules.value.forEach((module) => {
+    if (!module?.code) return
+    moduleMap.set(module.code, {
+      code: module.code,
+      name: module.name || module.code
+    })
   })
+
+  return Array.from(moduleMap.values()).sort((a, b) => a.code.localeCompare(b.code))
+})
+
+const effectiveTurns = computed(() => {
+  if (!applyToAllModules.value) return availableTurns.value
+  if (!hasMultipleTurns.value) return availableTurns.value
+  if (applyToAllTurns.value) return availableTurns.value
+  return form.value.turns.filter((turn) => availableTurns.value.includes(turn))
 })
 
 const mandatoryConfigured = computed(() => {
@@ -158,13 +211,34 @@ const isFormValid = computed(() => {
     if (form.value.percentage < tool.minPercentage) return false
   }
 
-  // Validar módulos: si se seleccionan, deben ser al menos 2
-  if (
-    !editingTool.value?.isMandatory &&
-    !applyToAllModules.value &&
-    form.value.moduleCodes.length < 2
-  ) {
-    return false
+  if (!editingTool.value?.isMandatory) {
+    if (hasMultipleTurns.value && applyToAllModules.value) {
+      if (!applyToAllTurns.value && form.value.turns.length === 0) return false
+      if (!applyToAllTurns.value && form.value.turns.length >= availableTurns.value.length)
+        return false
+
+      const hasInvalidTurn = form.value.turns.some((turn) => !availableTurns.value.includes(turn))
+      if (hasInvalidTurn) return false
+    }
+
+    if (!applyToAllModules.value) {
+      if (form.value.moduleTurnSelections.length === 0) return false
+
+      const availableModuleCodes = new Set(availableModules.value.map((module) => module.code))
+      const uniquePairs = new Set()
+      const uniqueModules = new Set()
+
+      for (const selection of form.value.moduleTurnSelections) {
+        if (!availableModuleCodes.has(selection.moduleCode)) return false
+        if (!effectiveTurns.value.includes(selection.turn)) return false
+        const pairKey = `${selection.moduleCode}::${selection.turn}`
+        if (uniquePairs.has(pairKey)) return false
+        uniquePairs.add(pairKey)
+        uniqueModules.add(selection.moduleCode)
+      }
+
+      if (uniqueModules.size < 2) return false
+    }
   }
 
   return true
@@ -212,6 +286,104 @@ const getToolDescription = (tool) => {
   return String(description).trim()
 }
 
+const getTurnLabel = (turn) => {
+  return TURN_OPTIONS.find((option) => option.value === turn)?.label || turn
+}
+
+const getTurnShortLabel = (turn) => {
+  if (turn === 'presential') return 'PRES.'
+  if (turn === 'half-presential') return 'SEMI.'
+  return turn
+}
+
+const normalizeModuleTurnSelections = (selections) => {
+  if (!Array.isArray(selections)) return []
+  return selections
+    .map((selection) => ({
+      moduleCode: selection?.moduleCode || selection?.module?.code || '',
+      turn: selection?.turn || ''
+    }))
+    .filter((selection) => selection.moduleCode)
+}
+
+const buildModuleSummary = (agreed) => {
+  const selections = normalizeModuleTurnSelections(agreed?.moduleTurnSelections)
+  if (!selections.length) {
+    const legacyModules = Array.isArray(agreed?.modules)
+      ? agreed.modules.map((module) => module?.code).filter(Boolean)
+      : []
+
+    if (legacyModules.length > 0) return legacyModules.sort().join(', ')
+    return 'Tots els mòduls'
+  }
+
+  if (!hasMultipleTurns.value) {
+    const uniqueModules = [...new Set(selections.map((selection) => selection.moduleCode))]
+    return uniqueModules.sort().join(', ')
+  }
+
+  const groupedByTurn = selections.reduce((acc, selection) => {
+    const turnKey = selection.turn || 'without-turn'
+    if (!acc[turnKey]) acc[turnKey] = new Set()
+    acc[turnKey].add(selection.moduleCode)
+    return acc
+  }, {})
+
+  return Object.entries(groupedByTurn)
+    .map(([turn, modules]) => {
+      if (turn === 'without-turn') return Array.from(modules).sort().join(', ')
+      return `${getTurnShortLabel(turn)}: ${Array.from(modules).sort().join(', ')}`
+    })
+    .join(' | ')
+}
+
+const buildTurnSummary = (agreed) => {
+  const selections = normalizeModuleTurnSelections(agreed?.moduleTurnSelections)
+  if (selections.length > 0) {
+    const turnsFromSelections = [
+      ...new Set(selections.map((selection) => selection.turn).filter(Boolean))
+    ]
+    if (turnsFromSelections.length > 0) {
+      return turnsFromSelections.map((turn) => getTurnLabel(turn)).join(', ')
+    }
+    return 'Segons selecció de mòduls'
+  }
+
+  const turns = Array.isArray(agreed?.turns) ? agreed.turns : []
+  if (!turns.length) return 'Tots els torns'
+  return turns.map((turn) => getTurnLabel(turn)).join(', ')
+}
+
+const shouldShowTurnSummary = (agreed) => {
+  if (!hasMultipleTurns.value) return false
+  const selections = normalizeModuleTurnSelections(agreed?.moduleTurnSelections)
+  return selections.length === 0
+}
+
+const isTurnOptionDisabled = (turnValue) => {
+  if (form.value.turns.includes(turnValue)) return false
+  return form.value.turns.length >= availableTurnOptions.value.length - 1
+}
+
+const hasModuleTurnSelection = (moduleCode, turn) => {
+  return form.value.moduleTurnSelections.some(
+    (selection) => selection.moduleCode === moduleCode && selection.turn === turn
+  )
+}
+
+const toggleModuleTurnSelection = (moduleCode, turn) => {
+  const index = form.value.moduleTurnSelections.findIndex(
+    (selection) => selection.moduleCode === moduleCode && selection.turn === turn
+  )
+
+  if (index > -1) {
+    form.value.moduleTurnSelections.splice(index, 1)
+    return
+  }
+
+  form.value.moduleTurnSelections.push({ moduleCode, turn })
+}
+
 const openEditModal = (tool) => {
   // For mandatory tools, assessmentTool is nested; for nonMandatory, it's flat
   const assessmentToolId = tool.assessmentTool ? tool.assessmentTool.id : tool.id
@@ -229,14 +401,38 @@ const openEditModal = (tool) => {
   }
 
   const agreed = getAgreed(assessmentToolId)
+  let agreedTurns = (Array.isArray(agreed?.turns) ? agreed.turns : []).filter((turn) =>
+    availableTurns.value.includes(turn)
+  )
+  if (hasMultipleTurns.value && agreedTurns.length >= availableTurns.value.length) {
+    agreedTurns = []
+  }
+  const agreedSelections = normalizeModuleTurnSelections(agreed?.moduleTurnSelections).filter(
+    (selection) => {
+      if (!availableTurns.value.includes(selection.turn)) return false
+      if (agreedTurns.length === 0) return true
+      return agreedTurns.includes(selection.turn)
+    }
+  )
 
   form.value = {
     assessmentToolId,
     percentage: agreed?.minimumPercentage ?? minPct ?? null,
-    moduleCodes: isMandatory ? [] : agreed?.modules?.map((m) => m.code) || []
+    turns: isMandatory ? [] : agreedTurns,
+    moduleTurnSelections: isMandatory ? [] : agreedSelections
   }
 
-  applyToAllModules.value = isMandatory || form.value.moduleCodes.length === 0
+  if (!hasMultipleTurns.value) {
+    form.value.turns = []
+    const fallbackTurn = availableTurns.value[0] || ''
+    form.value.moduleTurnSelections = form.value.moduleTurnSelections.map((selection) => ({
+      ...selection,
+      turn: selection.turn || fallbackTurn
+    }))
+  }
+
+  applyToAllTurns.value = isMandatory || !hasMultipleTurns.value || form.value.turns.length === 0
+  applyToAllModules.value = isMandatory || form.value.moduleTurnSelections.length === 0
 
   formErrors.value = {}
   showEditModal.value = true
@@ -248,20 +444,12 @@ const closeEditModal = () => {
   form.value = {
     assessmentToolId: null,
     percentage: null,
-    moduleCodes: []
+    turns: [],
+    moduleTurnSelections: []
   }
+  applyToAllTurns.value = true
   applyToAllModules.value = true
   formErrors.value = {}
-}
-
-const toggleModule = (moduleCode) => {
-  if (editingTool.value?.isMandatory) return
-  const index = form.value.moduleCodes.indexOf(moduleCode)
-  if (index > -1) {
-    form.value.moduleCodes.splice(index, 1)
-  } else {
-    form.value.moduleCodes.push(moduleCode)
-  }
 }
 
 const validateForm = () => {
@@ -274,13 +462,50 @@ const validateForm = () => {
     }
   }
 
-  // Validar módulos
-  if (
-    !editingTool.value?.isMandatory &&
-    !applyToAllModules.value &&
-    form.value.moduleCodes.length < 2
-  ) {
-    errors.modules = 'Has de seleccionar almenys 2 mòduls'
+  if (!editingTool.value?.isMandatory) {
+    if (hasMultipleTurns.value && applyToAllModules.value && !applyToAllTurns.value) {
+      if (form.value.turns.length === 0) {
+        errors.turns = 'Has de seleccionar almenys un torn'
+      }
+      if (form.value.turns.length >= availableTurns.value.length) {
+        errors.turns = 'Si apliques a tots els torns, usa l\'opció "Tots els torns"'
+      }
+      const hasInvalidTurn = form.value.turns.some((turn) => !availableTurns.value.includes(turn))
+      if (hasInvalidTurn) {
+        errors.turns = 'Hi ha torns seleccionats que no estan disponibles en aquest cicle'
+      }
+    }
+
+    if (!applyToAllModules.value) {
+      const availableModuleCodes = new Set(availableModules.value.map((module) => module.code))
+      const uniquePairs = new Set()
+      const uniqueModules = new Set()
+
+      form.value.moduleTurnSelections.forEach((selection) => {
+        if (!availableModuleCodes.has(selection.moduleCode)) {
+          errors.modules = 'Hi ha mòduls seleccionats que ja no estan disponibles'
+        }
+
+        if (!effectiveTurns.value.includes(selection.turn)) {
+          errors.modules = 'Hi ha torns seleccionats que no estan disponibles'
+        }
+
+        const key = `${selection.moduleCode}::${selection.turn}`
+        if (uniquePairs.has(key)) {
+          errors.modules = 'No es poden repetir combinacions mòdul+torn'
+        }
+        uniquePairs.add(key)
+        uniqueModules.add(selection.moduleCode)
+      })
+
+      if (form.value.moduleTurnSelections.length === 0) {
+        errors.modules = 'Afig almenys una combinació de mòdul i torn'
+      }
+
+      if (uniqueModules.size > 0 && uniqueModules.size < 2) {
+        errors.modules = 'Has de seleccionar almenys 2 mòduls diferents'
+      }
+    }
   }
 
   formErrors.value = errors
@@ -310,8 +535,20 @@ const saveAgreed = async () => {
     const data = {
       assessmentToolId: form.value.assessmentToolId,
       minPercentage: form.value.percentage,
-      moduleCodes:
-        editingTool.value?.isMandatory || applyToAllModules.value ? [] : form.value.moduleCodes
+      turns:
+        editingTool.value?.isMandatory ||
+        !hasMultipleTurns.value ||
+        !applyToAllModules.value ||
+        applyToAllTurns.value
+          ? []
+          : form.value.turns,
+      moduleTurnSelections:
+        editingTool.value?.isMandatory || applyToAllModules.value
+          ? []
+          : form.value.moduleTurnSelections.map((selection) => ({
+              moduleCode: selection.moduleCode,
+              turn: selection.turn
+            }))
     }
 
     const success = await savePCCAgreedAssessmentTool(props.pccId, data)
@@ -325,11 +562,41 @@ const saveAgreed = async () => {
   }
 }
 
-watch(applyToAllModules, (nextValue) => {
+watch(applyToAllTurns, (nextValue) => {
   if (nextValue) {
-    form.value.moduleCodes = []
+    form.value.turns = []
   }
 })
+
+watch(hasMultipleTurns, (nextValue) => {
+  if (nextValue) return
+  applyToAllTurns.value = true
+  form.value.turns = []
+})
+
+watch(applyToAllModules, (nextValue) => {
+  if (nextValue) {
+    form.value.moduleTurnSelections = []
+    return
+  }
+
+  applyToAllTurns.value = true
+  form.value.turns = []
+})
+
+watch(
+  effectiveTurns,
+  (nextTurns) => {
+    const availableModuleCodes = new Set(availableModules.value.map((module) => module.code))
+    form.value.moduleTurnSelections = form.value.moduleTurnSelections.filter(
+      (selection) =>
+        availableModuleCodes.has(selection.moduleCode) &&
+        selection.turn &&
+        nextTurns.includes(selection.turn)
+    )
+  },
+  { deep: true }
+)
 
 const confirmDelete = async () => {
   if (!deleteTarget.value) return
@@ -402,15 +669,12 @@ onMounted(() => {
                   >
                     {{ `${getAgreed(tool.id).minimumPercentage}%` }}
                   </span>
-                  <span class="text-muted small">
-                    {{
-                      getAgreed(tool.id).modules?.length > 0
-                        ? `Mòduls: ${getAgreed(tool.id)
-                            .modules.map((m) => m.code)
-                            .join(', ')}`
-                        : 'Aplica a tots els mòduls'
-                    }}
-                  </span>
+                  <div v-if="shouldShowTurnSummary(getAgreed(tool.id))" class="text-muted small">
+                    Torns: {{ buildTurnSummary(getAgreed(tool.id)) }}
+                  </div>
+                  <div class="text-muted small">
+                    Mòduls: {{ buildModuleSummary(getAgreed(tool.id)) }}
+                  </div>
                 </div>
               </div>
               <div class="tool-actions btn-group-vertical" role="group">
@@ -574,7 +838,10 @@ onMounted(() => {
               </div>
               <div class="modal-body">
                 <blockquote class="assessment-tool-quote">
-                  {{ editingTool.description || "Sense descripció disponible per a aquest instrument." }}
+                  {{
+                    editingTool.description ||
+                    'Sense descripció disponible per a aquest instrument.'
+                  }}
                 </blockquote>
 
                 <div v-if="editingTool.isMandatory" class="alert alert-danger mb-3">
@@ -608,11 +875,11 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <!-- Módulos -->
+                <!-- Torns i mòduls -->
                 <div class="mb-3">
                   <label class="form-label fw-bold">Aplicació de l'instrument</label>
                   <div v-if="editingTool.isMandatory" class="alert alert-info py-2">
-                    Aquest instrument és obligatori i s'aplica a tots els mòduls del cicle.
+                    Instrument obligatori per a tots els mòduls i torns.
                   </div>
                   <template v-else>
                     <div class="form-check">
@@ -624,9 +891,7 @@ onMounted(() => {
                         :value="true"
                         v-model="applyToAllModules"
                       />
-                      <label class="form-check-label" for="allModulesTools">
-                        Aplicar a tots els mòduls del cicle
-                      </label>
+                      <label class="form-check-label" for="allModulesTools">Tots els mòduls</label>
                     </div>
 
                     <div class="form-check">
@@ -639,31 +904,131 @@ onMounted(() => {
                         v-model="applyToAllModules"
                       />
                       <label class="form-check-label" for="specificModulesTools">
-                        Aplicar només a mòduls específics
+                        Mòduls concrets
                       </label>
                     </div>
 
-                    <div v-if="!applyToAllModules" class="mt-3">
-                      <label class="form-label">Selecciona els mòduls</label>
-                      <div class="module-selection">
-                        <div v-for="module in currentModules" :key="module.code" class="form-check">
+                    <div v-if="hasMultipleTurns && applyToAllModules" class="mt-3">
+                      <label class="form-label">Torns</label>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="turnSelectionTools"
+                          id="allTurnsTools"
+                          :value="true"
+                          v-model="applyToAllTurns"
+                        />
+                        <label class="form-check-label" for="allTurnsTools">Tots els torns</label>
+                      </div>
+
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          name="turnSelectionTools"
+                          id="specificTurnsTools"
+                          :value="false"
+                          v-model="applyToAllTurns"
+                        />
+                        <label class="form-check-label" for="specificTurnsTools">
+                          Torns concrets
+                        </label>
+                      </div>
+
+                      <fieldset v-if="!applyToAllTurns" class="suboption-fieldset mt-2">
+                        <legend class="suboption-legend">Configura els torns concrets</legend>
+                        <div
+                          v-for="turnOption in availableTurnOptions"
+                          :key="turnOption.value"
+                          class="form-check"
+                        >
                           <input
+                            :id="`turn-${turnOption.value}`"
+                            v-model="form.turns"
                             class="form-check-input"
                             type="checkbox"
-                            :id="`mod-${module.code}`"
-                            :value="module.code"
-                            :checked="form.moduleCodes.includes(module.code)"
-                            @change="toggleModule(module.code)"
+                            :value="turnOption.value"
+                            :disabled="isTurnOptionDisabled(turnOption.value)"
                           />
-                          <label class="form-check-label" :for="`mod-${module.code}`">
-                            <strong>{{ module.code }}</strong> - {{ module.name }}
+                          <label class="form-check-label" :for="`turn-${turnOption.value}`">
+                            {{ turnOption.label }}
                           </label>
                         </div>
+                        <div v-if="formErrors.turns" class="text-danger small mt-2">
+                          {{ formErrors.turns }}
+                        </div>
+                        <div class="form-text">
+                          Per a evitar duplicar opcions, en torns concrets no pots marcar-los tots.
+                        </div>
+                      </fieldset>
+                    </div>
+
+                    <fieldset v-if="!applyToAllModules" class="suboption-fieldset mt-3">
+                      <legend class="suboption-legend">Configura els mòduls concrets</legend>
+                      <label class="form-label">
+                        {{
+                          hasMultipleTurns
+                            ? 'Selecciona combinacions mòdul+torn'
+                            : 'Selecciona mòduls'
+                        }}
+                      </label>
+                      <div class="module-selection table-responsive">
+                        <table
+                          class="table table-sm table-bordered align-middle mb-0 module-turn-grid"
+                        >
+                          <thead>
+                            <tr>
+                              <th scope="col">Mòdul</th>
+                              <th
+                                v-for="turnOption in effectiveTurnOptions"
+                                :key="`head-${turnOption.value}`"
+                                scope="col"
+                                class="text-center"
+                              >
+                                {{ turnOption.label }}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="module in availableModules" :key="`row-${module.code}`">
+                              <th scope="row" class="module-cell">
+                                <strong>{{ module.code }}</strong>
+                                <div class="small text-muted">{{ module.name }}</div>
+                              </th>
+                              <td
+                                v-for="turnOption in effectiveTurnOptions"
+                                :key="`${module.code}-${turnOption.value}`"
+                                class="text-center"
+                              >
+                                <button
+                                  type="button"
+                                  class="btn btn-sm w-100"
+                                  :class="
+                                    hasModuleTurnSelection(module.code, turnOption.value)
+                                      ? 'btn-primary'
+                                      : 'btn-outline-secondary'
+                                  "
+                                  @click="toggleModuleTurnSelection(module.code, turnOption.value)"
+                                >
+                                  <i
+                                    class="bi"
+                                    :class="
+                                      hasModuleTurnSelection(module.code, turnOption.value)
+                                        ? 'bi-check-circle-fill'
+                                        : 'bi-circle'
+                                    "
+                                  ></i>
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                       <div v-if="formErrors.modules" class="text-danger small mt-2">
                         {{ formErrors.modules }}
                       </div>
-                    </div>
+                    </fieldset>
                   </template>
                 </div>
               </div>
@@ -738,11 +1103,35 @@ onMounted(() => {
 
 <style scoped>
 .module-selection {
-  max-height: 300px;
+  max-height: 420px;
   overflow-y: auto;
   border: 1px solid #dee2e6;
   border-radius: 0.375rem;
   padding: 0.75rem;
+}
+
+.suboption-fieldset {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+}
+
+.suboption-legend {
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.module-turn-grid td {
+  min-width: 110px;
+}
+
+.module-turn-grid .module-cell {
+  min-width: 220px;
 }
 
 .btn-group-vertical {

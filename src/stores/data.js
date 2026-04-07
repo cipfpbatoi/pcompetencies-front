@@ -566,6 +566,7 @@ export const useDataStore = defineStore('data', {
       try {
         const response = await api.savePCCTrainingPlan(pccId, data)
         this.pcc.trainingPlan = response.data
+        this.pcc = { ...this.pcc }
         return true
       } catch (error) {
         this.addMessage('error', error)
@@ -576,6 +577,7 @@ export const useDataStore = defineStore('data', {
       try {
         await api.deletePCCTrainingPlan(pccId)
         this.pcc.trainingPlan = null
+        this.pcc = { ...this.pcc }
         return true
       } catch (error) {
         this.addMessage('error', error)

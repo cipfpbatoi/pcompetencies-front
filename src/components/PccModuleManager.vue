@@ -88,20 +88,13 @@ const addedModulesHours = computed(() => {
 })
 
 const cycleHoursFallback = computed(() => {
-  if (cycle.value?.hours) return false
-  if (cycle.value?.totalHours) return false
-  if (cycle.value?.modules?.length) return false
-  return true
+  return !(cycle.value?.hours || pcc.value?.cycle?.hours)
 })
 
 const cycleTotalHours = computed(() => {
-  if (isLogseCycle.value) return 1400
   if (cycle.value?.hours) return cycle.value.hours
-  if (cycle.value?.totalHours) return cycle.value.totalHours
-  if (cycle.value?.modules?.length) {
-    return cycle.value.modules.reduce((total, module) => total + (module.numberOfHours || 0), 0)
-  }
-  return 2000
+  if (pcc.value?.cycle?.hours) return pcc.value.cycle.hours
+  return 0
 })
 
 const availableModulesToAdd = computed(() => {

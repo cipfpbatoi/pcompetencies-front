@@ -350,7 +350,7 @@ const buildTurnSummary = (agreed) => {
   }
 
   const turns = Array.isArray(agreed?.turns) ? agreed.turns : []
-  if (!turns.length) return 'Tots els torns'
+  if (!turns.length) return 'Tots els règims'
   return turns.map((turn) => getTurnLabel(turn)).join(', ')
 }
 
@@ -465,14 +465,14 @@ const validateForm = () => {
   if (!editingTool.value?.isMandatory) {
     if (hasMultipleTurns.value && applyToAllModules.value && !applyToAllTurns.value) {
       if (form.value.turns.length === 0) {
-        errors.turns = 'Has de seleccionar almenys un torn'
+        errors.turns = 'Has de seleccionar almenys un règim'
       }
       if (form.value.turns.length >= availableTurns.value.length) {
-        errors.turns = 'Si apliques a tots els torns, usa l\'opció "Tots els torns"'
+        errors.turns = 'Si apliques a tots els règims, usa l\'opció "Tots els règims"'
       }
       const hasInvalidTurn = form.value.turns.some((turn) => !availableTurns.value.includes(turn))
       if (hasInvalidTurn) {
-        errors.turns = 'Hi ha torns seleccionats que no estan disponibles en aquest cicle'
+        errors.turns = 'Hi ha règims seleccionats que no estan disponibles en aquest cicle'
       }
     }
 
@@ -487,19 +487,19 @@ const validateForm = () => {
         }
 
         if (!effectiveTurns.value.includes(selection.turn)) {
-          errors.modules = 'Hi ha torns seleccionats que no estan disponibles'
+          errors.modules = 'Hi ha règims seleccionats que no estan disponibles'
         }
 
         const key = `${selection.moduleCode}::${selection.turn}`
         if (uniquePairs.has(key)) {
-          errors.modules = 'No es poden repetir combinacions mòdul+torn'
+          errors.modules = 'No es poden repetir combinacions mòdul+règim'
         }
         uniquePairs.add(key)
         uniqueModules.add(selection.moduleCode)
       })
 
       if (form.value.moduleTurnSelections.length === 0) {
-        errors.modules = 'Afig almenys una combinació de mòdul i torn'
+        errors.modules = 'Afig almenys una combinació de mòdul i règim'
       }
 
       if (uniqueModules.size > 0 && uniqueModules.size < 2) {
@@ -670,7 +670,7 @@ onMounted(() => {
                     {{ `${getAgreed(tool.id).minimumPercentage}%` }}
                   </span>
                   <div v-if="shouldShowTurnSummary(getAgreed(tool.id))" class="text-muted small">
-                    Torns: {{ buildTurnSummary(getAgreed(tool.id)) }}
+                    Règims: {{ buildTurnSummary(getAgreed(tool.id)) }}
                   </div>
                   <div class="text-muted small">
                     Mòduls: {{ buildModuleSummary(getAgreed(tool.id)) }}
@@ -879,7 +879,7 @@ onMounted(() => {
                 <div class="mb-3">
                   <label class="form-label fw-bold">Aplicació de l'instrument</label>
                   <div v-if="editingTool.isMandatory" class="alert alert-info py-2">
-                    Instrument obligatori per a tots els mòduls i torns.
+                    Instrument obligatori per a tots els mòduls i règims.
                   </div>
                   <template v-else>
                     <div class="form-check">
@@ -909,7 +909,7 @@ onMounted(() => {
                     </div>
 
                     <div v-if="hasMultipleTurns && applyToAllModules" class="mt-3">
-                      <label class="form-label">Torns</label>
+                      <label class="form-label">Règims</label>
                       <div class="form-check">
                         <input
                           class="form-check-input"
@@ -919,7 +919,7 @@ onMounted(() => {
                           :value="true"
                           v-model="applyToAllTurns"
                         />
-                        <label class="form-check-label" for="allTurnsTools">Tots els torns</label>
+                        <label class="form-check-label" for="allTurnsTools">Tots els règims</label>
                       </div>
 
                       <div class="form-check">
@@ -932,12 +932,12 @@ onMounted(() => {
                           v-model="applyToAllTurns"
                         />
                         <label class="form-check-label" for="specificTurnsTools">
-                          Torns concrets
+                          Règims concrets
                         </label>
                       </div>
 
                       <fieldset v-if="!applyToAllTurns" class="suboption-fieldset mt-2">
-                        <legend class="suboption-legend">Configura els torns concrets</legend>
+                        <legend class="suboption-legend">Configura els règims concrets</legend>
                         <div
                           v-for="turnOption in availableTurnOptions"
                           :key="turnOption.value"
@@ -959,7 +959,7 @@ onMounted(() => {
                           {{ formErrors.turns }}
                         </div>
                         <div class="form-text">
-                          Per a evitar duplicar opcions, en torns concrets no pots marcar-los tots.
+                          Per a evitar duplicar opcions, en règims concrets no pots marcar-los tots.
                         </div>
                       </fieldset>
                     </div>
@@ -969,7 +969,7 @@ onMounted(() => {
                       <label class="form-label">
                         {{
                           hasMultipleTurns
-                            ? 'Selecciona combinacions mòdul+torn'
+                            ? 'Selecciona combinacions mòdul+règim'
                             : 'Selecciona mòduls'
                         }}
                       </label>

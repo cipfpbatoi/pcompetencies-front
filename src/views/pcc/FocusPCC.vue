@@ -292,7 +292,7 @@ const buildModuleSummary = (principleId) => {
 const buildTurnSummary = (principleId) => {
   const principleData = getMethodologicalPrincipleData(principleId)
   const turns = Array.isArray(principleData.turns) ? principleData.turns : []
-  if (!turns.length) return 'Tots els torns'
+  if (!turns.length) return 'Tots els règims'
   return turns.map((turn) => getTurnLabel(turn)).join(', ')
 }
 
@@ -640,7 +640,7 @@ const mpSchema = yup.object({
     .of(yup.string())
     .test(
       'valid-turns',
-      'Hi ha torns seleccionats que no estan disponibles en aquest cicle',
+      'Hi ha règims seleccionats que no estan disponibles en aquest cicle',
       function (value) {
         if (!hasMultipleTurns.value || !applyToAllModules.value || applyToAllTurns.value) {
           return true
@@ -649,7 +649,7 @@ const mpSchema = yup.object({
         return Array.isArray(value) && value.every((turn) => availableTurns.value.includes(turn))
       }
     )
-    .test('required-turns', 'Has de seleccionar almenys un torn', function (value) {
+    .test('required-turns', 'Has de seleccionar almenys un règim', function (value) {
       if (!hasMultipleTurns.value || !applyToAllModules.value || applyToAllTurns.value) {
         return true
       }
@@ -658,7 +658,7 @@ const mpSchema = yup.object({
     })
     .test(
       'not-all-turns',
-      'Si apliques a tots els torns, usa l\'opció "Tots els torns"',
+      'Si apliques a tots els règims, usa l\'opció "Tots els règims"',
       function (value) {
         if (!hasMultipleTurns.value || !applyToAllModules.value || applyToAllTurns.value) {
           return true
@@ -675,11 +675,11 @@ const mpSchema = yup.object({
         turn: yup.string().required()
       })
     )
-    .test('required-selections', 'Afig almenys una combinació de mòdul i torn', function (value) {
+    .test('required-selections', 'Afig almenys una combinació de mòdul i règim', function (value) {
       if (applyToAllModules.value) return true
       return Array.isArray(value) && value.length > 0
     })
-    .test('valid-selections', 'Hi ha combinacions de mòdul+torn no vàlides', function (value) {
+    .test('valid-selections', 'Hi ha combinacions de mòdul+règim no vàlides', function (value) {
       if (applyToAllModules.value) return true
       if (!Array.isArray(value)) return false
 
@@ -689,7 +689,7 @@ const mpSchema = yup.object({
           validModules.has(selection.moduleCode) && effectiveTurns.value.includes(selection.turn)
       )
     })
-    .test('unique-selections', 'No es poden repetir combinacions mòdul+torn', function (value) {
+    .test('unique-selections', 'No es poden repetir combinacions mòdul+règim', function (value) {
       if (applyToAllModules.value) return true
       if (!Array.isArray(value)) return false
 
@@ -802,7 +802,7 @@ onMounted(async () => {
           <label class="form-label">Aplicació del principi</label>
 
           <div v-if="selectedIsMandatory" class="alert alert-info">
-            Principi obligatori per a tots els mòduls i torns.
+            Principi obligatori per a tots els mòduls i règims.
           </div>
 
           <template v-else>
@@ -833,7 +833,7 @@ onMounted(async () => {
             </div>
 
             <div v-if="hasMultipleTurns && applyToAllModules" class="mt-3">
-              <label class="form-label">Torns</label>
+              <label class="form-label">Règims</label>
               <div class="form-check">
                 <input
                   class="form-check-input"
@@ -844,7 +844,7 @@ onMounted(async () => {
                   v-model="applyToAllTurns"
                   :disabled="!canEdit"
                 />
-                <label class="form-check-label" for="allTurns">Tots els torns</label>
+                <label class="form-check-label" for="allTurns">Tots els règims</label>
               </div>
 
               <div class="form-check">
@@ -857,11 +857,11 @@ onMounted(async () => {
                   v-model="applyToAllTurns"
                   :disabled="!canEdit"
                 />
-                <label class="form-check-label" for="specificTurns">Torns concrets</label>
+                <label class="form-check-label" for="specificTurns">Règims concrets</label>
               </div>
 
               <fieldset v-if="!applyToAllTurns" class="suboption-fieldset mt-2">
-                <legend class="suboption-legend">Configura els torns concrets</legend>
+                <legend class="suboption-legend">Configura els règims concrets</legend>
                 <div
                   v-for="turnOption in availableTurnOptions"
                   :key="turnOption.value"
@@ -888,7 +888,7 @@ onMounted(async () => {
             <fieldset v-if="!applyToAllModules" class="suboption-fieldset mt-3">
               <legend class="suboption-legend">Configura els mòduls concrets</legend>
               <label class="form-label">
-                {{ hasMultipleTurns ? 'Selecciona combinacions mòdul+torn' : 'Selecciona mòduls' }}
+                {{ hasMultipleTurns ? 'Selecciona combinacions mòdul+règim' : 'Selecciona mòduls' }}
               </label>
               <small class="text-muted d-block mb-2">Has de seleccionar almenys 2 mòduls.</small>
               <div class="module-selection table-responsive">
@@ -1008,7 +1008,7 @@ onMounted(async () => {
                 </div>
                 <div class="mt-2">
                   <div v-if="shouldShowTurnSummary(principle.id)" class="text-muted small">
-                    Torns: {{ buildTurnSummary(principle.id) }}
+                    Règims: {{ buildTurnSummary(principle.id) }}
                   </div>
                   <div class="text-muted small">Mòduls: {{ buildModuleSummary(principle.id) }}</div>
                 </div>

@@ -69,6 +69,8 @@ const participantSelectorByCourse = reactive({
   2: ''
 })
 
+const participantVisibilityOverrides = ref({})
+
 const distributionForm = ref({})
 
 const orientationForm = reactive({
@@ -430,15 +432,32 @@ const normalizedOrientations = computed(() => {
 })
 
 const participantsRaw = computed(() => {
-  return asArray(
-    pcc.value?.intermodularProjectParticipatingModules ||
-      pcc.value?.intermodularProjectParticipants ||
-      guide.value?.intermodularProjectParticipatingModules ||
-      guide.value?.intermodularProjectParticipants ||
-      guide.value?.participatingModules ||
-      guide.value?.participants ||
-      []
-  )
+  const collections = [
+    asArray(pcc.value?.intermodularProjectParticipatingModules),
+    asArray(pcc.value?.intermodularProjectParticipants),
+    asArray(guide.value?.intermodularProjectParticipatingModules),
+    asArray(guide.value?.intermodularProjectParticipants),
+    asArray(guide.value?.participatingModules),
+    asArray(guide.value?.participants)
+  ]
+
+  const list = []
+  const seen = new Set()
+  collections.flat().forEach((participant) => {
+    const moduleCode = participant?.module?.code || participant?.moduleCode
+    const courseLevel = Number(
+      participant?.courseLevel ||
+        participant?.module?.courseLevel ||
+        getModuleByCode(moduleCode)?.courseLevel
+    )
+    if (!moduleCode || ![1, 2].includes(courseLevel)) return
+    const key = `${moduleCode}-${courseLevel}`
+    if (seen.has(key)) return
+    seen.add(key)
+    list.push(participant)
+  })
+
+  return list
 })
 
 const derivedParticipants = computed(() => {
@@ -446,7 +465,11 @@ const derivedParticipants = computed(() => {
   const seen = new Set()
   participantsRaw.value.forEach((participant) => {
     const moduleCode = participant?.module?.code || participant?.moduleCode
-    const courseLevel = Number(participant?.courseLevel)
+    const courseLevel = Number(
+      participant?.courseLevel ||
+        participant?.module?.courseLevel ||
+        getModuleByCode(moduleCode)?.courseLevel
+    )
     if (!moduleCode || ![1, 2].includes(courseLevel)) return
     const key = `${moduleCode}-${courseLevel}`
     if (seen.has(key)) return
@@ -458,24 +481,25 @@ const derivedParticipants = computed(() => {
     })
   })
 
-  if (list.length === 0) {
-    normalizedOrientations.value.forEach((orientation) => {
-      const key = `${orientation.moduleCode}-${orientation.courseLevel}`
-      if (seen.has(key)) return
-      seen.add(key)
-      list.push({
-        moduleCode: orientation.moduleCode,
-        module: orientation.module,
-        courseLevel: orientation.courseLevel
-      })
+  normalizedOrientations.value.forEach((orientation) => {
+    const key = `${orientation.moduleCode}-${orientation.courseLevel}`
+    if (seen.has(key)) return
+    seen.add(key)
+    list.push({
+      moduleCode: orientation.moduleCode,
+      module: orientation.module,
+      courseLevel: orientation.courseLevel
     })
-  }
+  })
 
   return list
 })
 
 const participants = computed(() => {
-  return derivedParticipants.value
+  return derivedParticipants.value.filter((participant) => {
+    const key = `${participant.moduleCode}-${participant.courseLevel}`
+    return participantVisibilityOverrides.value[key] !== false
+  })
 })
 
 const participantsByCourse = computed(() => {
@@ -642,6 +666,10 @@ const addParticipant = async (courseLevel) => {
       }
     )
     if (result === 'ok') {
+      participantVisibilityOverrides.value = {
+        ...participantVisibilityOverrides.value,
+        [`${moduleCode}-${Number(courseLevel)}`]: true
+      }
       addMessage(
         'success',
         `El módulo ${getModuleLabel(moduleCode)} contribuye al proyecto intermodular en el curso ${getCourseLabel(courseLevel)}`
@@ -683,6 +711,10 @@ const removeParticipant = async (participant) => {
         [courseLevel]: ["No s'ha pogut eliminar el mòdul participant."]
       }
       return
+    }
+    participantVisibilityOverrides.value = {
+      ...participantVisibilityOverrides.value,
+      [`${moduleCode}-${Number(courseLevel)}`]: false
     }
     addMessage(
       'success',

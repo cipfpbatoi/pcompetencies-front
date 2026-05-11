@@ -54,6 +54,97 @@ const getParticipantCourseLevel = (participant) => {
 
 const asArray = (value) => (Array.isArray(value) ? value : [])
 
+const getParticipantsCollectionFromPcc = (pcc) => {
+  const collections = [
+    asArray(pcc?.intermodularProjectParticipatingModules),
+    asArray(pcc?.intermodularProjectParticipants),
+    asArray(pcc?.intermodularProjectGuide?.intermodularProjectParticipatingModules),
+    asArray(pcc?.intermodularProjectGuide?.intermodularProjectParticipants),
+    asArray(pcc?.intermodularProjectGuide?.participatingModules),
+    asArray(pcc?.intermodularProjectGuide?.participants)
+  ]
+
+  const result = []
+  const seen = new Set()
+  collections.flat().forEach((participant) => {
+    const moduleCode = getParticipantModuleCode(participant)
+    const courseLevel = getParticipantCourseLevel(participant)
+    if (!moduleCode || !courseLevel) return
+    const key = `${moduleCode}-${courseLevel}`
+    if (seen.has(key)) return
+    seen.add(key)
+    result.push(participant)
+  })
+
+  return result
+}
+
+const removeParticipantFromCollections = (pcc, moduleCode, courseLevel) => {
+  const targetLevel = normalizeCourseLevel(courseLevel)
+  if (!pcc || !targetLevel) return
+
+  const matchesTarget = (participant) => {
+    return (
+      getParticipantModuleCode(participant) === moduleCode &&
+      getParticipantCourseLevel(participant) === targetLevel
+    )
+  }
+
+  const topLevelParticipants = getParticipantsCollectionFromPcc({
+    intermodularProjectParticipatingModules: pcc.intermodularProjectParticipatingModules
+  })
+  pcc.intermodularProjectParticipatingModules = topLevelParticipants.filter(
+    (participant) => !matchesTarget(participant)
+  )
+
+  if (!pcc.intermodularProjectGuide) return
+
+  const guideKeys = [
+    'intermodularProjectParticipatingModules',
+    'intermodularProjectParticipants',
+    'participatingModules',
+    'participants'
+  ]
+
+  guideKeys.forEach((key) => {
+    if (!Array.isArray(pcc.intermodularProjectGuide[key])) return
+    pcc.intermodularProjectGuide[key] = pcc.intermodularProjectGuide[key].filter(
+      (participant) => !matchesTarget(participant)
+    )
+  })
+}
+
+const removeOrientationFromCollections = (pcc, moduleCode, courseLevel) => {
+  const targetLevel = normalizeCourseLevel(courseLevel)
+  if (!pcc || !targetLevel) return
+
+  const matchesTarget = (orientation) => {
+    return (
+      getOrientationModuleCode(orientation) === moduleCode &&
+      getOrientationCourseLevel(orientation) === targetLevel
+    )
+  }
+
+  pcc.intermodularProjectModuleOrientations = asArray(pcc.intermodularProjectModuleOrientations).filter(
+    (orientation) => !matchesTarget(orientation)
+  )
+
+  if (!pcc.intermodularProjectGuide) return
+
+  if (Array.isArray(pcc.intermodularProjectGuide.intermodularProjectModuleOrientations)) {
+    pcc.intermodularProjectGuide.intermodularProjectModuleOrientations =
+      pcc.intermodularProjectGuide.intermodularProjectModuleOrientations.filter(
+        (orientation) => !matchesTarget(orientation)
+      )
+  }
+
+  if (Array.isArray(pcc.intermodularProjectGuide.orientations)) {
+    pcc.intermodularProjectGuide.orientations = pcc.intermodularProjectGuide.orientations.filter(
+      (orientation) => !matchesTarget(orientation)
+    )
+  }
+}
+
 export const useDataStore = defineStore('data', {
   state() {
     return {
@@ -489,7 +580,7 @@ export const useDataStore = defineStore('data', {
           )
         } else if ((payload?.module || payload?.moduleCode) && payload?.courseLevel) {
           if (!this.pcc.intermodularProjectParticipatingModules) {
-            this.pcc.intermodularProjectParticipatingModules = []
+            this.pcc.intermodularProjectParticipatingModules = getParticipantsCollectionFromPcc(this.pcc)
           }
           const payloadCourseLevel = normalizeCourseLevel(payload.courseLevel)
           const index = this.pcc.intermodularProjectParticipatingModules.findIndex(
@@ -530,19 +621,13 @@ export const useDataStore = defineStore('data', {
           this.pcc.intermodularProjectParticipatingModules = asArray(
             payload.intermodularProjectParticipatingModules
           )
-        } else if (this.pcc.intermodularProjectParticipatingModules) {
-          const targetLevel = normalizeCourseLevel(courseLevel)
-          this.pcc.intermodularProjectParticipatingModules =
-            this.pcc.intermodularProjectParticipatingModules.filter(
-              (participant) =>
-                !(
-                  getParticipantModuleCode(participant) === moduleCode &&
-                  getParticipantCourseLevel(participant) === targetLevel
-                )
-            )
         } else {
-          this.pcc = payload
+          removeParticipantFromCollections(this.pcc, moduleCode, courseLevel)
         }
+
+        removeParticipantFromCollections(this.pcc, moduleCode, courseLevel)
+        removeOrientationFromCollections(this.pcc, moduleCode, courseLevel)
+
         if (showSuccessMessage) {
           this.addMessage('success', 'Mòdul participant eliminat')
         }

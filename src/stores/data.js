@@ -5,6 +5,39 @@ import { isTokenExpired } from '../utils/auth.js'
 const DELMSG_TIMEOUT = 8000
 let id = 1
 
+const normalizeCourseLevel = (value) => {
+  const level = Number(value)
+  return level === 1 || level === 2 ? level : null
+}
+
+const getOrientationCourseLevel = (orientation) => {
+  return normalizeCourseLevel(orientation?.courseLevel || orientation?.learningResult?.courseLevel)
+}
+
+const getSupportLearningResultIds = (orientation) => {
+  const idsFromList = (orientation?.supportLearningResults || [])
+    .map((learningResult) => learningResult?.id)
+    .filter(Boolean)
+  const idsFromPayload = [
+    ...(orientation?.supportLearningResultIds || []),
+    ...(orientation?.orientations?.supportLearningResultIds || [])
+  ]
+  const idsFromLegacy = orientation?.supportLearningResult?.id
+    ? [orientation.supportLearningResult.id]
+    : orientation?.supportLearningResultId
+      ? [orientation.supportLearningResultId]
+      : []
+
+  return [...new Set([...idsFromList, ...idsFromPayload, ...idsFromLegacy])]
+    .map((idValue) => Number(idValue))
+    .filter((idValue) => !Number.isNaN(idValue))
+    .sort((a, b) => a - b)
+}
+
+const getOrientationModuleCode = (orientation) => {
+  return orientation?.module?.code || orientation?.moduleCode || null
+}
+
 export const useDataStore = defineStore('data', {
   state() {
     return {
@@ -300,6 +333,77 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
+    async savePCCIntermodularDistribution(pccId, data) {
+      try {
+        const response = await api.createPCCIntermodularDistribution(pccId, data)
+        const payload = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (payload?.intermodularProjectLearningResultDistributions) {
+          this.pcc.intermodularProjectLearningResultDistributions =
+            payload.intermodularProjectLearningResultDistributions
+        } else if (payload?.intermodularProjectGuide) {
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
+        } else if (payload?.learningResult && payload?.courseLevel) {
+          if (!this.pcc.intermodularProjectLearningResultDistributions) {
+            this.pcc.intermodularProjectLearningResultDistributions = []
+          }
+          const courseLevel = normalizeCourseLevel(payload.courseLevel)
+          const index = this.pcc.intermodularProjectLearningResultDistributions.findIndex(
+            (distribution) =>
+              distribution.learningResult?.id === payload.learningResult?.id &&
+              normalizeCourseLevel(distribution.courseLevel) === courseLevel
+          )
+          if (index > -1) {
+            this.pcc.intermodularProjectLearningResultDistributions.splice(index, 1, payload)
+          } else {
+            this.pcc.intermodularProjectLearningResultDistributions.push(payload)
+          }
+        } else {
+          this.pcc = payload
+        }
+        this.addMessage('success', 'Distribució de RA base guardada')
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async deletePCCIntermodularDistribution(pccId, learningResultId, courseLevel) {
+      try {
+        const response = await api.deletePCCIntermodularDistribution(pccId, learningResultId, courseLevel)
+        const payload = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (payload?.intermodularProjectLearningResultDistributions) {
+          this.pcc.intermodularProjectLearningResultDistributions =
+            payload.intermodularProjectLearningResultDistributions
+        } else if (payload?.intermodularProjectGuide) {
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
+        } else if (this.pcc.intermodularProjectLearningResultDistributions) {
+          const targetLevel = normalizeCourseLevel(courseLevel)
+          this.pcc.intermodularProjectLearningResultDistributions =
+            this.pcc.intermodularProjectLearningResultDistributions.filter(
+              (distribution) =>
+                !(
+                  distribution.learningResult?.id === learningResultId &&
+                  normalizeCourseLevel(distribution.courseLevel) === targetLevel
+                )
+            )
+        } else {
+          this.pcc = payload
+        }
+        this.addMessage('success', 'Distribució de RA base eliminada')
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
     async savePCCIntermodularOrientation(pccId, data) {
       try {
         const response = await api.savePCCIntermodularOrientation(pccId, data)
@@ -317,14 +421,15 @@ export const useDataStore = defineStore('data', {
             this.pcc.intermodularProjectGuide = {}
           }
           this.pcc.intermodularProjectGuide.orientations = payload.orientations
-        } else if (payload?.learningResult && payload?.module) {
+        } else if ((payload?.module || payload?.moduleCode) && payload?.courseLevel) {
           if (!this.pcc.intermodularProjectModuleOrientations) {
             this.pcc.intermodularProjectModuleOrientations = []
           }
+          const payloadCourseLevel = normalizeCourseLevel(payload.courseLevel)
           const index = this.pcc.intermodularProjectModuleOrientations.findIndex(
             (orientation) =>
-              orientation.learningResult?.id === payload.learningResult?.id &&
-              orientation.module?.code === payload.module?.code
+              getOrientationModuleCode(orientation) === getOrientationModuleCode(payload) &&
+              getOrientationCourseLevel(orientation) === payloadCourseLevel
           )
           if (index > -1) {
             this.pcc.intermodularProjectModuleOrientations.splice(index, 1, payload)
@@ -343,13 +448,9 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
-    async deletePCCIntermodularOrientation(pccId, moduleCode, learningResultId) {
+    async deletePCCIntermodularOrientation(pccId, moduleCode, courseLevel) {
       try {
-        const response = await api.deletePCCIntermodularOrientation(
-          pccId,
-          moduleCode,
-          learningResultId
-        )
+        const response = await api.deletePCCIntermodularOrientation(pccId, moduleCode, courseLevel)
         const payload = response.data
         if (!this.pcc) {
           this.pcc = {}
@@ -365,14 +466,23 @@ export const useDataStore = defineStore('data', {
           }
           this.pcc.intermodularProjectGuide.orientations = payload.orientations
         } else if (this.pcc.intermodularProjectModuleOrientations) {
-          this.pcc.intermodularProjectModuleOrientations =
-            this.pcc.intermodularProjectModuleOrientations.filter(
-              (orientation) =>
-                !(
-                  orientation.learningResult?.id === learningResultId &&
-                  orientation.module?.code === moduleCode
-                )
-            )
+          const targetLevel = normalizeCourseLevel(courseLevel)
+          this.pcc.intermodularProjectModuleOrientations = this.pcc.intermodularProjectModuleOrientations.map(
+            (orientation) => {
+              if (
+                getOrientationModuleCode(orientation) !== moduleCode ||
+                getOrientationCourseLevel(orientation) !== targetLevel
+              ) {
+                return orientation
+              }
+              return {
+                ...orientation,
+                supportActivitiesGuidance: '',
+                supportLearningResultIds: [],
+                supportLearningResults: []
+              }
+            }
+          )
         } else {
           this.pcc = payload
         }

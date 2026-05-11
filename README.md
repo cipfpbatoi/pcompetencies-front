@@ -63,3 +63,17 @@ npm run test:e2e
 ```sh
 npm run lint
 ```
+
+## Flux intern PCC Intermodular (actualitzat)
+
+- **Part 1 (distribució de RA de projecte):** si hi ha projecte en 1r i 2n, cada RA base es distribueix en `1r`, `2n` o `1r+2n`; si només hi ha projecte en un curs, la vista és informativa.
+- **Part 2 (participants i orientacions):** es gestionen mòduls participants per curs i orientacions úniques per `moduleCode + courseLevel`.
+- En curs objectiu `1r` només es poden seleccionar mòduls de `1r`; en curs objectiu `2n` es poden seleccionar mòduls de `1r` i `2n`; els mòduls de projecte no són elegibles com a suport.
+- Les orientacions guarden `supportLearningResultIds[]`, `evaluationCriteriaIds[]` i `supportActivitiesGuidance` obligatori.
+- Endpoints utilitzats:
+  - `POST /pcc/{id}/intermodular-project-guide/distributions`
+  - `DELETE /pcc/{id}/intermodular-project-guide/distributions/{learningResultId}/{courseLevel}`
+  - `POST /pcc/{id}/intermodular-project-guide/participants`
+  - `DELETE /pcc/{id}/intermodular-project-guide/participants/{moduleCode}/{courseLevel}`
+  - `POST /pcc/{id}/intermodular-project-guide/orientations`
+  - `DELETE /pcc/{id}/intermodular-project-guide/orientations/{moduleCode}/{courseLevel}`

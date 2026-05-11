@@ -82,11 +82,21 @@ export const api = {
     }),
   savePCCIntermodularGuide: (pccId, data) =>
     instance.post(`/pcc/${pccId}/intermodular-project-guide`, data),
+  createPCCIntermodularDistribution: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/intermodular-project-guide/distributions`, data),
+  deletePCCIntermodularDistribution: (pccId, learningResultId, courseLevel) =>
+    instance.delete(
+      `/pcc/${pccId}/intermodular-project-guide/distributions/${learningResultId}/${courseLevel}`
+    ),
   savePCCIntermodularOrientation: (pccId, data) =>
     instance.post(`/pcc/${pccId}/intermodular-project-guide/orientations`, data),
-  deletePCCIntermodularOrientation: (pccId, moduleCode, learningResultId) =>
+  deletePCCIntermodularOrientation: (
+    pccId,
+    moduleCode,
+    courseLevel
+  ) =>
     instance.delete(
-      `/pcc/${pccId}/intermodular-project-guide/orientations/${moduleCode}/${learningResultId}`
+      `/pcc/${pccId}/intermodular-project-guide/orientations/${moduleCode}/${courseLevel}`
     ),
   getPCCPdf: (pccId) =>
     axios.get(`${BASE_URL}pcc/${pccId}/pdf`, {

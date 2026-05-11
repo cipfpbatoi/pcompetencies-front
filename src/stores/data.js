@@ -10,6 +10,12 @@ const normalizeCourseLevel = (value) => {
   return level === 1 || level === 2 ? level : null
 }
 
+const normalizeCourseLevels = (courseLevels) => {
+  return [...new Set((courseLevels || []).map((level) => normalizeCourseLevel(level)).filter(Boolean))].sort(
+    (a, b) => a - b
+  )
+}
+
 const getOrientationCourseLevel = (orientation) => {
   return normalizeCourseLevel(orientation?.courseLevel || orientation?.learningResult?.courseLevel)
 }
@@ -37,6 +43,16 @@ const getSupportLearningResultIds = (orientation) => {
 const getOrientationModuleCode = (orientation) => {
   return orientation?.module?.code || orientation?.moduleCode || null
 }
+
+const getParticipantModuleCode = (participant) => {
+  return participant?.module?.code || participant?.moduleCode || null
+}
+
+const getParticipantCourseLevel = (participant) => {
+  return normalizeCourseLevel(participant?.courseLevel || participant?.module?.courseLevel)
+}
+
+const asArray = (value) => (Array.isArray(value) ? value : [])
 
 export const useDataStore = defineStore('data', {
   state() {
@@ -345,20 +361,26 @@ export const useDataStore = defineStore('data', {
             payload.intermodularProjectLearningResultDistributions
         } else if (payload?.intermodularProjectGuide) {
           this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
-        } else if (payload?.learningResult && payload?.courseLevel) {
+        } else if (payload?.learningResult && (payload?.courseLevels || payload?.courseLevel)) {
           if (!this.pcc.intermodularProjectLearningResultDistributions) {
             this.pcc.intermodularProjectLearningResultDistributions = []
           }
-          const courseLevel = normalizeCourseLevel(payload.courseLevel)
-          const index = this.pcc.intermodularProjectLearningResultDistributions.findIndex(
-            (distribution) =>
-              distribution.learningResult?.id === payload.learningResult?.id &&
-              normalizeCourseLevel(distribution.courseLevel) === courseLevel
+          const payloadLearningResultId = payload.learningResult?.id || payload.learningResultId
+          const courseLevels = normalizeCourseLevels(
+            payload.courseLevels || (payload.courseLevel ? [payload.courseLevel] : [])
           )
+          const index = this.pcc.intermodularProjectLearningResultDistributions.findIndex(
+            (distribution) => (distribution.learningResult?.id || distribution.learningResultId) === payloadLearningResultId
+          )
+          const nextDistribution = {
+            ...payload,
+            courseLevels,
+            courseLevel: courseLevels[0] || null
+          }
           if (index > -1) {
-            this.pcc.intermodularProjectLearningResultDistributions.splice(index, 1, payload)
+            this.pcc.intermodularProjectLearningResultDistributions.splice(index, 1, nextDistribution)
           } else {
-            this.pcc.intermodularProjectLearningResultDistributions.push(payload)
+            this.pcc.intermodularProjectLearningResultDistributions.push(nextDistribution)
           }
         } else {
           this.pcc = payload
@@ -404,7 +426,8 @@ export const useDataStore = defineStore('data', {
         return false
       }
     },
-    async savePCCIntermodularOrientation(pccId, data) {
+    async savePCCIntermodularOrientation(pccId, data, options = {}) {
+      const { showSuccessMessage = true } = options
       try {
         const response = await api.savePCCIntermodularOrientation(pccId, data)
         const payload = response.data
@@ -415,7 +438,7 @@ export const useDataStore = defineStore('data', {
           this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
         } else if (payload?.intermodularProjectModuleOrientations) {
           this.pcc.intermodularProjectModuleOrientations =
-            payload.intermodularProjectModuleOrientations
+            asArray(payload.intermodularProjectModuleOrientations)
         } else if (payload?.orientations) {
           if (!this.pcc.intermodularProjectGuide) {
             this.pcc.intermodularProjectGuide = {}
@@ -439,7 +462,9 @@ export const useDataStore = defineStore('data', {
         } else {
           this.pcc = payload
         }
-        this.addMessage('success', 'Orientació guardada')
+        if (showSuccessMessage) {
+          this.addMessage('success', 'Orientació guardada')
+        }
         return 'ok'
       } catch (error) {
         if (error.response?.status != 422) {
@@ -448,7 +473,87 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
-    async deletePCCIntermodularOrientation(pccId, moduleCode, courseLevel) {
+    async savePCCIntermodularParticipant(pccId, data, options = {}) {
+      const { showSuccessMessage = true } = options
+      try {
+        const response = await api.createPCCIntermodularParticipant(pccId, data)
+        const payload = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (payload?.intermodularProjectGuide) {
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
+        } else if (payload?.intermodularProjectParticipatingModules) {
+          this.pcc.intermodularProjectParticipatingModules = asArray(
+            payload.intermodularProjectParticipatingModules
+          )
+        } else if ((payload?.module || payload?.moduleCode) && payload?.courseLevel) {
+          if (!this.pcc.intermodularProjectParticipatingModules) {
+            this.pcc.intermodularProjectParticipatingModules = []
+          }
+          const payloadCourseLevel = normalizeCourseLevel(payload.courseLevel)
+          const index = this.pcc.intermodularProjectParticipatingModules.findIndex(
+            (participant) =>
+              getParticipantModuleCode(participant) === getParticipantModuleCode(payload) &&
+              getParticipantCourseLevel(participant) === payloadCourseLevel
+          )
+          if (index > -1) {
+            this.pcc.intermodularProjectParticipatingModules.splice(index, 1, payload)
+          } else {
+            this.pcc.intermodularProjectParticipatingModules.push(payload)
+          }
+        } else {
+          this.pcc = payload
+        }
+        if (showSuccessMessage) {
+          this.addMessage('success', 'Mòdul participant afegit')
+        }
+        return 'ok'
+      } catch (error) {
+        if (error.response?.status != 422) {
+          this.addMessage('error', error)
+        }
+        return error
+      }
+    },
+    async deletePCCIntermodularParticipant(pccId, moduleCode, courseLevel, options = {}) {
+      const { showSuccessMessage = true } = options
+      try {
+        const response = await api.deletePCCIntermodularParticipant(pccId, moduleCode, courseLevel)
+        const payload = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (payload?.intermodularProjectGuide) {
+          this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
+        } else if (payload?.intermodularProjectParticipatingModules) {
+          this.pcc.intermodularProjectParticipatingModules = asArray(
+            payload.intermodularProjectParticipatingModules
+          )
+        } else if (this.pcc.intermodularProjectParticipatingModules) {
+          const targetLevel = normalizeCourseLevel(courseLevel)
+          this.pcc.intermodularProjectParticipatingModules =
+            this.pcc.intermodularProjectParticipatingModules.filter(
+              (participant) =>
+                !(
+                  getParticipantModuleCode(participant) === moduleCode &&
+                  getParticipantCourseLevel(participant) === targetLevel
+                )
+            )
+        } else {
+          this.pcc = payload
+        }
+        if (showSuccessMessage) {
+          this.addMessage('success', 'Mòdul participant eliminat')
+        }
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    async deletePCCIntermodularOrientation(pccId, moduleCode, courseLevel, options = {}) {
+      const { showSuccessMessage = true } = options
       try {
         const response = await api.deletePCCIntermodularOrientation(pccId, moduleCode, courseLevel)
         const payload = response.data
@@ -459,7 +564,7 @@ export const useDataStore = defineStore('data', {
           this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
         } else if (payload?.intermodularProjectModuleOrientations) {
           this.pcc.intermodularProjectModuleOrientations =
-            payload.intermodularProjectModuleOrientations
+            asArray(payload.intermodularProjectModuleOrientations)
         } else if (payload?.orientations) {
           if (!this.pcc.intermodularProjectGuide) {
             this.pcc.intermodularProjectGuide = {}
@@ -486,7 +591,9 @@ export const useDataStore = defineStore('data', {
         } else {
           this.pcc = payload
         }
-        this.addMessage('success', 'Orientació eliminada')
+        if (showSuccessMessage) {
+          this.addMessage('success', 'Orientació eliminada')
+        }
         return true
       } catch (error) {
         this.addMessage('error', error)

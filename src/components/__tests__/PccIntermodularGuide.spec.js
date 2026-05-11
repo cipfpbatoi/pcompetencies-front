@@ -58,8 +58,7 @@ const getBaseState = () => ({
       secondCourseGuide: {}
     },
     intermodularProjectLearningResultDistributions: [
-      { learningResult: projectLearningResult, courseLevel: 1 },
-      { learningResult: projectLearningResult, courseLevel: 2 }
+      { learningResult: projectLearningResult, courseLevels: [1, 2] }
     ],
     intermodularProjectModuleOrientations: []
   },
@@ -77,6 +76,8 @@ const mockActions = (store) => {
   store.savePCCIntermodularGuide = vi.fn().mockResolvedValue('ok')
   store.savePCCIntermodularDistribution = vi.fn().mockResolvedValue('ok')
   store.deletePCCIntermodularDistribution = vi.fn().mockResolvedValue(true)
+  store.savePCCIntermodularParticipant = vi.fn().mockResolvedValue('ok')
+  store.deletePCCIntermodularParticipant = vi.fn().mockResolvedValue(true)
   store.savePCCIntermodularOrientation = vi.fn().mockResolvedValue('ok')
   store.deletePCCIntermodularOrientation = vi.fn().mockResolvedValue(true)
 }
@@ -108,7 +109,7 @@ describe('PccIntermodularGuide', () => {
     expect(wrapper.find('[data-testid="distribution-switch-101"]').exists()).toBe(false)
   })
 
-  it('updates project RA distribution in both courses', async () => {
+  it('updates project RA distribution with courseLevels payload', async () => {
     const store = useDataStore()
     store.$patch(getBaseState())
     mockActions(store)
@@ -116,10 +117,13 @@ describe('PccIntermodularGuide', () => {
     const wrapper = mountComponent()
     await flushPromises()
 
-    await wrapper.find('[data-testid="distribution-option-101-1"]').trigger('click')
+    await wrapper.find('[data-testid="distribution-option-101-2"]').trigger('click')
     await flushPromises()
 
-    expect(store.deletePCCIntermodularDistribution).toHaveBeenCalledWith(999, 101, 2)
+    expect(store.savePCCIntermodularDistribution).toHaveBeenCalledWith(999, {
+      learningResultId: 101,
+      courseLevels: [2]
+    })
   })
 
   it('filters participant module options by course rules', async () => {
@@ -137,7 +141,7 @@ describe('PccIntermodularGuide', () => {
     expect(selectCourse1.text()).not.toContain('M02')
     expect(selectCourse1.text()).not.toContain('PI1')
 
-    expect(selectCourse2.text()).toContain('M01')
+    expect(selectCourse2.text()).not.toContain('M01')
     expect(selectCourse2.text()).toContain('M02')
     expect(selectCourse2.text()).not.toContain('PI2')
   })
@@ -145,6 +149,9 @@ describe('PccIntermodularGuide', () => {
   it('adds participant by course with minimal payload', async () => {
     const store = useDataStore()
     const state = getBaseState()
+    state.pcc.intermodularProjectParticipatingModules = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 1 }
+    ]
     state.pcc.intermodularProjectModuleOrientations = [
       { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 1 }
     ]
@@ -159,17 +166,48 @@ describe('PccIntermodularGuide', () => {
     await wrapper.find('[data-testid="add-participant-2"]').trigger('click')
     await flushPromises()
 
-    expect(store.savePCCIntermodularOrientation).toHaveBeenCalledWith(999, {
-      moduleCode: 'M02',
-      courseLevel: 2
-    })
+    expect(store.savePCCIntermodularParticipant).toHaveBeenCalledWith(
+      999,
+      {
+        moduleCode: 'M02',
+        courseLevel: 2
+      },
+      { showSuccessMessage: false }
+    )
 
-    expect(store.deletePCCIntermodularOrientation).not.toHaveBeenCalled()
+    expect(store.deletePCCIntermodularParticipant).not.toHaveBeenCalled()
+  })
+
+  it('removes participant module by course', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.intermodularProjectParticipatingModules = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 1 }
+    ]
+    state.pcc.intermodularProjectModuleOrientations = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 1 }
+    ]
+    store.$patch(state)
+    mockActions(store)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.find('[data-testid="remove-participant-1-M01"]').trigger('click')
+    await flushPromises()
+
+    expect(store.deletePCCIntermodularParticipant).toHaveBeenCalledWith(999, 'M01', 1, {
+      showSuccessMessage: false
+    })
   })
 
   it('saves and deletes orientation for module+course with support RA only', async () => {
     const store = useDataStore()
     const state = getBaseState()
+    state.pcc.intermodularProjectParticipatingModules = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 1 }
+    ]
     state.pcc.intermodularProjectModuleOrientations = [
       {
         module: { code: 'M01', name: 'Mòdul suport 1r' },

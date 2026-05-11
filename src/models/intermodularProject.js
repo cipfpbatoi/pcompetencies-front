@@ -1,7 +1,7 @@
 /**
  * @typedef {Object} IntermodularProjectLearningResultDistribution
  * @property {{ id: number, number?: number, descriptor?: string }|null} learningResult
- * @property {number} courseLevel
+ * @property {number[]} courseLevels
  */
 
 /**

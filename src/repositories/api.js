@@ -90,6 +90,12 @@ export const api = {
     ),
   savePCCIntermodularOrientation: (pccId, data) =>
     instance.post(`/pcc/${pccId}/intermodular-project-guide/orientations`, data),
+  createPCCIntermodularParticipant: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/intermodular-project-guide/participants`, data),
+  deletePCCIntermodularParticipant: (pccId, moduleCode, courseLevel) =>
+    instance.delete(
+      `/pcc/${pccId}/intermodular-project-guide/participants/${moduleCode}/${courseLevel}`
+    ),
   deletePCCIntermodularOrientation: (
     pccId,
     moduleCode,

@@ -14,9 +14,11 @@ const props = defineProps({
 const store = useDataStore()
 const { pcc, cycle } = storeToRefs(store)
 const {
+  addMessage,
   savePCCIntermodularGuide,
   savePCCIntermodularDistribution,
-  deletePCCIntermodularDistribution,
+  savePCCIntermodularParticipant,
+  deletePCCIntermodularParticipant,
   savePCCIntermodularOrientation,
   deletePCCIntermodularOrientation
 } = store
@@ -126,6 +128,8 @@ const tempOptions = [
 ]
 
 const guide = computed(() => pcc.value?.intermodularProjectGuide || null)
+
+const asArray = (value) => (Array.isArray(value) ? value : [])
 
 const isProjectModule = (module) => {
   const moduleName = `${module?.name || ''}`.toLowerCase()
@@ -238,36 +242,44 @@ const learningResultDistributions = computed(() => {
   )
 })
 
+const normalizeCourseLevels = (courseLevels) => {
+  return [...new Set((courseLevels || []).map((level) => Number(level)).filter((level) => [1, 2].includes(level)))].sort(
+    (a, b) => a - b
+  )
+}
+
 const activeDistributionByCourse = computed(() => {
   const active = { 1: new Set(), 2: new Set() }
   learningResultDistributions.value.forEach((distribution) => {
     const learningResultId = distribution?.learningResult?.id || distribution?.learningResultId
-    const courseLevel = Number(distribution?.courseLevel)
-    if (!learningResultId || ![1, 2].includes(courseLevel)) return
-    active[courseLevel].add(learningResultId)
+    const normalizedCourseLevels = normalizeCourseLevels(
+      distribution?.courseLevels || (distribution?.courseLevel ? [distribution.courseLevel] : [])
+    )
+    if (!learningResultId) return
+    normalizedCourseLevels.forEach((courseLevel) => {
+      active[courseLevel].add(learningResultId)
+    })
   })
   return active
 })
 
-const getDistributionChoiceFromStore = (learningResultId) => {
-  const hasInCourse1 = activeDistributionByCourse.value[1].has(learningResultId)
-  const hasInCourse2 = activeDistributionByCourse.value[2].has(learningResultId)
+const getDistributionCourseLevelsFromStore = (learningResultId) => {
+  const courseLevels = []
+  if (activeDistributionByCourse.value[1].has(learningResultId)) courseLevels.push(1)
+  if (activeDistributionByCourse.value[2].has(learningResultId)) courseLevels.push(2)
 
   if (!hasProjectInBothCourses.value) {
-    return singleProjectCourseLevel.value ? `${singleProjectCourseLevel.value}` : ''
+    return singleProjectCourseLevel.value ? [singleProjectCourseLevel.value] : []
   }
 
-  if (learningResultDistributions.value.length === 0) return 'both'
-  if (hasInCourse1 && hasInCourse2) return 'both'
-  if (hasInCourse1) return '1'
-  if (hasInCourse2) return '2'
-  return 'both'
+  if (learningResultDistributions.value.length === 0) return [1, 2]
+  return courseLevels.length > 0 ? courseLevels : [1, 2]
 }
 
 const initDistributionForm = () => {
   const next = {}
   projectLearningResults.value.forEach((learningResult) => {
-    next[learningResult.id] = getDistributionChoiceFromStore(learningResult.id)
+    next[learningResult.id] = getDistributionCourseLevelsFromStore(learningResult.id)
   })
   distributionForm.value = next
 }
@@ -280,9 +292,21 @@ const getActiveCourseLevelsForLearningResult = (learningResultId) => {
   if (!hasProjectInBothCourses.value) {
     return singleProjectCourseLevel.value ? [singleProjectCourseLevel.value] : []
   }
-  const selected = distributionForm.value[learningResultId] || getDistributionChoiceFromStore(learningResultId)
-  if (selected === '1') return [1]
-  if (selected === '2') return [2]
+  return normalizeCourseLevels(
+    distributionForm.value[learningResultId] || getDistributionCourseLevelsFromStore(learningResultId)
+  )
+}
+
+const isDistributionOptionSelected = (learningResultId, option) => {
+  const selectedLevels = getActiveCourseLevelsForLearningResult(learningResultId)
+  if (option === '1') return selectedLevels.length === 1 && selectedLevels.includes(1)
+  if (option === '2') return selectedLevels.length === 1 && selectedLevels.includes(2)
+  return selectedLevels.length === 2 && selectedLevels.includes(1) && selectedLevels.includes(2)
+}
+
+const getDistributionOptionCourseLevels = (option) => {
+  if (option === '1') return [1]
+  if (option === '2') return [2]
   return [1, 2]
 }
 
@@ -297,51 +321,48 @@ const learningResultsByCourse = computed(() => {
   }
 })
 
-const saveLearningResultDistribution = async (learningResultId, selectedValue) => {
+const saveLearningResultDistribution = async (learningResultId, desiredCourseLevels) => {
   resetDistributionErrors(learningResultId)
   distributionLoadingByLR.value = {
     ...distributionLoadingByLR.value,
     [learningResultId]: true
   }
 
-  const current = getDistributionChoiceFromStore(learningResultId)
-  distributionForm.value = {
-    ...distributionForm.value,
-    [learningResultId]: selectedValue
+  const current = getDistributionCourseLevelsFromStore(learningResultId)
+  const nextCourseLevels = normalizeCourseLevels(desiredCourseLevels)
+
+  if (nextCourseLevels.length === 0) {
+    distributionLoadingByLR.value = {
+      ...distributionLoadingByLR.value,
+      [learningResultId]: false
+    }
+    distributionForm.value = {
+      ...distributionForm.value,
+      [learningResultId]: current
+    }
+    return
   }
 
-  const desiredCourses =
-    selectedValue === 'both' ? [1, 2] : selectedValue === '1' ? [1] : selectedValue === '2' ? [2] : []
-  const currentCourses =
-    current === 'both' ? [1, 2] : current === '1' ? [1] : current === '2' ? [2] : []
-  const toCreate = desiredCourses.filter((courseLevel) => !currentCourses.includes(courseLevel))
-  const toDelete = currentCourses.filter((courseLevel) => !desiredCourses.includes(courseLevel))
+  distributionForm.value = {
+    ...distributionForm.value,
+    [learningResultId]: nextCourseLevels
+  }
 
   try {
-    for (const courseLevel of toCreate) {
-      const result = await savePCCIntermodularDistribution(props.pccId, {
-        learningResultId,
-        courseLevel
-      })
-      if (result !== 'ok') {
-        if (result?.response?.status === 422) {
-          const violations = result.response.data?.violations || []
-          distributionErrors.value = {
-            ...distributionErrors.value,
-            [learningResultId]: violations.map((violation) => violation.message)
-          }
+    const result = await savePCCIntermodularDistribution(props.pccId, {
+      learningResultId,
+      courseLevels: nextCourseLevels
+    })
+    if (result !== 'ok') {
+      if (result?.response?.status === 422) {
+        const violations = result.response.data?.violations || []
+        distributionErrors.value = {
+          ...distributionErrors.value,
+          [learningResultId]: violations.map((violation) => violation.message)
         }
-        distributionForm.value = { ...distributionForm.value, [learningResultId]: current }
-        return
       }
-    }
-
-    for (const courseLevel of toDelete) {
-      const ok = await deletePCCIntermodularDistribution(props.pccId, learningResultId, courseLevel)
-      if (!ok) {
-        distributionForm.value = { ...distributionForm.value, [learningResultId]: current }
-        return
-      }
+      distributionForm.value = { ...distributionForm.value, [learningResultId]: current }
+      return
     }
   } finally {
     distributionLoadingByLR.value = {
@@ -355,9 +376,7 @@ const canSelectModuleForCourse = (module, courseLevel) => {
   if (!module || isProjectModule(module)) return false
   const targetLevel = Number(courseLevel)
   const moduleLevel = Number(module.courseLevel || 1)
-  if (targetLevel === 1) return moduleLevel === 1
-  if (targetLevel === 2) return moduleLevel === 1 || moduleLevel === 2
-  return false
+  return [1, 2].includes(targetLevel) && moduleLevel === targetLevel
 }
 
 const normalizeSupportLearningResultIds = (orientation) => {
@@ -372,11 +391,11 @@ const normalizeSupportLearningResultIds = (orientation) => {
 }
 
 const orientationsRaw = computed(() => {
-  return (
+  return asArray(
     pcc.value?.intermodularProjectModuleOrientations ||
-    guide.value?.intermodularProjectModuleOrientations ||
-    guide.value?.orientations ||
-    []
+      guide.value?.intermodularProjectModuleOrientations ||
+      guide.value?.orientations ||
+      []
   )
 })
 
@@ -410,19 +429,48 @@ const normalizedOrientations = computed(() => {
     .filter(Boolean)
 })
 
+const participantsRaw = computed(() => {
+  return asArray(
+    pcc.value?.intermodularProjectParticipatingModules ||
+      pcc.value?.intermodularProjectParticipants ||
+      guide.value?.intermodularProjectParticipatingModules ||
+      guide.value?.intermodularProjectParticipants ||
+      guide.value?.participatingModules ||
+      guide.value?.participants ||
+      []
+  )
+})
+
 const derivedParticipants = computed(() => {
   const list = []
   const seen = new Set()
-  normalizedOrientations.value.forEach((orientation) => {
-    const key = `${orientation.moduleCode}-${orientation.courseLevel}`
+  participantsRaw.value.forEach((participant) => {
+    const moduleCode = participant?.module?.code || participant?.moduleCode
+    const courseLevel = Number(participant?.courseLevel)
+    if (!moduleCode || ![1, 2].includes(courseLevel)) return
+    const key = `${moduleCode}-${courseLevel}`
     if (seen.has(key)) return
     seen.add(key)
     list.push({
-      moduleCode: orientation.moduleCode,
-      module: orientation.module,
-      courseLevel: orientation.courseLevel
+      moduleCode,
+      module: getModuleByCode(moduleCode) || participant?.module || { code: moduleCode },
+      courseLevel
     })
   })
+
+  if (list.length === 0) {
+    normalizedOrientations.value.forEach((orientation) => {
+      const key = `${orientation.moduleCode}-${orientation.courseLevel}`
+      if (seen.has(key)) return
+      seen.add(key)
+      list.push({
+        moduleCode: orientation.moduleCode,
+        module: orientation.module,
+        courseLevel: orientation.courseLevel
+      })
+    })
+  }
+
   return list
 })
 
@@ -468,7 +516,10 @@ const hasOrientationDetails = (orientation) => {
   return hasGuidance && hasSupport
 }
 
-const getOrientationKey = (orientation) => `${orientation.moduleCode}-${orientation.courseLevel}`
+const getOrientationKey = (orientation) => {
+  if (!orientation) return ''
+  return `${orientation.moduleCode}-${orientation.courseLevel}`
+}
 
 const getSupportLearningResultLabels = (orientation) => {
   return (orientation?.supportLearningResults || []).map((learningResult) => {
@@ -580,11 +631,21 @@ const addParticipant = async (courseLevel) => {
 
   participantLoadingKey.value = `${moduleCode}-${courseLevel}`
   try {
-    const result = await savePCCIntermodularOrientation(props.pccId, {
-      moduleCode,
-      courseLevel: Number(courseLevel)
-    })
+    const result = await savePCCIntermodularParticipant(
+      props.pccId,
+      {
+        moduleCode,
+        courseLevel: Number(courseLevel)
+      },
+      {
+        showSuccessMessage: false
+      }
+    )
     if (result === 'ok') {
+      addMessage(
+        'success',
+        `El módulo ${getModuleLabel(moduleCode)} contribuye al proyecto intermodular en el curso ${getCourseLabel(courseLevel)}`
+      )
       participantSelectorByCourse[courseLevel] = ''
       return
     }
@@ -600,6 +661,33 @@ const addParticipant = async (courseLevel) => {
       ...participantErrors.value,
       [courseLevel]: ['No s\'ha pogut afegir el mòdul de suport.']
     }
+  } finally {
+    participantLoadingKey.value = ''
+  }
+}
+
+const removeParticipant = async (participant) => {
+  const { moduleCode, courseLevel } = participant
+  if (!moduleCode || !courseLevel) return
+  resetParticipantErrors(courseLevel)
+  if (!confirm(`Segur que vols treure ${getModuleLabel(moduleCode)} de ${getCourseLabel(courseLevel)}?`)) return
+
+  participantLoadingKey.value = `${moduleCode}-${courseLevel}`
+  try {
+    const ok = await deletePCCIntermodularParticipant(props.pccId, moduleCode, courseLevel, {
+      showSuccessMessage: false
+    })
+    if (!ok) {
+      participantErrors.value = {
+        ...participantErrors.value,
+        [courseLevel]: ["No s'ha pogut eliminar el mòdul participant."]
+      }
+      return
+    }
+    addMessage(
+      'success',
+      `El módulo ${getModuleLabel(moduleCode)} ya no contribuye al proyecto intermodular en el curso ${getCourseLabel(courseLevel)}`
+    )
   } finally {
     participantLoadingKey.value = ''
   }
@@ -689,13 +777,21 @@ const saveOrientation = async () => {
         nextErrors[violation.propertyPath].push(violation.message)
       })
       orientationErrors.value = nextErrors
+      return
     }
+    const backendErrorMessage =
+      result?.response?.data?.detail ||
+      result?.response?.data?.message ||
+      result?.response?.data?.title ||
+      "No s'ha pogut guardar l'orientació."
+    orientationErrors.value = { moduleCode: [backendErrorMessage] }
   } finally {
     isSavingOrientation.value = false
   }
 }
 
 const deleteOrientation = async (orientation) => {
+  if (!orientation) return
   if (!confirm(`Segur que vols eliminar l'orientació de ${getModuleLabel(orientation.moduleCode)}?`)) return
   deletingOrientationKey.value = getOrientationKey(orientation)
   try {
@@ -854,30 +950,30 @@ const deleteOrientation = async (orientation) => {
                     <button
                       type="button"
                       class="btn"
-                      :class="distributionForm[learningResult.id] === '1' ? 'btn-primary' : 'btn-outline-primary'"
+                      :class="isDistributionOptionSelected(learningResult.id, '1') ? 'btn-primary' : 'btn-outline-primary'"
                       :disabled="distributionLoadingByLR[learningResult.id]"
                       :data-testid="`distribution-option-${learningResult.id}-1`"
-                      @click="saveLearningResultDistribution(learningResult.id, '1')"
+                      @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('1'))"
                     >
                       1r
                     </button>
                     <button
                       type="button"
                       class="btn"
-                      :class="distributionForm[learningResult.id] === '2' ? 'btn-success' : 'btn-outline-success'"
+                      :class="isDistributionOptionSelected(learningResult.id, '2') ? 'btn-success' : 'btn-outline-success'"
                       :disabled="distributionLoadingByLR[learningResult.id]"
                       :data-testid="`distribution-option-${learningResult.id}-2`"
-                      @click="saveLearningResultDistribution(learningResult.id, '2')"
+                      @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('2'))"
                     >
                       2n
                     </button>
                     <button
                       type="button"
                       class="btn"
-                      :class="distributionForm[learningResult.id] === 'both' ? 'btn-dark' : 'btn-outline-dark'"
+                      :class="isDistributionOptionSelected(learningResult.id, '1-2') ? 'btn-dark' : 'btn-outline-dark'"
                       :disabled="distributionLoadingByLR[learningResult.id]"
                       :data-testid="`distribution-option-${learningResult.id}-both`"
-                      @click="saveLearningResultDistribution(learningResult.id, 'both')"
+                      @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('1-2'))"
                     >
                       1r + 2n
                     </button>
@@ -967,13 +1063,22 @@ const deleteOrientation = async (orientation) => {
             </div>
 
             <div v-else class="d-flex flex-wrap gap-2">
-              <span
+              <div
                 v-for="participant in participantsByCourse[courseLevel]"
                 :key="`${participant.moduleCode}-${participant.courseLevel}`"
-                class="badge participant-badge"
+                class="badge participant-badge d-inline-flex align-items-center"
               >
-                {{ getModuleLabel(participant.moduleCode) }}
-              </span>
+                <span>{{ getModuleLabel(participant.moduleCode) }}</span>
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm text-danger p-0 ms-2"
+                  :disabled="participantLoadingKey === `${participant.moduleCode}-${participant.courseLevel}`"
+                  :data-testid="`remove-participant-${participant.courseLevel}-${participant.moduleCode}`"
+                  @click="removeParticipant(participant)"
+                >
+                  <i class="bi bi-x-circle-fill"></i>
+                </button>
+              </div>
             </div>
           </div>
         </template>

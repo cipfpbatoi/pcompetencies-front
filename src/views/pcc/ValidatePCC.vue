@@ -35,7 +35,7 @@ const KEY_LABELS = {
   trainingPlan: 'Pla de formació en empresa',
   modulesIncluded: 'Mòduls inclosos (Pas 1)',
   companyAssignmentCriteria: "Criteris d'assignació de pràctiques",
-  sostenibilityDigital: 'Sostenibilitat i digitalització',
+  sostenibilityDigital: 'Sostenibilitat i digitalització (Pas 7)',
   otherConsiderations: 'Altres consideracions',
   legalProvisions: 'Normativa',
   centerProjects: 'Projectes de centre',

@@ -33,12 +33,15 @@ const KEY_LABELS = {
   moduleOrganizationDetails: "Orientacions d'organització de mòduls",
   assessmentTools: "Instruments d'avaluació",
   trainingPlan: 'Pla de formació en empresa',
+  modulesIncluded: 'Mòduls inclosos (Pas 1)',
   companyAssignmentCriteria: "Criteris d'assignació de pràctiques",
   sostenibilityDigital: 'Sostenibilitat i digitalització',
   otherConsiderations: 'Altres consideracions',
+  legalProvisions: 'Normativa',
   centerProjects: 'Projectes de centre',
-  intermodularProjectGuide: 'Guia del projecte intermodular',
-  intermodularOrientations: 'Orientacions del projecte intermodular'
+  intermodularProjectGuide: 'Guia del projecte intermodular (Pas 8)',
+  intermodularOrientations: 'Orientacions del projecte intermodular (Pas 8)',
+  intermodularProjectModulesByCourse: 'Mòduls inclosos al PI (Pas 8)'
 }
 
 const STATUS_LABELS = {

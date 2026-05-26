@@ -86,7 +86,42 @@ const flattenReasons = (reasons, prefix = '') => {
   return fallback ? [fallback] : []
 }
 
-const formattedErrors = computed(() => flattenReasons(errors.value))
+const flattenSectionItems = (reasons, prefix = '') => {
+  if (!reasons) return []
+  if (typeof reasons === 'string') {
+    if (!prefix) return [reasons]
+    return [`${resolveKeyLabel(prefix)}: ${reasons}`]
+  }
+  if (Array.isArray(reasons)) {
+    return reasons.flatMap((item) => flattenSectionItems(item, prefix))
+  }
+  if (typeof reasons === 'object') {
+    return Object.entries(reasons).flatMap(([key, value]) => {
+      const nextPrefix = prefix ? `${prefix} > ${key}` : key
+      return flattenSectionItems(value, nextPrefix)
+    })
+  }
+  if (!prefix) return [String(reasons)]
+  return [`${resolveKeyLabel(prefix)}: ${String(reasons)}`]
+}
+
+const groupedErrors = computed(() => {
+  if (!errors.value) return []
+
+  if (typeof errors.value === 'object' && !Array.isArray(errors.value)) {
+    return Object.entries(errors.value).map(([key, value]) => ({
+      title: resolveKeyLabel(key),
+      items: flattenSectionItems(value)
+    }))
+  }
+
+  return [
+    {
+      title: '',
+      items: flattenReasons(errors.value)
+    }
+  ]
+})
 const statusLabel = computed(() => STATUS_LABELS[pcc.value?.status] || pcc.value?.status || '-')
 const rejectionReason = computed(() => {
   return (
@@ -209,8 +244,15 @@ onMounted(() => {
         <h4 class="text-center">
           Atenció! El PCC té errors i has de corregir-los abans d'enviar-lo
         </h4>
-        <ul>
-          <li v-for="(error, index) in formattedErrors" :key="index">{{ error }}</li>
+        <ul class="mb-0">
+          <li v-for="(group, groupIndex) in groupedErrors" :key="`group-${groupIndex}`">
+            <span v-if="group.title">{{ group.title }}</span>
+            <ul class="mt-1 mb-1" :class="{ 'ps-3': !group.title }">
+              <li v-for="(error, errorIndex) in group.items" :key="`error-${groupIndex}-${errorIndex}`">
+                {{ error }}
+              </li>
+            </ul>
+          </li>
         </ul>
       </div>
 

@@ -108,12 +108,121 @@ const handleModalClose = (modalKey) => {
 const handleImprovementEditClick = () => {
   modalImprovementData.value.isEditing = true
   modalImprovementData.value.showSaveButton = true
+  modalImprovementData.value.saveButtonText = 'Editar proposta'
+}
+
+const getNextCourseYear = (courseYear) => {
+  const match = String(courseYear || '').match(/(\d{4})(\D+)(\d{4})/)
+  if (!match) return ''
+
+  return `${Number(match[1]) + 1}${match[2]}${Number(match[3]) + 1}`
+}
+
+const getImprovementTargetCourseYear = (syllabus) => {
+  if (syllabus?.status === 'pendent') return syllabus.courseYear || ''
+  if (syllabus?.status === 'aprovada') return getNextCourseYear(syllabus.courseYear)
+  return syllabus?.courseYear || ''
+}
+
+const getProposalCourseYear = (proposal) => {
+  return proposal?.schoolYear?.course || proposal?.courseYear || ''
+}
+
+const getImprovementProposalForSyllabus = (syllabus) => {
+  const proposal = syllabus?.currentImprovementProposal
+  if (!proposal) return null
+
+  const targetCourseYear = getImprovementTargetCourseYear(syllabus)
+  const proposalCourseYear = getProposalCourseYear(proposal)
+
+  if (!proposalCourseYear || !targetCourseYear || proposalCourseYear === targetCourseYear) {
+    return proposal
+  }
+
+  return null
+}
+
+const hasImprovementProposals = (syllabus) => {
+  return !!getImprovementProposalForSyllabus(syllabus)?.proposals?.trim()
+}
+
+const getImprovementButtonTitle = (turn) => {
+  const syllabus = getSyllabusByTurn(turn)
+  return hasImprovementProposals(syllabus)
+    ? 'Editar propostes de millora'
+    : 'Crear propostes de millora'
+}
+
+const getCurrentImprovementProposal = () => {
+  return getImprovementProposalForSyllabus(actualSyllabus.value)
+}
+
+const getImprovementStatusLabel = (status) => {
+  if (status === 1) return "Encara no s'ha donat resposta"
+  if (status === 2) return "S'aplicaran les propostes de millora o part d'elles"
+  if (status === 3) return "NO s'aplicaran les propostes de millora"
+  return status || 'No disponible'
+}
+
+const getImprovementProposalCourseYear = (proposal) => {
+  return proposal?.schoolYear?.course || proposal?.courseYear || 'No disponible'
+}
+
+const getEffectiveLabel = (effective) => {
+  if (effective === true) return 'Vigent'
+  if (effective === false) return 'No vigent'
+  return 'No disponible'
+}
+
+const hasLaterSchoolYear = (syllabus) => {
+  const targetCourseYear = getImprovementTargetCourseYear(syllabus)
+  if (!targetCourseYear) return true
+
+  return schoolYears.value.some((schoolYear) => schoolYear.course === targetCourseYear)
+}
+
+const getErrorMessage = (error) => {
+  if (typeof error?.response?.data === 'string') return error.response.data
+
+  return (
+    error?.response?.data?.detail ||
+    error?.response?.data?.message ||
+    error?.response?.data?.title ||
+    error?.message ||
+    ''
+  )
+}
+
+const checkNextSchoolYearWarning = async (syllabus) => {
+  if (syllabus?.status !== 'aprovada') return
+
+  try {
+    modalImprovementData.value.loadingSchoolYears = true
+
+    if (!schoolYears.value.length) {
+      const response = await api.getSchoolYears()
+      schoolYears.value = response.data
+      schoolYearsLoaded.value = true
+    }
+
+    if (!hasLaterSchoolYear(syllabus)) {
+      modalImprovementData.value.schoolYearWarning =
+        "Encara no s'ha creat el curs posterior per a afegir propostes de millora"
+      modalImprovementData.value.showSaveButton = false
+    }
+  } catch (error) {
+    addMessage('error', error)
+  } finally {
+    modalImprovementData.value.loadingSchoolYears = false
+  }
 }
 
 // ==========================================
 // MODAL: PROPOSTES DE MILLORA
 // ================================
 const actualSyllabus = ref({})
+const schoolYears = ref([])
+const schoolYearsLoaded = ref(false)
 const improvementModalRef = ref(null)
 const modalImprovementData = ref({
   modalId: 'improvementModal',
@@ -121,11 +230,20 @@ const modalImprovementData = ref({
   isEditing: false,
   proposals: '',
   saving: false,
-  showSaveButton: false
+  showSaveButton: false,
+  saveButtonText: 'Crear proposta',
+  loadingSchoolYears: false,
+  schoolYearWarning: '',
+  serverError: ''
 })
 const improvementValidation = useFormValidation(
   yup.object({
-    proposals: yup.string().trim().min(5, 'Les propostes han de tenir almenys 5 caràcters')
+    proposals: yup
+      .string()
+      .typeError('Les propostes han de ser text')
+      .trim()
+      .required('Les propostes són obligatòries')
+      .min(5, 'Les propostes han de tenir almenys 5 caràcters')
   })
 )
 // Si quieres, desestructura para que sea más cómodo:
@@ -138,43 +256,65 @@ const {
 
 const setActualSyllabus = (turn) => {
   actualSyllabus.value = getSyllabusByTurn(turn)
-  modalImprovementData.value.proposals =
-    actualSyllabus.value.currentImprovementProposal?.proposals || ''
+  const proposals = getCurrentImprovementProposal()?.proposals || ''
+
+  clearImprovementErrors()
+  modalImprovementData.value.proposals = proposals
+  modalImprovementData.value.isEditing = !proposals.trim()
+  modalImprovementData.value.showSaveButton = !proposals.trim()
+  modalImprovementData.value.saveButtonText = proposals.trim()
+    ? 'Editar proposta'
+    : 'Crear proposta'
+  modalImprovementData.value.schoolYearWarning = ''
+  modalImprovementData.value.serverError = ''
+
+  checkNextSchoolYearWarning(actualSyllabus.value)
+}
+
+const canShowImprovementButton = (turn) => {
+  const syllabus = getSyllabusByTurn(turn)
+
+  if (!['pendent', 'aprovada'].includes(syllabus?.status)) return false
+  if (syllabus.status !== 'aprovada') return true
+  if (!schoolYearsLoaded.value) return true
+
+  return hasLaterSchoolYear(syllabus)
 }
 
 const handleSaveImprovementProposals = async () => {
+  if (modalImprovementData.value.schoolYearWarning) {
+    return
+  }
+
   if (!modalImprovementData.value.isEditing) {
     return
   }
   const isValid = await validateImprovement({ proposals: modalImprovementData.value.proposals })
   if (!isValid) return
-  if (!modalImprovementData.value.proposals) {
-    const confirmed = confirm(
-      "Estàs segur que vols eliminar les propostes de millora d'aquesta programació?"
-    )
-    if (!confirmed) return
-  }
 
   try {
     modalImprovementData.value.saving = true
+    modalImprovementData.value.serverError = ''
     const response = await api.createImprovement(actualSyllabus.value.id, {
       proposals: modalImprovementData.value.proposals
     })
-    actualSyllabus.value.currentImprovementProposal.proposals = response.data.proposals
+    actualSyllabus.value.currentImprovementProposal = response.data
     if (actualSyllabus.value.status == 'pendent') {
       actualSyllabus.value.lastYearImprovementProposal = response.data.proposals
     }
     addMessage('success', 'Propostes de millora guardades')
-    modalImprovementData.value.proposals = ''
+    modalImprovementData.value.proposals = response.data.proposals || ''
     modalImprovementData.value.showSaveButton = false
     modalImprovementData.value.isEditing = false
+    modalImprovementData.value.saveButtonText = 'Editar proposta'
+    modalImprovementData.value.schoolYearWarning = ''
     errors.value.proposals = false
     improvementModalRef.value?.hide()
   } catch (error) {
-    addMessage('error', error)
+    modalImprovementData.value.serverError = getErrorMessage(error)
+    addMessage('error', modalImprovementData.value.serverError || error)
     handleImprovementServerError(error)
   } finally {
-    modalImprovementData.value.isEditing = false
     modalImprovementData.value.saving = false
   }
 }
@@ -282,10 +422,16 @@ onMounted(async () => {
 
 const initializeComponent = async () => {
   try {
-    const [respCycles, respData] = await Promise.all([api.getCycles(), api.getCurrentData()])
+    const [respCycles, respData, respSchoolYears] = await Promise.all([
+      api.getCycles(),
+      api.getCurrentData(),
+      api.getSchoolYears().catch(() => null)
+    ])
 
     cycles.value = respCycles.data
     currentData.value = respData.data
+    schoolYears.value = respSchoolYears?.data || []
+    schoolYearsLoaded.value = !!respSchoolYears
 
     // Restaurar estado desde URL
     await restoreStateFromRoute()
@@ -378,7 +524,22 @@ const getTurnLabel = (turn) => {
       @close="handleModalClose('improvement')"
     >
       <div class="row">
+        <div class="alert alert-info">
+          <strong>Curs de la programació:</strong> {{ actualSyllabus.courseYear || 'No disponible' }}
+        </div>
+        <div v-if="modalImprovementData.loadingSchoolYears" class="alert alert-secondary">
+          Comprovant cursos escolars...
+        </div>
+        <div v-if="modalImprovementData.schoolYearWarning" class="alert alert-warning">
+          {{ modalImprovementData.schoolYearWarning }}
+        </div>
+        <div v-if="modalImprovementData.serverError" class="alert alert-danger">
+          {{ modalImprovementData.serverError }}
+        </div>
         <div v-show="modalImprovementData.isEditing">
+          <p class="text-muted mb-2">
+            Estes propostes de millora es tindran en compte per al curs indicat.
+          </p>
           <textarea
             v-model="modalImprovementData.proposals"
             class="form-control border-secondary"
@@ -386,8 +547,54 @@ const getTurnLabel = (turn) => {
           />
         </div>
         <div v-show="!modalImprovementData.isEditing">
-          <pre>{{ modalImprovementData.proposals || 'No hi ha cap proposta' }}</pre>
-          <button class="btn btn-secondary" @click="handleImprovementEditClick">Editar</button>
+          <div v-if="getCurrentImprovementProposal()" class="card text-start mb-3">
+            <div class="card-header bg-info text-white fw-bold">Informació de la proposta</div>
+            <div class="card-body">
+              <dl class="row mb-0">
+                <dt class="col-sm-4">Identificador</dt>
+                <dd class="col-sm-8">
+                  {{ getCurrentImprovementProposal().id || 'No disponible' }}
+                </dd>
+
+                <dt class="col-sm-4">Curs escolar</dt>
+                <dd class="col-sm-8">
+                  {{ getImprovementProposalCourseYear(getCurrentImprovementProposal()) }}
+                </dd>
+
+                <dt class="col-sm-4">Estat del curs</dt>
+                <dd class="col-sm-8">
+                  {{ getEffectiveLabel(getCurrentImprovementProposal().schoolYear?.effective) }}
+                </dd>
+
+                <dt class="col-sm-4">Estat de la proposta</dt>
+                <dd class="col-sm-8">
+                  {{ getImprovementStatusLabel(getCurrentImprovementProposal().status) }}
+                </dd>
+
+                <template v-if="getCurrentImprovementProposal().comments">
+                  <dt class="col-sm-4">Resposta</dt>
+                  <dd class="col-sm-8">
+                    {{ getCurrentImprovementProposal().comments }}
+                  </dd>
+                </template>
+
+                <dt class="col-12 mt-2">Proposta de millora</dt>
+                <dd class="col-12">
+                  <pre class="border rounded bg-light p-3 mb-0">{{ getCurrentImprovementProposal().proposals }}</pre>
+                </dd>
+              </dl>
+            </div>
+          </div>
+          <div v-else class="alert alert-secondary text-start">
+            Encara no hi ha cap proposta de millora creada per al curs corresponent.
+          </div>
+          <button
+            v-if="!modalImprovementData.schoolYearWarning"
+            class="btn btn-secondary"
+            @click="handleImprovementEditClick"
+          >
+            Editar
+          </button>
         </div>
         <p v-if="improvementErrors.proposals" class="text-danger">
           {{ improvementErrors.proposals }}
@@ -683,9 +890,9 @@ const getTurnLabel = (turn) => {
                   <!-- Botón de propuestas de mejora -->
                   <div>
                     <ActionButton
-                      v-if="['pendent', 'aprovada'].includes(getSyllabusByTurn(turn)?.status)"
+                      v-if="canShowImprovementButton(turn)"
                       buttonClass="btn btn-warning col-12 col-sm-4 mb-2 text-white"
-                      title="Veure/Modificar propostes de millora"
+                      :title="getImprovementButtonTitle(turn)"
                       icon-class="bi bi-lightbulb-fill"
                       data-bs-toggle="modal"
                       data-bs-target="#improvementModal"

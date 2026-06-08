@@ -158,6 +158,7 @@ export const api = {
   getAsessmentTool: () => instance.get('/assessmentTool'),
   getMarkingTool: () => instance.get('/markingTool'),
   getCurrentData: () => instance.get('/currentSchoolYear'),
+  getSchoolYears: () => instance.get('/school-years'),
 
   // Cycles
   getCycles: () => instance.get('/cycles'),

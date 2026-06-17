@@ -111,6 +111,15 @@ const resetOrientationErrors = () => {
   orientationErrors.value = {}
 }
 
+const getRichTextPlainContent = (value = '') =>
+  `${value}`
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const hasRichTextContent = (value) => getRichTextPlainContent(value).length > 0
+
 const getParticipantErrors = (courseLevel) => participantErrors.value[courseLevel] || []
 const hasParticipantErrors = (courseLevel) => getParticipantErrors(courseLevel).length > 0
 const resetParticipantErrors = (courseLevel = null) => {
@@ -784,7 +793,7 @@ const saveOrientation = async () => {
     orientationErrors.value = { supportLearningResultIds: ['Selecciona almenys un RA de suport.'] }
     return
   }
-  if (!orientationForm.supportActivitiesGuidance.trim()) {
+  if (!hasRichTextContent(orientationForm.supportActivitiesGuidance)) {
     orientationErrors.value = { supportActivitiesGuidance: ["L'orientació és obligatòria."] }
     return
   }
@@ -1225,12 +1234,13 @@ const deleteOrientation = async (orientation) => {
                           {{ label }}
                         </span>
                       </div>
-                      <div class="text-muted small mb-2">
-                        {{
+                      <div
+                        class="orientation-rich-preview text-muted small mb-2"
+                        v-html="
                           getOrientationForParticipant(participant.moduleCode, participant.courseLevel)
                             .supportActivitiesGuidance
-                        }}
-                      </div>
+                        "
+                      ></div>
                     </div>
                      <div v-else class="text-muted small fst-italic">
                        Mòdul afegit sense orientació completa.
@@ -1368,12 +1378,13 @@ const deleteOrientation = async (orientation) => {
                       entre les decisions preses i les activitats plantejades.
                     </div>
                   </div>
-                  <textarea
+                  <ckeditor
+                    class="w-100"
+                    data-testid="orientation-guidance-editor"
+                    :editor="editor"
                     v-model="orientationForm.supportActivitiesGuidance"
-                    :class="['form-control', { 'is-invalid': hasOrientationError('supportActivitiesGuidance') }]"
-                    rows="6"
-                    placeholder="Exemple: descriu com aquest mòdul pot intervenir en el repte: protocols, actuacions, materials, situacions pràctiques o criteris que s'hauran d'evidenciar."
-                  ></textarea>
+                    :config="editorConfig"
+                  />
                   <div v-if="hasOrientationError('supportActivitiesGuidance')" class="invalid-feedback d-block">
                     <div
                       v-for="(message, index) in getOrientationErrors('supportActivitiesGuidance')"
@@ -1391,7 +1402,7 @@ const deleteOrientation = async (orientation) => {
                   :disabled="
                     isSavingOrientation ||
                     orientationForm.supportLearningResultIds.length === 0 ||
-                    !orientationForm.supportActivitiesGuidance.trim()
+                    !hasRichTextContent(orientationForm.supportActivitiesGuidance)
                   "
                   @click="saveOrientation"
                 >
@@ -1539,6 +1550,13 @@ const deleteOrientation = async (orientation) => {
   text-transform: uppercase;
   color: #355fa3;
   margin-right: 0.35rem;
+}
+
+.orientation-rich-preview :deep(p:last-child),
+.orientation-rich-preview :deep(ul:last-child),
+.orientation-rich-preview :deep(ol:last-child),
+.orientation-rich-preview :deep(table:last-child) {
+  margin-bottom: 0;
 }
 
 :deep(.ck-editor__editable_inline) {

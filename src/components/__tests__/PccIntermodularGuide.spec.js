@@ -85,7 +85,16 @@ const mockActions = (store) => {
 const mountComponent = () => {
   return mount(PccIntermodularGuide, {
     props: { pccId: 999 },
-    global: { stubs: { Teleport: true } }
+    global: {
+      stubs: {
+        Teleport: true,
+        ckeditor: {
+          props: ['modelValue'],
+          emits: ['update:modelValue'],
+          template: `<textarea :value="modelValue" @input="$emit('update:modelValue', $event.target.value)"></textarea>`
+        }
+      }
+    }
   })
 }
 
@@ -227,7 +236,9 @@ describe('PccIntermodularGuide', () => {
     await wrapper.find('[data-testid="edit-orientation-1-M01"]').trigger('click')
     await flushPromises()
 
-    await wrapper.find('.modal-body textarea').setValue('Guidance actualitzada')
+    await wrapper
+      .find('[data-testid="orientation-guidance-editor"]')
+      .setValue('<p><strong>Guidance actualitzada</strong></p>')
     await wrapper.find('.modal-footer .btn.btn-primary').trigger('click')
     await flushPromises()
 
@@ -238,7 +249,7 @@ describe('PccIntermodularGuide', () => {
         courseLevel: 1,
         orientations: {
           supportLearningResultIds: [201, 202],
-          supportActivitiesGuidance: 'Guidance actualitzada'
+          supportActivitiesGuidance: '<p><strong>Guidance actualitzada</strong></p>'
         }
       })
     )

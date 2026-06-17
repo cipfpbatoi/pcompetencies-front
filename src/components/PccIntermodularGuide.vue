@@ -1502,6 +1502,15 @@ const deleteOrientation = async (orientation) => {
   background: #d8e8ff;
 }
 
+.criteria-info-button {
+  --bs-btn-padding-x: 0;
+  --bs-btn-padding-y: 0;
+  width: 1.45rem;
+  height: 1.45rem;
+  line-height: 1;
+  font-size: 0.75rem;
+}
+
 .orientation-help-box {
   border: 1px solid #b7d4fe;
   border-radius: 0.5rem;

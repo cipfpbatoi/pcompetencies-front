@@ -72,6 +72,7 @@ const participantSelectorByCourse = reactive({
 const participantVisibilityOverrides = ref({})
 
 const distributionForm = ref({})
+const expandedLearningResultId = ref(null)
 
 const orientationForm = reactive({
   moduleCode: '',
@@ -298,6 +299,12 @@ const getActiveCourseLevelsForLearningResult = (learningResultId) => {
     distributionForm.value[learningResultId] || getDistributionCourseLevelsFromStore(learningResultId)
   )
 }
+
+const toggleLearningResultCriteria = (learningResultId) => {
+  expandedLearningResultId.value = expandedLearningResultId.value === learningResultId ? null : learningResultId
+}
+
+const getEvaluationCriterias = (learningResult) => learningResult?.evaluationCriterias || []
 
 const isDistributionOptionSelected = (learningResultId, option) => {
   const selectedLevels = getActiveCourseLevelsForLearningResult(learningResultId)
@@ -944,79 +951,116 @@ const deleteOrientation = async (orientation) => {
           </div>
         </div>
 
-        <div v-if="hasProjectInBothCourses" class="table-responsive">
+        <div class="table-responsive">
           <table class="table table-sm table-bordered align-middle mb-0">
             <thead class="table-light">
               <tr>
                 <th style="width: 80px">RA</th>
                 <th>Descriptor</th>
-                <th style="width: 100px">1r</th>
-                <th style="width: 100px">2n</th>
-                <th style="width: 250px">Distribució</th>
+                <th v-if="hasProjectInBothCourses" style="width: 100px">1r</th>
+                <th v-if="hasProjectInBothCourses" style="width: 100px">2n</th>
+                <th v-if="hasProjectInBothCourses" style="width: 250px">Distribució</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="learningResult in projectLearningResults" :key="learningResult.id">
-                <td class="fw-bold">RA{{ learningResult.number }}</td>
-                <td class="small">{{ learningResult.descriptor }}</td>
-                <td class="text-center">
-                  <i
-                    :class="
-                      getActiveCourseLevelsForLearningResult(learningResult.id).includes(1)
-                        ? 'bi bi-check-circle-fill text-primary'
-                        : 'bi bi-dash-circle text-muted'
-                    "
-                  ></i>
-                </td>
-                <td class="text-center">
-                  <i
-                    :class="
-                      getActiveCourseLevelsForLearningResult(learningResult.id).includes(2)
-                        ? 'bi bi-check-circle-fill text-success'
-                        : 'bi bi-dash-circle text-muted'
-                    "
-                  ></i>
-                </td>
-                <td>
-                  <div class="btn-group btn-group-sm" :data-testid="`distribution-switch-${learningResult.id}`">
-                    <button
-                      type="button"
-                      class="btn"
-                      :class="isDistributionOptionSelected(learningResult.id, '1') ? 'btn-primary' : 'btn-outline-primary'"
-                      :disabled="distributionLoadingByLR[learningResult.id]"
-                      :data-testid="`distribution-option-${learningResult.id}-1`"
-                      @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('1'))"
-                    >
-                      1r
-                    </button>
-                    <button
-                      type="button"
-                      class="btn"
-                      :class="isDistributionOptionSelected(learningResult.id, '2') ? 'btn-success' : 'btn-outline-success'"
-                      :disabled="distributionLoadingByLR[learningResult.id]"
-                      :data-testid="`distribution-option-${learningResult.id}-2`"
-                      @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('2'))"
-                    >
-                      2n
-                    </button>
-                    <button
-                      type="button"
-                      class="btn"
-                      :class="isDistributionOptionSelected(learningResult.id, '1-2') ? 'btn-dark' : 'btn-outline-dark'"
-                      :disabled="distributionLoadingByLR[learningResult.id]"
-                      :data-testid="`distribution-option-${learningResult.id}-both`"
-                      @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('1-2'))"
-                    >
-                      1r + 2n
-                    </button>
-                  </div>
-                  <div v-if="hasDistributionError(learningResult.id)" class="text-danger small mt-1">
-                    <div v-for="(message, index) in getDistributionErrors(learningResult.id)" :key="index">
-                      {{ message }}
+              <template v-for="learningResult in projectLearningResults" :key="learningResult.id">
+                <tr>
+                  <td class="fw-bold">
+                    <div class="d-flex align-items-center gap-2">
+                      <span>RA{{ learningResult.number }}</span>
+                      <button
+                        type="button"
+                        class="btn btn-outline-info btn-sm rounded-circle criteria-info-button"
+                        :class="{ active: expandedLearningResultId === learningResult.id }"
+                        title="Mostra els criteris d'avaluació"
+                        :aria-expanded="expandedLearningResultId === learningResult.id"
+                        :aria-label="`Mostra els criteris d'avaluació de RA${learningResult.number}`"
+                        @click="toggleLearningResultCriteria(learningResult.id)"
+                      >
+                        <i class="bi bi-info-circle"></i>
+                      </button>
                     </div>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                  <td class="small">{{ learningResult.descriptor }}</td>
+                  <td v-if="hasProjectInBothCourses" class="text-center">
+                    <i
+                      :class="
+                        getActiveCourseLevelsForLearningResult(learningResult.id).includes(1)
+                          ? 'bi bi-check-circle-fill text-primary'
+                          : 'bi bi-dash-circle text-muted'
+                      "
+                    ></i>
+                  </td>
+                  <td v-if="hasProjectInBothCourses" class="text-center">
+                    <i
+                      :class="
+                        getActiveCourseLevelsForLearningResult(learningResult.id).includes(2)
+                          ? 'bi bi-check-circle-fill text-success'
+                          : 'bi bi-dash-circle text-muted'
+                      "
+                    ></i>
+                  </td>
+                  <td v-if="hasProjectInBothCourses">
+                    <div class="btn-group btn-group-sm" :data-testid="`distribution-switch-${learningResult.id}`">
+                      <button
+                        type="button"
+                        class="btn"
+                        :class="isDistributionOptionSelected(learningResult.id, '1') ? 'btn-primary' : 'btn-outline-primary'"
+                        :disabled="distributionLoadingByLR[learningResult.id]"
+                        :data-testid="`distribution-option-${learningResult.id}-1`"
+                        @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('1'))"
+                      >
+                        1r
+                      </button>
+                      <button
+                        type="button"
+                        class="btn"
+                        :class="isDistributionOptionSelected(learningResult.id, '2') ? 'btn-success' : 'btn-outline-success'"
+                        :disabled="distributionLoadingByLR[learningResult.id]"
+                        :data-testid="`distribution-option-${learningResult.id}-2`"
+                        @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('2'))"
+                      >
+                        2n
+                      </button>
+                      <button
+                        type="button"
+                        class="btn"
+                        :class="isDistributionOptionSelected(learningResult.id, '1-2') ? 'btn-dark' : 'btn-outline-dark'"
+                        :disabled="distributionLoadingByLR[learningResult.id]"
+                        :data-testid="`distribution-option-${learningResult.id}-both`"
+                        @click="saveLearningResultDistribution(learningResult.id, getDistributionOptionCourseLevels('1-2'))"
+                      >
+                        1r + 2n
+                      </button>
+                    </div>
+                    <div v-if="hasDistributionError(learningResult.id)" class="text-danger small mt-1">
+                      <div v-for="(message, index) in getDistributionErrors(learningResult.id)" :key="index">
+                        {{ message }}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="expandedLearningResultId === learningResult.id" class="table-info-subtle">
+                  <td :colspan="hasProjectInBothCourses ? 5 : 2" class="p-3">
+                    <div class="fw-bold mb-2">Criteris d'avaluació de RA{{ learningResult.number }}</div>
+                    <table v-if="getEvaluationCriterias(learningResult).length" class="table table-sm table-striped mb-0">
+                      <thead>
+                        <tr>
+                          <th style="width: 120px">CA</th>
+                          <th>Criteri d'avaluació</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="criteria in getEvaluationCriterias(learningResult)" :key="criteria.id || criteria.code">
+                          <td class="fw-bold">{{ criteria.code }}</td>
+                          <td>{{ criteria.description }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <p v-else class="text-muted mb-0">No hi ha criteris d'avaluació definits.</p>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>

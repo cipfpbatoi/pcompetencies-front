@@ -259,4 +259,27 @@ describe('PccIntermodularGuide', () => {
 
     expect(store.deletePCCIntermodularOrientation).toHaveBeenCalledWith(999, 'M01', 1)
   })
+
+  it('shows an error when saving orientation without support RA', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.intermodularProjectParticipatingModules = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 1 }
+    ]
+    store.$patch(state)
+    mockActions(store)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.find('[data-testid="add-orientation-1-M01"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.find('[data-testid="orientation-guidance-editor"]').setValue('<p>Orientació completa</p>')
+    await wrapper.find('[data-testid="save-orientation"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Selecciona almenys un RA de suport.')
+    expect(store.savePCCIntermodularOrientation).not.toHaveBeenCalled()
+  })
 })

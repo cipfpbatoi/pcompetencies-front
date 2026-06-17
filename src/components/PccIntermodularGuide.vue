@@ -1284,7 +1284,7 @@ const deleteOrientation = async (orientation) => {
       <div class="card-footer text-end">
         <button @click="saveGuide" class="btn btn-success" :disabled="isSavingGuide">
           <span v-if="isSavingGuide" class="spinner-border spinner-border-sm me-1"></span>
-          Guardar altres orientacions
+          Guardar
         </button>
       </div>
     </div>
@@ -1399,11 +1399,8 @@ const deleteOrientation = async (orientation) => {
                 <button class="btn btn-secondary" @click="closeOrientationModal">Cancel·lar</button>
                 <button
                   class="btn btn-primary"
-                  :disabled="
-                    isSavingOrientation ||
-                    orientationForm.supportLearningResultIds.length === 0 ||
-                    !hasRichTextContent(orientationForm.supportActivitiesGuidance)
-                  "
+                  :disabled="isSavingOrientation"
+                  data-testid="save-orientation"
                   @click="saveOrientation"
                 >
                   <span v-if="isSavingOrientation" class="spinner-border spinner-border-sm me-1"></span>

@@ -880,6 +880,9 @@ const deleteOrientation = async (orientation) => {
               <div class="card-body">
                 <div class="mb-3">
                   <label class="form-label fw-bold">Temporalització</label>
+                  <blockquote class="blockquote intermodular-quote my-2">
+                    Defineix com es distribuiran les hores de projecte intermodular quan l'alumnat estiga fent Formació en Empresa.
+                  </blockquote>
                   <select
                     v-model="getCourseForm(courseLevel).temporalizationOption"
                     :class="[
@@ -1439,6 +1442,14 @@ const deleteOrientation = async (orientation) => {
   padding: 0.4rem 0.55rem;
   display: inline-flex;
   align-items: center;
+}
+
+.intermodular-quote {
+  border-left: 4px solid #0d6efd;
+  background: #eef5ff;
+  color: #1f2937;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
 }
 
 .selection-box {

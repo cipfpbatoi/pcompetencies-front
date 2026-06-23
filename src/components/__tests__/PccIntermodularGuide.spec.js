@@ -54,8 +54,8 @@ const getBaseState = () => ({
       }
     ],
     intermodularProjectGuide: {
-      firstCourseGuide: {},
-      secondCourseGuide: {}
+      firstCourseGuide: { temporalizationOption: 'center_attendance', weight: 50 },
+      secondCourseGuide: { temporalizationOption: 'center_attendance', weight: 50 }
     },
     intermodularProjectLearningResultDistributions: [
       { learningResult: projectLearningResult, courseLevels: [1, 2] }
@@ -155,6 +155,51 @@ describe('PccIntermodularGuide', () => {
     expect(selectCourse2.text()).not.toContain('PI2')
   })
 
+  it('allows first and second course modules when project exists only in second course', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.modules = state.pcc.modules.filter((module) => module.code !== 'PI1')
+    state.cycle.modules = state.cycle.modules.filter((module) => module.code !== 'PI1')
+    store.$patch(state)
+    mockActions(store)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="participant-select-1"]').exists()).toBe(false)
+
+    const selectCourse2 = wrapper.find('[data-testid="participant-select-2"]')
+    expect(selectCourse2.text()).toContain('M01')
+    expect(selectCourse2.text()).toContain('M02')
+    expect(selectCourse2.text()).not.toContain('PI2')
+    expect(wrapper.text()).toContain('Orientacions mòduls 1r i 2n curs')
+  })
+
+  it('adds a first course module to second course project with second course payload', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.modules = state.pcc.modules.filter((module) => module.code !== 'PI1')
+    state.cycle.modules = state.cycle.modules.filter((module) => module.code !== 'PI1')
+    store.$patch(state)
+    mockActions(store)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.find('[data-testid="participant-select-2"]').setValue('M01')
+    await wrapper.find('[data-testid="add-participant-2"]').trigger('click')
+    await flushPromises()
+
+    expect(store.savePCCIntermodularParticipant).toHaveBeenCalledWith(
+      999,
+      {
+        moduleCode: 'M01',
+        courseLevel: 2
+      },
+      { showSuccessMessage: false }
+    )
+  })
+
   it('adds participant by course with minimal payload', async () => {
     const store = useDataStore()
     const state = getBaseState()
@@ -185,6 +230,29 @@ describe('PccIntermodularGuide', () => {
     )
 
     expect(store.deletePCCIntermodularParticipant).not.toHaveBeenCalled()
+  })
+
+  it('blocks participant selection until temporalization and weights are saved', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.intermodularProjectGuide = {
+      firstCourseGuide: {},
+      secondCourseGuide: {}
+    }
+    store.$patch(state)
+    mockActions(store)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Primer has de completar i guardar el punt 8.1')
+    expect(wrapper.find('[data-testid="participant-select-1"]').attributes('disabled')).toBeDefined()
+
+    await wrapper.find('[data-testid="add-participant-1"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('abans d’afegir mòduls participants')
+    expect(store.savePCCIntermodularParticipant).not.toHaveBeenCalled()
   })
 
   it('removes participant module by course', async () => {
@@ -281,5 +349,55 @@ describe('PccIntermodularGuide', () => {
 
     expect(wrapper.text()).toContain('Selecciona almenys un RA de suport.')
     expect(store.savePCCIntermodularOrientation).not.toHaveBeenCalled()
+  })
+
+  it('saves orientation using project block course level for first course module in second course project', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.modules = state.pcc.modules.filter((module) => module.code !== 'PI1')
+    state.cycle.modules = state.cycle.modules.filter((module) => module.code !== 'PI1')
+    state.pcc.intermodularProjectParticipatingModules = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 2 }
+    ]
+    store.$patch(state)
+    mockActions(store)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.find('[data-testid="add-orientation-2-M01"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.find('#support-learning-result-201').setValue(true)
+    await wrapper.find('[data-testid="orientation-guidance-editor"]').setValue('<p>Orientació segon curs</p>')
+    await wrapper.find('[data-testid="save-orientation"]').trigger('click')
+    await flushPromises()
+
+    expect(store.savePCCIntermodularOrientation).toHaveBeenCalledWith(
+      999,
+      expect.objectContaining({
+        moduleCode: 'M01',
+        courseLevel: 2
+      })
+    )
+  })
+
+  it('shows real module course next to modules when project has a single course', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.modules = state.pcc.modules.filter((module) => module.code !== 'PI1')
+    state.cycle.modules = state.cycle.modules.filter((module) => module.code !== 'PI1')
+    state.pcc.intermodularProjectParticipatingModules = [
+      { module: { code: 'M01', name: 'Mòdul suport 1r' }, courseLevel: 2 },
+      { module: { code: 'M02', name: 'Mòdul suport 2n' }, courseLevel: 2 }
+    ]
+    store.$patch(state)
+    mockActions(store)
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.text()).toMatch(/M01 - Mòdul suport 1r\s+\(1r curs\)/)
+    expect(wrapper.text()).toMatch(/M02 - Mòdul suport 2n\s+\(2n curs\)/)
   })
 })

@@ -135,8 +135,8 @@ const resetParticipantErrors = (courseLevel = null) => {
 
 const tempOptions = [
   { value: 'center_attendance', label: 'Assistència al centre' },
-  { value: 'before_fe_week', label: 'Abans de la setmana de FE' },
-  { value: 'after_fe_week', label: 'Després de la setmana de FE' }
+  { value: 'before_fe_week', label: 'Acumular abans de la setmana de FE' },
+  { value: 'after_fe_week', label: 'Acumular després de la setmana de FE' }
 ]
 
 const guide = computed(() => pcc.value?.intermodularProjectGuide || null)
@@ -157,6 +157,15 @@ const isProjectModule = (module) => {
 }
 
 const getCourseLabel = (courseLevel) => (Number(courseLevel) === 1 ? '1r curs' : '2n curs')
+const getOrientationModulesCourseLabel = (courseLevel) => {
+  if (!hasProjectInBothCourses.value && Number(courseLevel) === 2) {
+    return '1r i 2n curs'
+  }
+
+  return getCourseLabel(courseLevel)
+}
+const shouldShowRealModuleCourseLabel = computed(() => availableProjectCourses.value.length === 1)
+const getRealModuleCourseLabel = (moduleCode) => getCourseLabel(getModuleByCode(moduleCode)?.courseLevel || 1)
 const getFieldPrefix = (courseLevel) => (courseLevel === 1 ? 'firstCourse' : 'secondCourse')
 const getCourseForm = (courseLevel) => (courseLevel === 1 ? tempForm.firstCourse : tempForm.secondCourse)
 
@@ -394,7 +403,13 @@ const canSelectModuleForCourse = (module, courseLevel) => {
   if (!module || isProjectModule(module)) return false
   const targetLevel = Number(courseLevel)
   const moduleLevel = Number(module.courseLevel || 1)
-  return [1, 2].includes(targetLevel) && moduleLevel === targetLevel
+  if (![1, 2].includes(targetLevel)) return false
+
+  if (hasProjectInBothCourses.value) {
+    return moduleLevel === targetLevel
+  }
+
+  return moduleLevel <= targetLevel
 }
 
 const normalizeSupportLearningResultIds = (orientation) => {
@@ -623,6 +638,22 @@ const weightTotal = computed(() => {
   }, 0)
 })
 
+const getSavedCourseGuide = (courseLevel) => {
+  if (Number(courseLevel) === 1) return guide.value?.firstCourseGuide || guide.value?.firstCourse || null
+  return guide.value?.secondCourseGuide || guide.value?.secondCourse || null
+}
+
+const isSavedCourseGuideReady = (courseLevel) => {
+  const courseGuide = getSavedCourseGuide(courseLevel)
+  if (!courseGuide?.temporalizationOption) return false
+  if (singleProjectCourseLevel.value === Number(courseLevel)) return true
+  return courseGuide.weight !== null && courseGuide.weight !== undefined && courseGuide.weight !== ''
+}
+
+const isIntermodularGuideReadyForParticipants = computed(() => {
+  return availableProjectCourses.value.length > 0 && availableProjectCourses.value.every(isSavedCourseGuideReady)
+})
+
 const saveGuide = async () => {
   resetValidationErrors()
   isSavingGuide.value = true
@@ -664,6 +695,13 @@ const saveGuide = async () => {
 
 const addParticipant = async (courseLevel) => {
   resetParticipantErrors(courseLevel)
+  if (!isIntermodularGuideReadyForParticipants.value) {
+    participantErrors.value = {
+      ...participantErrors.value,
+      [courseLevel]: ['Primer has de completar i guardar el punt 8.1 abans d’afegir mòduls participants.']
+    }
+    return
+  }
   const moduleCode = participantSelectorByCourse[courseLevel]
   if (!moduleCode) return
   const module = getModuleByCode(moduleCode)
@@ -1084,6 +1122,12 @@ const deleteOrientation = async (orientation) => {
         8.3 Mòduls participants per curs
       </div>
       <div class="card-body">
+        <div v-if="!isIntermodularGuideReadyForParticipants" class="alert alert-warning small py-2">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Primer has de completar i guardar el punt 8.1 (temporalització i pes del projecte intermodular)
+          abans d’afegir mòduls participants.
+        </div>
+
         <template v-for="courseLevel in availableProjectCourses" :key="`participants-${courseLevel}`">
           <div class="course-block mb-3" :class="courseLevel === 1 ? 'course-block-1' : 'course-block-2'">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1099,13 +1143,18 @@ const deleteOrientation = async (orientation) => {
                   v-model="participantSelectorByCourse[courseLevel]"
                   class="form-select"
                   :data-testid="`participant-select-${courseLevel}`"
-                  :disabled="getAvailableParticipantModules(courseLevel).length === 0"
+                  :disabled="
+                    !isIntermodularGuideReadyForParticipants ||
+                    getAvailableParticipantModules(courseLevel).length === 0
+                  "
                 >
                   <option value="">
                     {{
-                      getAvailableParticipantModules(courseLevel).length > 0
-                        ? 'Selecciona un mòdul suport'
-                        : 'No queden mòduls per afegir'
+                      !isIntermodularGuideReadyForParticipants
+                        ? 'Completa abans el punt 8.1'
+                        : getAvailableParticipantModules(courseLevel).length > 0
+                          ? 'Selecciona un mòdul suport'
+                          : 'No queden mòduls per afegir'
                     }}
                   </option>
                   <option
@@ -1122,6 +1171,7 @@ const deleteOrientation = async (orientation) => {
                   class="btn btn-outline-primary"
                   :data-testid="`add-participant-${courseLevel}`"
                   :disabled="
+                    !isIntermodularGuideReadyForParticipants ||
                     getAvailableParticipantModules(courseLevel).length === 0 ||
                     !participantSelectorByCourse[courseLevel] ||
                     participantLoadingKey === `${participantSelectorByCourse[courseLevel]}-${courseLevel}`
@@ -1156,7 +1206,12 @@ const deleteOrientation = async (orientation) => {
                 :key="`${participant.moduleCode}-${participant.courseLevel}`"
                 class="badge participant-badge d-inline-flex align-items-center"
               >
-                <span>{{ getModuleLabel(participant.moduleCode) }}</span>
+                <span>
+                  {{ getModuleLabel(participant.moduleCode) }}
+                  <small v-if="shouldShowRealModuleCourseLabel" class="fw-normal ms-1">
+                    ({{ getRealModuleCourseLabel(participant.moduleCode) }})
+                  </small>
+                </span>
                 <button
                   type="button"
                   class="btn btn-link btn-sm text-danger p-0 ms-2"
@@ -1186,7 +1241,7 @@ const deleteOrientation = async (orientation) => {
           <template v-for="courseLevel in availableProjectCourses" :key="`orientation-course-${courseLevel}`">
             <div :class="hasProjectInBothCourses ? 'col-12 col-xl-6' : 'col-12'">
               <div class="course-block h-100" :class="courseLevel === 1 ? 'course-block-1' : 'course-block-2'">
-                <h5 class="fw-bold mb-2">Orientacions {{ getCourseLabel(courseLevel) }}</h5>
+                <h5 class="fw-bold mb-2">Orientacions mòduls {{ getOrientationModulesCourseLabel(courseLevel) }}</h5>
                 <div v-if="participantsByCourse[courseLevel].length === 0" class="text-muted small fst-italic mb-2">
                   Primer afegeix participants en aquest curs.
                 </div>
@@ -1197,7 +1252,12 @@ const deleteOrientation = async (orientation) => {
                   class="card mb-2"
                 >
                   <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">{{ getModuleLabel(participant.moduleCode) }}</span>
+                    <span class="fw-semibold">
+                      {{ getModuleLabel(participant.moduleCode) }}
+                      <small v-if="shouldShowRealModuleCourseLabel" class="fw-normal text-muted ms-1">
+                        ({{ getRealModuleCourseLabel(participant.moduleCode) }})
+                      </small>
+                    </span>
                     <div
                       v-if="hasOrientationDetails(getOrientationForParticipant(participant.moduleCode, participant.courseLevel))"
                       class="d-flex gap-2"

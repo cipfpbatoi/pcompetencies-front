@@ -19,6 +19,7 @@ import ShowPdfButton from '../components/ShowPdfButton.vue'
 import BtnGetExcel from '../components/BtnGetExcel.vue'
 import HistorySyllabusList from '../components/HistorySyllabusList.vue'
 import HistoryPccList from '../components/HistoryPccList.vue'
+import { statusClass } from '../utils/utils.js'
 
 // ==========================================
 // 🏪 STORE & ROUTER
@@ -36,6 +37,7 @@ const cycles = ref([])
 const currentData = ref({})
 const cycleSelect = ref('')
 const moduleSelect = ref('')
+const moduleAutoSelectWarning = ref('')
 const errors = ref({})
 
 // ==========================================
@@ -450,8 +452,21 @@ const restoreStateFromRoute = async () => {
     await handleCycleChange()
     await loadPCC(cycleSelect.value)
 
-    if (routeModuleCode || module.value.code) {
-      moduleSelect.value = routeModuleCode || module.value.code
+    const requestedModuleCode = routeModuleCode || module.value.code
+
+    if (requestedModuleCode) {
+      const moduleExists = cycle.value.modules?.some(
+        (cycleModule) => String(cycleModule.code) === String(requestedModuleCode)
+      )
+
+      if (!moduleExists) {
+        moduleSelect.value = ''
+        moduleAutoSelectWarning.value =
+          "No s'ha pogut seleccionar el mòdul automàticament. Busca'l a través del selector de mòduls."
+        return
+      }
+
+      moduleSelect.value = requestedModuleCode
       await loadSyllabuses(cycleSelect.value, moduleSelect.value)
     }
   }
@@ -462,6 +477,11 @@ const handleCycleChange = async () => {
     await fetchCycle(cycleSelect.value)
   }
   moduleSelect.value = ''
+  moduleAutoSelectWarning.value = ''
+}
+
+const handleModuleSelectChange = () => {
+  moduleAutoSelectWarning.value = ''
 }
 
 // ==========================================
@@ -651,120 +671,87 @@ const getTurnLabel = (turn) => {
       </div>
 
       <!-- ✅ SECCIÓN PCC -->
-      <div v-if="cycleSelect && canSeePccPanel" class="form-group mt-4">
-        <div class="card">
-          <div class="card-header pcc text-white fw-bold">
-            <i class="bi bi-file-earmark-text-fill me-2"></i> Projecte Curricular de Cicle (PCC)
-          </div>
-          <div class="card-body text-center">
-            <!-- Loading spinner -->
-            <div v-if="isLoadingPCC" class="text-center py-3">
-              <span class="spinner-border text-primary"></span>
-              <p class="mt-2 text-muted">Carregant PCC...</p>
-            </div>
-            <!-- Contenido cuando no está cargando -->
-            <div v-else-if="hasLoadedPCC">
-              <ul class="nav nav-tabs justify-content-center" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button
-                    class="nav-link active"
-                    data-bs-target="#pcc-current"
-                    data-bs-toggle="tab"
-                    type="button"
-                    role="tab"
-                  >
-                    <i class="bi bi-file-earmark-text"></i>
-                    PCC actual
-                  </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button
-                    class="nav-link"
-                    data-bs-target="#pcc-history"
-                    data-bs-toggle="tab"
-                    type="button"
-                    role="tab"
-                  >
-                    <i class="bi bi-clock-history"></i> Historic
-                  </button>
-                </li>
-              </ul>
-
-              <div class="tab-content mt-3">
-                <div id="pcc-current" class="tab-pane fade show active text-center" role="tabpanel">
-                  <div class="d-flex flex-column align-items-center gap-2">
-                    <!-- PCC Existe: Mostrar botones de acción -->
-                    <template v-if="hasPCC()">
-                      <ActionButton
-                        title="Editar PCC"
-                        buttonClass="btn-success text-white col-12 col-sm-auto"
-                        iconClass="bi bi-pencil-fill"
-                        :status="pcc.status"
-                        :status-label="pccStatusLabel"
-                        :disabled="!canEditPcc"
-                        @clicked="handleEditPCC"
-                      />
-                      <ShowPdfButton
-                        type="pcc"
-                        :pcc="pcc"
-                        :cycle="cycle"
-                        :center-code="cycle?.center?.code || cycle?.centerCode"
-                        title="Veure PDF del PCC"
-                        buttonClass="btn btn-danger col-12 col-sm-auto"
-                      />
-                      <div
-                        v-if="isPccApproved"
-                        class="alert alert-info col-12 col-lg-10 text-center m-auto mt-2"
-                      >
-                        Este PCC ja està aprovat i, per tant, és públic. Pots copiar l'enllaç per a
-                        passar-li-ho a qui corresponga.
-                        <button
-                          type="button"
-                          class="btn btn-secondary btn-sm"
-                          title="Copiar enllaç"
-                          @click="copyPccUrl(pcc, cycle, user)"
-                        >
-                          <i class="bi bi-copy"></i>
-                        </button>
-                      </div>
-                      <!-- <span class="badge bg-success align-self-center fs-6">
-                        <i class="bi bi-check-circle-fill me-1"></i>
-                        PCC Creat
-                      </span> -->
-                    </template>
-                    <!-- PCC No Existe: Botón de crear -->
-                    <template v-else>
-                      <ActionButton
-                        title="Crear nou PCC"
-                        buttonClass="btn-success col-12 col-sm-auto"
-                        iconClass="bi bi-plus-circle-fill"
-                        @clicked="handleCreatePCC"
-                      />
-                      <!-- <span class="badge bg-warning text-dark align-self-center fs-6">
-                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                          Sense PCC
-                        </span> -->
-                    </template>
-                  </div>
-                  <div v-if="isPccRejected && pccRejectionReason" class="alert alert-danger mt-3">
-                    <strong>Rebutjat!</strong> Motiu: {{ pccRejectionReason }}
-                  </div>
-                  <!-- Información adicional -->
-                  <div v-if="hasPCC()" class="mt-3">
-                    <small class="text-muted">
-                      <i class="bi bi-info-circle me-1"></i> Última modificació:
-                      {{
-                        pcc.updatedAt ? new Date(pcc.updatedAt).toLocaleDateString('ca-ES') : 'N/A'
-                      }}
-                    </small>
-                  </div>
-                </div>
-
-                <div id="pcc-history" class="tab-pane fade text-center" role="tabpanel">
-                  <HistoryPccList v-if="hasPCC()" :pcc-id="pcc.id" :pcc="pcc" :cycle="cycle" />
-                  <div v-else class="alert alert-secondary mt-3">No hi ha PCC disponible.</div>
-                </div>
+      <div v-if="cycleSelect && canSeePccPanel" class="form-group mt-3">
+        <div class="card pcc-summary-card">
+          <div
+            class="card-body d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3"
+          >
+            <div>
+              <p class="text-uppercase text-muted small fw-bold mb-1">Projecte Curricular de Cicle</p>
+              <div v-if="isLoadingPCC" class="d-flex align-items-center gap-2">
+                <span class="spinner-border spinner-border-sm text-primary"></span>
+                <span class="text-muted">Carregant PCC...</span>
               </div>
+              <template v-else-if="hasLoadedPCC">
+                <div v-if="hasPCC()" class="d-flex flex-wrap align-items-center gap-2">
+                  <span class="fw-bold">PCC actual</span>
+                  <span class="badge rounded-pill" :class="statusClass(pcc.status)">
+                    {{ pccStatusLabel || pcc.status }}
+                  </span>
+                  <small class="text-muted">
+                    Última modificació:
+                    {{ pcc.updatedAt ? new Date(pcc.updatedAt).toLocaleDateString('ca-ES') : 'N/A' }}
+                  </small>
+                </div>
+                <div v-else class="text-muted">Encara no hi ha PCC creat per a este cicle.</div>
+              </template>
+            </div>
+
+            <div v-if="hasLoadedPCC" class="d-flex flex-wrap justify-content-lg-end gap-2">
+              <template v-if="hasPCC()">
+                <ActionButton
+                  title="Editar PCC"
+                  buttonClass="btn-success text-white"
+                  iconClass="bi bi-pencil-fill"
+                  :disabled="!canEditPcc"
+                  @clicked="handleEditPCC"
+                />
+                <ShowPdfButton
+                  type="pcc"
+                  :pcc="pcc"
+                  :cycle="cycle"
+                  :center-code="cycle?.center?.code || cycle?.centerCode"
+                  title="Veure PDF"
+                  buttonClass="btn btn-danger"
+                />
+                <button
+                  v-if="isPccApproved"
+                  type="button"
+                  class="btn btn-secondary"
+                  title="Copiar enllaç públic del PCC"
+                  @click="copyPccUrl(pcc, cycle, user)"
+                >
+                  <i class="bi bi-copy"></i> Copiar enllaç
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#pcc-history"
+                  aria-expanded="false"
+                  aria-controls="pcc-history"
+                >
+                  <i class="bi bi-clock-history"></i> Històric
+                </button>
+              </template>
+              <ActionButton
+                v-else
+                title="Crear nou PCC"
+                buttonClass="btn-success"
+                iconClass="bi bi-plus-circle-fill"
+                @clicked="handleCreatePCC"
+              />
+            </div>
+          </div>
+
+          <div v-if="isPccRejected && pccRejectionReason" class="alert alert-danger mx-3 mb-3">
+            <strong>Rebutjat!</strong> Motiu: {{ pccRejectionReason }}
+          </div>
+
+          <div id="pcc-history" class="collapse border-top">
+            <div class="card-body pt-3">
+              <HistoryPccList v-if="hasPCC()" :pcc-id="pcc.id" :pcc="pcc" :cycle="cycle" />
+              <div v-else class="alert alert-secondary mb-0">No hi ha PCC disponible.</div>
             </div>
           </div>
         </div>
@@ -773,9 +760,16 @@ const getTurnLabel = (turn) => {
       <!-- ================================ -->
       <!-- SELECTOR: MÒDUL -->
       <!-- ================================ -->
-      <div v-if="cycleSelect" class="form-group fw-bold mt-3 mb-5">
+      <div v-if="cycleSelect" class="form-group fw-bold mt-3 mb-3">
         <label>Mòdul</label>
-        <select v-model="moduleSelect" class="form-select form-control cycle-module-select">
+        <div v-if="moduleAutoSelectWarning" class="alert alert-warning mt-2 mb-2">
+          {{ moduleAutoSelectWarning }}
+        </div>
+        <select
+          v-model="moduleSelect"
+          class="form-select form-control cycle-module-select"
+          @change="handleModuleSelectChange"
+        >
           <option value="">-- Selecciona mòdul --</option>
           <option v-for="mod in cycle.modules" :key="mod.code" :value="mod.code">
             {{ mod.name }}
@@ -793,53 +787,75 @@ const getTurnLabel = (turn) => {
         </div>
 
         <!-- Content -->
-        <div v-show="!isLoading">
-          <div v-for="turn in cycle.availableTurns" :key="turn" class="card my-2">
-            <div class="card-header bg-info text-white text-uppercase fw-bold">
-              Modalitat {{ getTurnLabel(turn) }}
-            </div>
+        <div v-show="!isLoading" class="row g-3 align-items-start">
+          <div
+            v-for="turn in cycle.availableTurns"
+            :key="turn"
+            :class="cycle.availableTurns.length > 1 ? 'col-12 col-xl-6' : 'col-12'"
+          >
+            <div class="card h-100 syllabus-summary-card">
+              <div class="card-header bg-info text-white text-uppercase fw-bold py-2">
+                Modalitat {{ getTurnLabel(turn) }}
+              </div>
 
-            <div class="card-body text-center">
-              <!-- Tabs -->
-              <ul class="nav nav-tabs justify-content-center" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button
-                    class="nav-link active"
-                    :data-bs-target="`#current-${turn}`"
-                    data-bs-toggle="tab"
-                    type="button"
-                    role="tab"
-                  >
-                    <i class="bi bi-file-earmark-text"></i>
-                    Programacions Actuals
-                  </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button
-                    class="nav-link"
-                    :data-bs-target="`#history-${turn}`"
-                    data-bs-toggle="tab"
-                    type="button"
-                    role="tab"
-                  >
-                    <i class="bi bi-clock-history"></i> Històric
-                  </button>
-                </li>
-              </ul>
+              <div class="card-body text-center p-3">
+                <div class="syllabus-card-layout">
+                  <!-- Tabs -->
+                  <ul class="nav nav-pills nav-fill gap-2 compact-tabs syllabus-side-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button
+                        class="nav-link active py-1 px-2"
+                        :data-bs-target="`#current-${turn}`"
+                        data-bs-toggle="tab"
+                        type="button"
+                        role="tab"
+                      >
+                        <i class="bi bi-file-earmark-text"></i>
+                        Actual
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button
+                        class="nav-link py-1 px-2"
+                        :data-bs-target="`#history-${turn}`"
+                        data-bs-toggle="tab"
+                        type="button"
+                        role="tab"
+                      >
+                        <i class="bi bi-clock-history"></i> Històric
+                      </button>
+                    </li>
+                  </ul>
 
-              <div class="tab-content mt-3">
+                  <div class="tab-content syllabus-tab-content">
                 <!-- TAB: ACTUALS -->
                 <div
                   :id="`current-${turn}`"
                   class="tab-pane fade show active text-center"
                   role="tabpanel"
                 >
+                  <p
+                    v-if="getSyllabusByTurn(turn)?.status === 'aprovada'"
+                    class="alert alert-info text-center mb-2 py-2 px-3 small"
+                  >
+                    Esta programació ja està aprovada i, per tant, és pública. Pots copiar l'enllaç
+                    per a passar-li-ho als alumnes.
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      title="Copiar enllaç"
+                      @click="copySyllabusUrl(getSyllabusByTurn(turn))"
+                    >
+                      <i class="bi bi-copy"></i>
+                    </button>
+                  </p>
+
                   <!-- Período de edición abierto -->
                   <div v-if="canEdit">
-                    <div v-if="getSyllabusByTurn(turn).id" class="my-2">
+                    <div v-if="getSyllabusByTurn(turn).id" class="my-2 compact-actions">
                       <p
                         v-if="getSyllabusByTurn(turn).status === 'rebutjada'"
-                        class="alert alert-danger m-2 col-12 col-md-10 mx-auto text-start"
+                        class="alert alert-danger py-2 px-3 mb-2 text-start"
                       >
                         <strong>Rebutjada!</strong> Raó:
                         {{ getSyllabusByTurn(turn).rejectedMessage?.reason }}
@@ -852,7 +868,7 @@ const getTurnLabel = (turn) => {
                         "
                         :status="getSyllabusByTurn(turn).status"
                         title="Editar programació"
-                        buttonClass="btn-success col-12 col-sm-4 text-white"
+                        buttonClass="btn-success text-white compact-action-btn"
                         iconClass="bi bi-pencil-fill"
                         @clicked="editSyllabus(turn)"
                       />
@@ -860,24 +876,24 @@ const getTurnLabel = (turn) => {
                       <ActionButton
                         v-else
                         title="Crear programació a partir de la del curs anterior"
-                        buttonClass="btn-primary col-12 col-sm-4"
+                        buttonClass="btn-primary compact-action-btn"
                         iconClass="bi bi-plus-circle-fill"
                         @clicked="handleCopySyllabusFromLastYear(turn)"
                       />
                     </div>
 
-                    <div v-if="!getSyllabusByTurn(turn).id">
+                    <div v-if="!getSyllabusByTurn(turn).id" class="compact-actions">
                       <ActionButton
                         title="Crear programació"
-                        buttonClass="btn-success col-12 col-sm-4"
+                        buttonClass="btn-success compact-action-btn"
                         iconClass="bi bi-plus-circle-fill"
                         @clicked="handleCreateSyllabus(turn)"
                       />
 
-                      <div v-if="syllabusesToCopy.length > 0" class="mt-3">
+                      <div v-if="syllabusesToCopy.length > 0">
                         <ActionButton
                           title="Crear a partir d'altra programació"
-                          buttonClass="btn-primary mt-2 mt-sm-0 col-12 col-sm-4"
+                          buttonClass="btn-primary compact-action-btn"
                           iconClass="bi bi-node-plus-fill"
                           data-bs-toggle="modal"
                           data-bs-target="#copySylModal"
@@ -888,10 +904,10 @@ const getTurnLabel = (turn) => {
                   </div>
 
                   <!-- Botón de propuestas de mejora -->
-                  <div>
+                  <div class="compact-actions">
                     <ActionButton
                       v-if="canShowImprovementButton(turn)"
-                      buttonClass="btn btn-warning col-12 col-sm-4 mb-2 text-white"
+                      buttonClass="btn btn-warning text-white compact-action-btn"
                       :title="getImprovementButtonTitle(turn)"
                       icon-class="bi bi-lightbulb-fill"
                       data-bs-toggle="modal"
@@ -906,22 +922,9 @@ const getTurnLabel = (turn) => {
                       type="syllabus"
                       :syllabus="getSyllabusByTurn(turn)"
                       title="Veure PDF"
-                      buttonClass="btn btn-danger col-12 col-sm-4"
+                      buttonClass="btn btn-danger compact-action-btn"
                       @waiting="isLoading = $event"
                     />
-
-                    <p class="alert alert-info col-12 col-lg-10 text-center m-auto mt-2">
-                      Esta programació ja està aprovada i, per tant, és pública. Pots copiar
-                      l'enllaç per a passar-li-ho als alumnes.
-                      <button
-                        type="button"
-                        class="btn btn-secondary btn-sm"
-                        title="Copiar enllaç"
-                        @click="copySyllabusUrl(getSyllabusByTurn(turn))"
-                      >
-                        <i class="bi bi-copy"></i>
-                      </button>
-                    </p>
                   </div>
 
                   <!-- Vista previa PDF -->
@@ -931,7 +934,7 @@ const getTurnLabel = (turn) => {
                       type="syllabus"
                       :syllabus="getSyllabusByTurn(turn)"
                       title="Veure esborrany"
-                      buttonClass="btn btn-danger col-12 col-sm-4"
+                      buttonClass="btn btn-danger compact-action-btn"
                       @waiting="isLoading = $event"
                     />
                   </div>
@@ -947,7 +950,7 @@ const getTurnLabel = (turn) => {
                       :module-name="getSyllabusByTurn(turn).module.name"
                       :schedules="getSyllabusByTurn(turn).schedules"
                       :syllabus-id="getSyllabusByTurn(turn).id"
-                      btnClass="col-sm-4 col-12"
+                      btnClass="compact-action-btn"
                     />
                   </div>
                 </div>
@@ -962,6 +965,8 @@ const getTurnLabel = (turn) => {
                         :turn-label="turn"
                       />
                     </div>
+                  </div>
+                </div>
                   </div>
                 </div>
               </div>
@@ -981,5 +986,106 @@ const getTurnLabel = (turn) => {
 .cycle-module-select {
   min-height: 3rem;
   line-height: 1.5;
+}
+
+.pcc-summary-card {
+  border-left: 0.45rem solid #2c4a7a;
+}
+
+.syllabus-summary-card .card-body {
+  min-height: 0;
+}
+
+.syllabus-card-layout {
+  display: grid;
+  gap: 0;
+}
+
+.syllabus-tab-content {
+  min-width: 0;
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px solid #0dcaf0;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+.compact-tabs .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  height: 100%;
+  border: 1px solid #d6e0ea;
+  border-radius: 0.55rem 0.55rem 0 0;
+  color: #087990;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #eef3f8;
+}
+
+.compact-tabs {
+  padding: 0;
+  margin-bottom: -1px;
+}
+
+.compact-tabs .nav-link.active {
+  color: #055160;
+  background-color: #f8fbff;
+  border-color: #0dcaf0 #0dcaf0 #f8fbff;
+  box-shadow: none;
+}
+
+.compact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.compact-action-btn {
+  width: 100%;
+}
+
+@media (min-width: 576px) {
+  .compact-action-btn {
+    width: 21rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .syllabus-card-layout {
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .syllabus-tab-content {
+    border-radius: 0 0.75rem 0.75rem 0.75rem;
+  }
+
+  .syllabus-side-tabs {
+    position: sticky;
+    top: 0.75rem;
+    flex-direction: column;
+    margin-right: -1px;
+    margin-bottom: 0;
+  }
+
+  .syllabus-side-tabs .nav-item {
+    width: 100%;
+  }
+
+  .syllabus-side-tabs .nav-link {
+    width: 100%;
+    min-height: 2.5rem;
+    border-radius: 0.55rem 0 0 0.55rem;
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .syllabus-side-tabs .nav-link.active {
+    border-color: #0dcaf0 #f8fbff #0dcaf0 #0dcaf0;
+  }
 }
 </style>

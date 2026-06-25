@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import { useDataStore } from '@/stores/data'
@@ -15,6 +15,7 @@ const store = useDataStore()
 const { pcc, cycle } = storeToRefs(store)
 const {
   addMessage,
+  fetchCycle,
   savePCCIntermodularGuide,
   savePCCIntermodularDistribution,
   savePCCIntermodularParticipant,
@@ -629,6 +630,16 @@ watch(singleProjectCourseLevel, () => {
     tempForm.secondCourse.weight = 100
     tempForm.firstCourse.weight = null
   }
+})
+
+onMounted(async () => {
+  const pccCycleId = pcc.value?.cycle?.id
+  const hasCurrentCycleModules =
+    cycle.value?.id === pccCycleId && Array.isArray(cycle.value?.modules) && cycle.value.modules.length > 0
+
+  if (!pccCycleId || hasCurrentCycleModules) return
+
+  await fetchCycle(pccCycleId)
 })
 
 const weightTotal = computed(() => {

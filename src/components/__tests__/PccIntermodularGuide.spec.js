@@ -73,6 +73,7 @@ const getBaseState = () => ({
 })
 
 const mockActions = (store) => {
+  store.fetchCycle = vi.fn().mockResolvedValue(undefined)
   store.savePCCIntermodularGuide = vi.fn().mockResolvedValue('ok')
   store.savePCCIntermodularDistribution = vi.fn().mockResolvedValue('ok')
   store.deletePCCIntermodularDistribution = vi.fn().mockResolvedValue(true)
@@ -116,6 +117,39 @@ describe('PccIntermodularGuide', () => {
 
     expect(wrapper.text()).toContain('La distribució de RA és informativa.')
     expect(wrapper.find('[data-testid="distribution-switch-101"]').exists()).toBe(false)
+  })
+
+  it('loads cycle modules so section 8.2 is visible before saving 8.1', async () => {
+    const store = useDataStore()
+    const state = getBaseState()
+    state.pcc.cycle = { id: 77 }
+    state.pcc.modules = state.pcc.modules.map((module) => {
+      if (!module.proyect) return module
+      return {
+        ...module,
+        learningResults: []
+      }
+    })
+    state.cycle = {}
+    store.$patch(state)
+    mockActions(store)
+    store.fetchCycle.mockImplementation(async (cycleId) => {
+      store.cycle = {
+        id: cycleId,
+        modules: [
+          { code: 'PI1', name: 'Projecte 1r', learningResults: [projectLearningResult] },
+          { code: 'PI2', name: 'Projecte 2n', learningResults: [projectLearningResult] },
+          { code: 'M01', name: 'Mòdul suport 1r', learningResults: [supportLearningResult1, supportLearningResult2] },
+          { code: 'M02', name: 'Mòdul suport 2n', learningResults: [supportLearningResult1] }
+        ]
+      }
+    })
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(store.fetchCycle).toHaveBeenCalledWith(77)
+    expect(wrapper.text()).toContain('8.2 Distribució RA de mòduls de projecte per curs')
   })
 
   it('updates project RA distribution with courseLevels payload', async () => {

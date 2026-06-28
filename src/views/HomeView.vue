@@ -400,8 +400,8 @@ watch(
   async (newValue) => {
     if (newValue) {
       startPCCLoading()
-      await handleCycleChange()
       await loadPCC(newValue)
+      await handleCycleChange()
     }
   },
   { flush: 'sync' }
@@ -449,8 +449,8 @@ const restoreStateFromRoute = async () => {
   if (routeCycleId || cycle.value.id) {
     cycleSelect.value = routeCycleId || cycle.value.id
     startPCCLoading()
-    await handleCycleChange()
     await loadPCC(cycleSelect.value)
+    await handleCycleChange()
 
     const requestedModuleCode = routeModuleCode || module.value.code
 
@@ -496,7 +496,7 @@ const handleCreatePCC = async () => {
 
 const handleEditPCC = () => {
   if (pcc.value.id) {
-    router.push(`/pcc/context`)
+    router.push({ name: 'contextPCC' })
   }
 }
 

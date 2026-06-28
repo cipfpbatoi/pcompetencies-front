@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import * as yup from 'yup'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
@@ -19,8 +19,8 @@ import { useFormValidation } from '@/composables/useFormValidation'
 // 🏪 STORE
 // ==========================================
 const store = useDataStore()
-const { pcc } = storeToRefs(store)
-const { savePccOportunities, savePccEnvironment } = store
+const { pcc, cycle } = storeToRefs(store)
+const { savePccOportunities, savePccEnvironment, refreshPccByCycleId, fetchCycle } = store
 
 // ==========================================
 // 📋 VALIDACIÓN
@@ -67,6 +67,8 @@ const modalFields = reactive({
   environment: ''
 })
 
+const isLoadingPccContext = ref(true)
+
 // CKEditor
 const editor = ClassicEditor
 const editorConfig = {
@@ -101,10 +103,45 @@ const isDone = computed(() => {
 // ==========================================
 // 🎬 LIFECYCLE
 // ==========================================
-onMounted(() => {
+const syncModalFields = () => {
   modalFields.opportunities = pcc.value.opportunitiesAndTechnologicalEvolution || ''
   modalFields.environment = pcc.value.socioeconomicAndProfessionalEnvironment || ''
+}
+
+const loadPccContext = async () => {
+  const cycleId = pcc.value?.cycle?.id || cycle.value?.id || localStorage.pccCycleId
+
+  try {
+    if (!pcc.value?.id && cycleId) {
+      await refreshPccByCycleId(cycleId)
+    }
+
+    const pccCycleId = pcc.value?.cycle?.id || cycleId
+    if (
+      pccCycleId &&
+      (!cycle.value?.id ||
+        String(cycle.value.id) !== String(pccCycleId) ||
+        !Array.isArray(cycle.value?.modules) ||
+        cycle.value.modulesFilteredByDepartment)
+    ) {
+      await fetchCycle(pccCycleId, 'presential', { filterByDepartment: false })
+    }
+  } finally {
+    isLoadingPccContext.value = false
+  }
+}
+
+onMounted(async () => {
+  syncModalFields()
+  await loadPccContext()
 })
+
+watch(
+  () => pcc.value?.id,
+  () => {
+    syncModalFields()
+  }
+)
 
 // ==========================================
 // 🎯 MODALES - Sistema agrupado
@@ -283,8 +320,18 @@ const saveEnvironmentData = async () => {
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>1. Contextualització del cicle i mòduls del PCC</h2>
 
+      <div v-if="isLoadingPccContext" class="alert alert-info d-flex align-items-center gap-2">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Carregant dades del PCC...
+      </div>
+
       <!-- Gestión de módulos del PCC -->
-      <PccModuleManager v-if="pcc.id" :pcc-id="pcc.id" class="mb-4" @help="toggleHelp('modules')" />
+      <PccModuleManager
+        v-else-if="pcc.id"
+        :pcc-id="pcc.id"
+        class="mb-4"
+        @help="toggleHelp('modules')"
+      />
 
       <!-- 1.1 Entorn -->
       <div class="card text-center mb-2">

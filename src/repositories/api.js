@@ -162,7 +162,7 @@ export const api = {
 
   // Cycles
   getCycles: () => instance.get('/cycles'),
-  getCycleById: (id) => instance.get(`/cycles/${id}`),
+  getCycleById: (id, turn) => instance.get(`/cycles/${id}`, { params: turn ? { turn } : {} }),
 
   // ImprovementSyllabus
   getImprovementStatus: () => instance.get('/improvements/status'),

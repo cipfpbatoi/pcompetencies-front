@@ -54,6 +54,14 @@ const getParticipantCourseLevel = (participant) => {
 
 const asArray = (value) => (Array.isArray(value) ? value : [])
 
+const ALLOWED_CYCLE_TURNS = ['presential', 'half-presential']
+const DEFAULT_PCC_TURN = 'presential'
+
+const normalizeCycleTurn = (turn) => {
+  const value = Array.isArray(turn) ? turn[0] : turn
+  return ALLOWED_CYCLE_TURNS.includes(value) ? value : null
+}
+
 const getParticipantsCollectionFromPcc = (pcc) => {
   const collections = [
     asArray(pcc?.intermodularProjectParticipatingModules),
@@ -231,7 +239,9 @@ export const useDataStore = defineStore('data', {
       const index = this.messages.findIndex((item) => item.id === id)
       this.messages.splice(index, 1)
     },
-    filterModules() {
+    filterModules({ filterByDepartment = true } = {}) {
+      if (!filterByDepartment || !Array.isArray(this.cycle.modules)) return
+
       if (this.user.info && !this.user.info.roles.includes('ROLE_ADMIN')) {
         this.cycle.modules = this.cycle.modules.filter((item) =>
           item.departments.some((element) => element.id === this.user.info?.department.id)
@@ -264,16 +274,20 @@ export const useDataStore = defineStore('data', {
           this.syllabus = { id: data.syllabusId }
           try {
             const shouldLoadPccFromSyllabus = !window.location.pathname.startsWith('/pcc')
-            const [respCycle, respMod, respSyl, respPCC] = await Promise.all([
-              api.getCycleById(data.cycleId),
+            const [respMod, respSyl, respPCC] = await Promise.all([
               api.getModuleByCode(data.moduleCode),
               api.getSyllabusById(data.syllabusId),
               shouldLoadPccFromSyllabus ? api.getPCCByCycleId(data.cycleId) : Promise.resolve(null)
             ])
+            const respCycle = await api.getCycleById(data.cycleId)
             if (respPCC) {
               this.pcc = respPCC.data
             }
-            this.cycle = respCycle.data
+            this.cycle = {
+              ...respCycle.data,
+              loadedTurn: null,
+              modulesFilteredByDepartment: true
+            }
             this.filterModules()
             this.module = respMod.data
             this.syllabus = respSyl.data
@@ -285,6 +299,13 @@ export const useDataStore = defineStore('data', {
           try {
             const response = await api.getPCCByCycleId(localStorage.pccCycleId)
             this.pcc = response.data
+            const cycleResponse = await api.getCycleById(localStorage.pccCycleId, DEFAULT_PCC_TURN)
+            this.cycle = {
+              ...cycleResponse.data,
+              loadedTurn: DEFAULT_PCC_TURN,
+              modulesFilteredByDepartment: false
+            }
+            this.filterModules({ filterByDepartment: false })
           } catch (error) {
             if (error.response?.status !== 404) {
               this.addMessage('error', error)
@@ -308,11 +329,16 @@ export const useDataStore = defineStore('data', {
         }
       }
     },
-    async fetchCycle(cycleId) {
+    async fetchCycle(cycleId, turn, { filterByDepartment = true } = {}) {
       try {
-        const response = await api.getCycleById(cycleId)
-        this.cycle = response.data
-        this.filterModules()
+        const normalizedTurn = normalizeCycleTurn(turn)
+        const response = await api.getCycleById(cycleId, normalizedTurn)
+        this.cycle = {
+          ...response.data,
+          loadedTurn: normalizedTurn,
+          modulesFilteredByDepartment: filterByDepartment
+        }
+        this.filterModules({ filterByDepartment })
       } catch (error) {
         this.cycle = {}
         this.addMessage('error', error)

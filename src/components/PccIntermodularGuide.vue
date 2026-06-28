@@ -25,6 +25,8 @@ const {
 } = store
 
 const isSavingGuide = ref(false)
+const getPccTurn = () => 'presential'
+
 const distributionLoadingByLR = ref({})
 const participantLoadingKey = ref('')
 const participantErrors = ref({ 1: [], 2: [] })
@@ -634,12 +636,16 @@ watch(singleProjectCourseLevel, () => {
 
 onMounted(async () => {
   const pccCycleId = pcc.value?.cycle?.id
+  const pccTurn = getPccTurn()
   const hasCurrentCycleModules =
-    cycle.value?.id === pccCycleId && Array.isArray(cycle.value?.modules) && cycle.value.modules.length > 0
+    cycle.value?.id === pccCycleId &&
+    cycle.value.loadedTurn === pccTurn &&
+    Array.isArray(cycle.value?.modules) &&
+    cycle.value.modules.length > 0
 
   if (!pccCycleId || hasCurrentCycleModules) return
 
-  await fetchCycle(pccCycleId)
+  await fetchCycle(pccCycleId, pccTurn)
 })
 
 const weightTotal = computed(() => {

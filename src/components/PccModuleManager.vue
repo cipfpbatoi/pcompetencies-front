@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '@/stores/data'
 
@@ -15,20 +15,44 @@ const props = defineProps({
 const store = useDataStore()
 const { pcc, cycle } = storeToRefs(store)
 const { addModuleToPCC, removeModuleFromPCC, fetchCycle } = store
+const getPccTurn = () => 'presential'
 
 // Estado local
 const isLoading = ref(false)
+const isLoadingCycle = ref(false)
+const hasTriedLoadingCycle = ref(false)
 const selectedModulesToAdd = ref([])
 const moduleToDelete = ref(null)
 const showAddModal = ref(false)
 const showDeleteModal = ref(false)
 
-// Cargar ciclo si no está disponible
-onMounted(async () => {
-  if (pcc.value?.cycle?.id && (!cycle.value?.id || cycle.value.id !== pcc.value.cycle.id)) {
-    await fetchCycle(pcc.value.cycle.id)
+// Cargar ciclo si no está disponible, incluso cuando el PCC llega después del montaje
+const ensureCycleLoaded = async () => {
+  const pccTurn = getPccTurn()
+  const shouldFetchCycle =
+    pcc.value?.cycle?.id &&
+    (!cycle.value?.id ||
+      cycle.value.id !== pcc.value.cycle.id ||
+      cycle.value.loadedTurn !== pccTurn ||
+      !Array.isArray(cycle.value?.modules) ||
+      cycle.value.modulesFilteredByDepartment)
+
+  if (!shouldFetchCycle) {
+    hasTriedLoadingCycle.value = true
   }
-})
+
+  if (shouldFetchCycle && !isLoadingCycle.value) {
+    isLoadingCycle.value = true
+    try {
+      await fetchCycle(pcc.value.cycle.id, pccTurn, { filterByDepartment: false })
+    } finally {
+      hasTriedLoadingCycle.value = true
+      isLoadingCycle.value = false
+    }
+  }
+}
+
+watch(() => pcc.value?.cycle?.id, ensureCycleLoaded, { immediate: true })
 
 // Computeds
 const currentModules = computed(() => {
@@ -97,11 +121,34 @@ const cycleTotalHours = computed(() => {
   return 0
 })
 
-const availableModulesToAdd = computed(() => {
-  if (!cycle.value?.modules) return []
+const getModulesCollection = (source) => {
+  if (Array.isArray(source?.modules)) return source.modules
+  if (Array.isArray(source?.modules?.['hydra:member'])) return source.modules['hydra:member']
+  if (Array.isArray(source?.modules?.member)) return source.modules.member
+  if (Array.isArray(source?.['hydra:member'])) return source['hydra:member']
+  if (Array.isArray(source?.member)) return source.member
+  if (Array.isArray(source)) return source
+  return []
+}
 
-  const currentModuleCodes = currentModules.value.map((m) => m.code)
-  let modules = cycle.value.modules.filter((m) => !currentModuleCodes.includes(m.code))
+const cycleModules = computed(() => {
+  const loadedCycleModules = getModulesCollection(cycle.value)
+  if (loadedCycleModules.length > 0) return loadedCycleModules
+
+  return getModulesCollection(pcc.value?.cycle)
+})
+
+const hasCycleModulesLoaded = computed(() => cycleModules.value.length > 0)
+
+const isCycleModulesPending = computed(
+  () => isLoadingCycle.value || (!hasTriedLoadingCycle.value && !hasCycleModulesLoaded.value)
+)
+
+const availableModulesToAdd = computed(() => {
+  if (!hasCycleModulesLoaded.value) return []
+
+  const currentModuleCodes = currentModules.value.map((m) => String(m.code))
+  let modules = cycleModules.value.filter((m) => !currentModuleCodes.includes(String(m.code)))
 
   if (isLogseCycle.value) {
     modules = modules.filter((m) => (m.courseLevel || 1) === 1)
@@ -323,12 +370,17 @@ const confirmDelete = async () => {
       <button
         @click="openAddModal"
         class="btn btn-primary"
-        :disabled="isLoading || !hasModulesToAdd"
+        :disabled="isLoading || isCycleModulesPending || !hasCycleModulesLoaded || !hasModulesToAdd"
       >
-        <i class="bi bi-plus-circle me-1"></i>
-        Afegir mòduls
+        <span v-if="isCycleModulesPending" class="spinner-border spinner-border-sm me-1"></span>
+        <i v-else class="bi bi-plus-circle me-1"></i>
+        {{ isCycleModulesPending ? 'Carregant mòduls...' : 'Afegir mòduls' }}
       </button>
-      <div v-if="!hasModulesToAdd" class="alert alert-info mb-0 py-2">
+      <div v-if="!isCycleModulesPending && !hasCycleModulesLoaded" class="alert alert-warning mb-0 py-2">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        No s'han pogut carregar els mòduls del cicle.
+      </div>
+      <div v-else-if="!isCycleModulesPending && !hasModulesToAdd" class="alert alert-info mb-0 py-2">
         <i class="bi bi-info-circle me-1"></i>
         Tots els mòduls disponibles del cicle ja estan afegits al PCC.
       </div>

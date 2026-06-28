@@ -328,6 +328,10 @@ const confirmDelete = async () => {
         <i class="bi bi-plus-circle me-1"></i>
         Afegir mòduls
       </button>
+      <div v-if="!hasModulesToAdd" class="alert alert-info mb-0 py-2">
+        <i class="bi bi-info-circle me-1"></i>
+        Tots els mòduls disponibles del cicle ja estan afegits al PCC.
+      </div>
       <div class="text-muted">
         Hores totals mòduls afegits: <strong>{{ addedModulesHours }}</strong> /
         <span :class="{ 'text-danger': cycleHoursFallback }">{{ cycleTotalHours }}</span>

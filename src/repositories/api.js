@@ -269,6 +269,15 @@ export const api = {
       },
       responseType: 'blob'
     }),
+  createMoodleExport: (id) => instance.post(`/syllabus/${id}/moodle-export`, {}),
+  getMoodleExportStatus: (jobId) => instance.get(`/moodle-export/${jobId}`),
+  downloadMoodleExport: (jobId) =>
+    axios.get(`${BASE_URL}moodle-export/${jobId}/download`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.token}`
+      },
+      responseType: 'blob'
+    }),
 
   // Activities
   saveActivity: (lsId, type, data) =>

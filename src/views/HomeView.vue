@@ -17,6 +17,7 @@ import ModalComponent from '../components/ModalComp.vue'
 import ActionButton from '../components/ActionButton.vue'
 import ShowPdfButton from '../components/ShowPdfButton.vue'
 import BtnGetExcel from '../components/BtnGetExcel.vue'
+import BtnGetMoodleExport from '../components/BtnGetMoodleExport.vue'
 import HistorySyllabusList from '../components/HistorySyllabusList.vue'
 import HistoryPccList from '../components/HistoryPccList.vue'
 import { statusClass } from '../utils/utils.js'
@@ -949,6 +950,11 @@ const getTurnLabel = (turn) => {
                     <BtnGetExcel
                       :module-name="getSyllabusByTurn(turn).module.name"
                       :schedules="getSyllabusByTurn(turn).schedules"
+                      :syllabus-id="getSyllabusByTurn(turn).id"
+                      btnClass="compact-action-btn"
+                    />
+                    <BtnGetMoodleExport
+                      :module-name="getSyllabusByTurn(turn).module.name"
                       :syllabus-id="getSyllabusByTurn(turn).id"
                       btnClass="compact-action-btn"
                     />

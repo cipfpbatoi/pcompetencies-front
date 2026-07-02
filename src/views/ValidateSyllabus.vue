@@ -5,14 +5,14 @@ import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
-import ShowPdfButton from '../components/ShowPdfButton.vue'
+import BtnGetMoodleExport from '../components/BtnGetMoodleExport.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 export default {
   components: {
     AppBreadcrumb,
     ModalComponent,
-    ShowPdfButton
+    BtnGetMoodleExport
   },
   computed: {
     ...mapState(useDataStore, ['syllabus'])
@@ -316,6 +316,11 @@ export default {
             Obtindre quadern de Professorat
           </button>
         </div>
+        <BtnGetMoodleExport
+          v-if="isValid"
+          :module-name="syllabus.module.name"
+          :syllabus-id="syllabus.id"
+        />
       </div>
       <br />
     </div>
@@ -337,7 +342,13 @@ export default {
           <select class="form-select form-select-lg mb-3 text-center" required
                   v-model="modalFields.nameGroup">
             <option value="" selected>--- Tria el grup (opcional) ---</option>
-            <option v-for="schedule in this.syllabus.schedules" v-bind:value="schedule.nameGroup" >Grup {{ schedule.nameGroup }}</option>
+            <option
+              v-for="schedule in this.syllabus.schedules"
+              :key="schedule.nameGroup"
+              :value="schedule.nameGroup"
+            >
+              Grup {{ schedule.nameGroup }}
+            </option>
           </select>
         </div>
         <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>

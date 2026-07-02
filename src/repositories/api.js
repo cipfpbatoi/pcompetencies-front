@@ -231,7 +231,7 @@ export const api = {
   // Syllabus status
   syllabusValidate: (id) => instance.post(`${BASE_URL}syllabus/${id}/valida`, {}),
   syllabusSend: (id) => instance.post(`/syllabus/${id}/send`, {}),
-  syllabusToCopy: (code) => instance.get(`/syllabus/module/${code}`),
+  syllabusToCopy: (code) => instance.get(`/syllabus/module/${code}/`),
   createSyllabusFromOther: (id, data) => instance.post(`/syllabus/${id}/copy`, data),
   syllabusApprove: (id) => instance.post(`${BASE_URL}syllabus/${id}/approve`, {}),
   syllabusReject: (id, data) => instance.post(`${BASE_URL}syllabus/${id}/reject`, data),

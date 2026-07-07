@@ -32,7 +32,7 @@ export default {
   computed: {
     buttonText() {
       if (this.isLoading) return 'Exportant a Moodle...'
-      if (this.downloadUrl) return 'Descarregar Moodle'
+      if (this.downloadUrl) return 'Descarregar Aules'
 
       return 'Exportar a Moodle'
     },

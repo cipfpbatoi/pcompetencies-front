@@ -25,11 +25,11 @@ export default {
       pccs: [],
       cycles: [],
       statusOptions: [
-        { value: 'pending', label: 'pendent' },
-        { value: 'sent', label: 'enviat' },
-        { value: 'approved', label: 'aprovat' },
-        { value: 'rejected', label: 'rebutjat' },
-        { value: 'verified', label: 'verificat' }
+        { value: 'pendent', label: 'pendent' },
+        { value: 'enviat', label: 'enviat' },
+        { value: 'aprovat', label: 'aprovat' },
+        { value: 'rebutjat', label: 'rebutjat' },
+        { value: 'verificat', label: 'verificat' }
       ],
       cycleFilter: 0,
       cycleNameFilter: '',

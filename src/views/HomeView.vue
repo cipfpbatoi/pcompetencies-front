@@ -38,6 +38,7 @@ const currentData = ref({})
 const cycleSelect = ref('')
 const moduleSelect = ref('')
 const moduleAutoSelectWarning = ref('')
+const isRestoringRoute = ref(false)
 const errors = ref({})
 
 // ==========================================
@@ -398,6 +399,8 @@ const handleCopySyllabusFromLastYear = async (turn) => {
 watch(
   cycleSelect,
   async (newValue) => {
+    if (isRestoringRoute.value) return
+
     if (newValue) {
       startPCCLoading()
       await loadPCC(newValue)
@@ -408,6 +411,8 @@ watch(
 )
 
 watch(moduleSelect, async (newValue) => {
+  if (isRestoringRoute.value) return
+
   if (newValue && cycleSelect.value) {
     await loadSyllabuses(cycleSelect.value, newValue)
   }
@@ -447,27 +452,32 @@ const restoreStateFromRoute = async () => {
   const routeModuleCode = route.params.moduleCode || route.query.moduleCode
 
   if (routeCycleId || cycle.value.id) {
-    cycleSelect.value = routeCycleId || cycle.value.id
-    startPCCLoading()
-    await loadPCC(cycleSelect.value)
-    await handleCycleChange()
+    isRestoringRoute.value = true
+    try {
+      cycleSelect.value = routeCycleId || cycle.value.id
+      startPCCLoading()
+      await loadPCC(cycleSelect.value)
+      await handleCycleChange()
 
-    const requestedModuleCode = routeModuleCode || module.value.code
+      const requestedModuleCode = routeModuleCode || module.value.code
 
-    if (requestedModuleCode) {
-      const moduleExists = cycle.value.modules?.some(
-        (cycleModule) => String(cycleModule.code) === String(requestedModuleCode)
-      )
+      if (requestedModuleCode) {
+        const moduleExists = cycle.value.modules?.some(
+          (cycleModule) => String(cycleModule.code) === String(requestedModuleCode)
+        )
 
-      if (!moduleExists) {
-        moduleSelect.value = ''
-        moduleAutoSelectWarning.value =
-          "No s'ha pogut seleccionar el mòdul automàticament. Busca'l a través del selector de mòduls."
-        return
+        if (!moduleExists) {
+          moduleSelect.value = ''
+          moduleAutoSelectWarning.value =
+            "No s'ha pogut seleccionar el mòdul automàticament. Busca'l a través del selector de mòduls."
+          return
+        }
+
+        moduleSelect.value = requestedModuleCode
+        await loadSyllabuses(cycleSelect.value, moduleSelect.value)
       }
-
-      moduleSelect.value = requestedModuleCode
-      await loadSyllabuses(cycleSelect.value, moduleSelect.value)
+    } finally {
+      isRestoringRoute.value = false
     }
   }
 }

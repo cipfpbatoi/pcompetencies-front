@@ -22,7 +22,7 @@ const isRejected = computed(() => ['rejected', 'rebutjat'].includes(pcc.value?.s
 const sendButtonLabel = computed(() => {
   if (isSent.value) return 'PCC enviat'
   if (isRejected.value) return 'Reenviar PCC al departament'
-  return 'Enviar PCC al departament'
+  return "Enviar PCC a direcció d'estudis"
 })
 
 const KEY_LABELS = {

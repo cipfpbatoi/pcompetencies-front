@@ -299,6 +299,8 @@ export const api = {
 
   // Methodological Principles
   getMethodologicalPrinciples: () => instance.get(`/methodological-principles`),
+  getAvailableSyllabusMethodologicalPrinciples: (id) =>
+    instance.get(`/syllabus/${id}/available-methodological-principles`),
   getSyllabusMethodologicalPrinciples: (id) =>
     instance.get(`/syllabus/${id}/methodological-principles`),
   saveMethodologicalPrinciples: (id, data) =>

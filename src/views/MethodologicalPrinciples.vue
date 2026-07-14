@@ -6,7 +6,6 @@ import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
-import { makeCheckeableArray, getObjectsIds } from '../utils/utils.js'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const complementaryActivColumns = [
@@ -20,17 +19,6 @@ const complementaryActivColumns = [
     param: 'contentDescriptors'
   }
 ]
-const methodologicalPrinciplesColumns = [
-  {
-    title: 'Nom',
-    value: 'name'
-  },
-  {
-    title: 'Descripció',
-    value: 'description'
-  }
-]
-
 export default {
   components: {
     AppBreadcrumb,
@@ -39,16 +27,13 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, ['syllabus']),
-    methodologicalPrinciplesMandatoryColumns() {
-      return [
-        {
-          title: 'Sel.',
-          func: () => '<input type="checkbox" checked disabled>',
-          param: 'code',
-          html: true
-        },
-        ...methodologicalPrinciplesColumns
-      ]
+    methodologicalPrinciplesSourceLabel() {
+      if (this.methodologicalPrinciplesSource === 'pcc') return 'PCC'
+      if (this.methodologicalPrinciplesSource === 'center') return 'centre'
+      return 'no indicat'
+    },
+    availableOptionalMethodologicalPrinciples() {
+      return this.methodologicalPrinciplesCheckeables.filter((item) => !item.checked)
     }
   },
   mounted() {
@@ -65,8 +50,11 @@ export default {
   data() {
     return {
       complementaryActivColumns,
-      methodologicalPrinciplesColumns,
-      methodologicalPrinciples: [],
+      methodologicalPrinciples: {
+        mandatory: [],
+        available: []
+      },
+      methodologicalPrinciplesSource: '',
       syllabusMethodologicalPrinciples: [],
       methodologicalPrinciplesCheckeables: [],
       // Modal generic
@@ -88,23 +76,104 @@ export default {
     ...mapActions(useDataStore, ['addMessage']),
     async loadData() {
       try {
-        const [respMP, respSMP] = await Promise.all([
-          api.getMethodologicalPrinciples(),
-          api.getSyllabusMethodologicalPrinciples(this.syllabus.id)
-        ])
-        this.methodologicalPrinciples = respMP.data
-        this.syllabusMethodologicalPrinciples = respSMP.data
+        const response = await api.getAvailableSyllabusMethodologicalPrinciples(this.syllabus.id)
+        this.setMethodologicalPrinciplesData(response.data)
       } catch (error) {
         this.addMessage('error', error)
+      }
+    },
+    setMethodologicalPrinciplesData(data) {
+      const available = data?.available || []
+      this.methodologicalPrinciplesSource = data?.source || ''
+      this.methodologicalPrinciples = {
+        mandatory: data?.mandatory || available.filter((item) => item.mandatory),
+        available
+      }
+      this.syllabusMethodologicalPrinciples = available.filter((item) => item.selected)
+      this.setMethodologicalPrinciplesCheckeables()
+    },
+    setMethodologicalPrinciplesCheckeables() {
+      this.methodologicalPrinciplesCheckeables = this.methodologicalPrinciples.available.map((item) => ({
+        ...item,
+        checked: item.selected
+      }))
+    },
+    applySelectedMethodologicalPrinciples(principleIds) {
+      const selectedIds = new Set(principleIds)
+      this.methodologicalPrinciples.available = this.methodologicalPrinciples.available.map((item) => ({
+        ...item,
+        selected: selectedIds.has(item.id)
+      }))
+      this.syllabusMethodologicalPrinciples = this.methodologicalPrinciples.available.filter(
+        (item) => item.selected
+      )
+      this.setMethodologicalPrinciplesCheckeables()
+    },
+    isMandatoryPrinciple(principleId) {
+      return this.methodologicalPrinciples.mandatory.some((item) => item.id === principleId)
+    },
+    getSelectedPrincipleIds() {
+      return this.methodologicalPrinciples.available
+        .filter((item) => item.selected)
+        .map((item) => item.id)
+    },
+    async saveSelectedMethodologicalPrinciples(principleIds) {
+      const selectedPrincipleIds = [...new Set(principleIds)]
+      await api.saveMethodologicalPrinciples(this.syllabus.id, {
+        methodologicalPrinciples: selectedPrincipleIds
+      })
+      const response = await api.getAvailableSyllabusMethodologicalPrinciples(this.syllabus.id)
+      this.setMethodologicalPrinciplesData(response.data)
+      this.applySelectedMethodologicalPrinciples(selectedPrincipleIds)
+    },
+    async addMethodologicalPrinciple(principle) {
+      try {
+        await this.saveSelectedMethodologicalPrinciples([
+          ...this.getSelectedPrincipleIds(),
+          principle.id
+        ])
+        this.addMessage('success', 'Principi metodològic afegit')
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    async deleteMethodologicalPrinciple(principle) {
+      if (!confirm(`Vas a llevar el principi metodològic "${principle.name}" de la programació`)) {
+        return
+      }
+      try {
+        await this.saveSelectedMethodologicalPrinciples(
+          this.getSelectedPrincipleIds().filter((id) => id !== principle.id)
+        )
+        this.addMessage('success', 'Principi metodològic eliminat')
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    getPrincipleCategory(principle) {
+      const translations = {
+        principle: 'Principi Metodològic',
+        focus: 'Enfocament',
+        methodology: 'Metodología'
+      }
+      return translations[principle?.category] || principle?.category || ''
+    },
+    getCategoryBadgeClass(category) {
+      switch (category) {
+        case 'principle':
+          return 'bg-primary'
+        case 'focus':
+          return 'bg-warning text-dark'
+        case 'methodology':
+          return 'bg-success'
+        default:
+          return 'bg-info text-dark'
       }
     },
     showModal(type, data) {
       switch (type) {
         case 'principles':
-          this.methodologicalPrinciplesCheckeables = makeCheckeableArray(
-            this.methodologicalPrinciples.nonMandatory,
-            this.syllabusMethodologicalPrinciples
-          )
+          this.setMethodologicalPrinciplesCheckeables()
           this.PrinciplesModal.show()
           break
         case 'materials':
@@ -193,21 +262,6 @@ export default {
         this.addMessage('error', error)
       }
     },
-    async savePrinciples() {
-      const principlesChecked = this.methodologicalPrinciplesCheckeables.filter(
-        (item) => item.checked
-      )
-      try {
-        const response = await api.saveMethodologicalPrinciples(this.syllabus.id, {
-          methodologicalPrinciples: getObjectsIds(principlesChecked)
-        })
-        this.syllabusMethodologicalPrinciples = response.data
-        this.PrinciplesModal.hide()
-        this.addMessage('success', 'Principis metodològics guardats')
-      } catch (error) {
-        this.addMessage('error', error)
-      }
-    },
     async saveMaterials() {
       try {
         const response = await api.saveSyllabusMaterials(this.syllabus.id, {
@@ -229,25 +283,60 @@ export default {
 <template>
   <main class="border shadow view-main">
     <ModalComponent
-      @save="savePrinciples"
-      title="Modificar els principis metodològics"
+      title="Afegir principis metodològics"
       modalId="methodologicalPrinciples"
+      :save-button="false"
     >
-      <h4>Principis metodològics obligatoris</h4>
-      <ShowTable
-        :data="methodologicalPrinciples.mandatory"
-        :columns="methodologicalPrinciplesMandatoryColumns"
-        :actions="false"
-      >
-      </ShowTable>
-      <h4>Altres principis metodològics que vaig a utilitzar</h4>
-      <ShowTable
-        :checkeable="true"
-        :data="methodologicalPrinciplesCheckeables"
-        :columns="methodologicalPrinciplesColumns"
-        :actions="false"
-      >
-      </ShowTable>
+      <h4>Principis metodològics disponibles per afegir</h4>
+      <p class="text-muted">
+        Usa el botó <strong>+</strong> per afegir una metodologia a la programació. Les obligatòries
+        apareixen marcades amb el seu origen.
+      </p>
+      <div class="card mb-2">
+        <div class="card-header fw-bold text-center">Disponibles per afegir</div>
+        <ul class="list-group list-group-flush principles-list">
+          <li
+            v-if="availableOptionalMethodologicalPrinciples.length === 0"
+            class="list-group-item text-muted"
+          >
+            No hi ha metodologies disponibles per afegir
+          </li>
+          <li
+            v-for="principle in availableOptionalMethodologicalPrinciples"
+            :key="principle.id"
+            class="list-group-item"
+          >
+            <div class="principle-row d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 principle-title-row">
+                  <strong class="principle-title">{{ principle.name }}</strong>
+                  <span
+                    v-if="getPrincipleCategory(principle)"
+                    class="badge"
+                    :class="getCategoryBadgeClass(principle.category)"
+                  >
+                    {{ getPrincipleCategory(principle) }}
+                  </span>
+                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                    Obligatòria: {{ methodologicalPrinciplesSourceLabel }}
+                  </span>
+                </div>
+                <div v-if="principle.description" class="text-muted small mt-1">
+                  {{ principle.description }}
+                </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                title="Afegir a la selecció"
+                @click="addMethodologicalPrinciple(principle)"
+              >
+                <i class="bi bi-plus-circle"></i>
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </ModalComponent>
     <ModalComponent
       @save="saveMaterials"
@@ -372,14 +461,48 @@ export default {
         </button>
       </div>
       <h3>9.b Principis metodològics</h3>
-      <div class="border border-black">
-        <show-table
-          :data="syllabusMethodologicalPrinciples"
-          :columns="methodologicalPrinciplesColumns"
-          :actions="false"
+      <ul class="list-group list-group-flush principles-list border border-black">
+        <li v-if="syllabusMethodologicalPrinciples.length === 0" class="list-group-item text-muted">
+          Encara no hi ha principis metodològics afegits
+        </li>
+        <li
+          v-for="principle in syllabusMethodologicalPrinciples"
+          :key="principle.id"
+          class="list-group-item"
         >
-        </show-table>
-      </div>
+          <div class="principle-row d-flex justify-content-between align-items-start">
+            <div class="d-flex align-items-start flex-grow-1 principle-row">
+              <i class="bi bi-check-circle-fill text-success mt-1" title="Afegit"></i>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 principle-title-row">
+                  <strong class="principle-title">{{ principle.name }}</strong>
+                  <span
+                    v-if="getPrincipleCategory(principle)"
+                    class="badge"
+                    :class="getCategoryBadgeClass(principle.category)"
+                  >
+                    {{ getPrincipleCategory(principle) }}
+                  </span>
+                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                    Obligatòria: {{ methodologicalPrinciplesSourceLabel }}
+                  </span>
+                </div>
+                <div v-if="principle.description" class="text-muted small mt-1">
+                  {{ principle.description }}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              title="Llevar de la programació"
+              @click="deleteMethodologicalPrinciple(principle)"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </li>
+      </ul>
       <div class="m-2 text-center">
         <button
           type="button"
@@ -387,7 +510,7 @@ export default {
           title="Afegir activitat"
           @click="showModal('principles')"
         >
-          Modificar els criteris metodològics
+          Afegir criteris metodològics
         </button>
       </div>
       <br /><br />
@@ -425,3 +548,17 @@ export default {
     </div>
   </main>
 </template>
+
+<style scoped>
+.principle-row {
+  gap: 0.75rem;
+}
+
+.principle-title-row {
+  flex-wrap: wrap;
+}
+
+.principle-title {
+  word-break: break-word;
+}
+</style>

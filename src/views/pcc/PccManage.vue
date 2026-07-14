@@ -301,7 +301,7 @@ export default {
                       pcc.status !== 'verificat'
                     "
                     type="button"
-                    class="btn btn-primary btn-sm"
+                    class="btn btn-success btn-sm"
                     title="Aprovar"
                   >
                     <i class="bi bi-check2-circle"></i></button
@@ -324,7 +324,7 @@ export default {
                     @click="verify(pcc)"
                     :hidden="pcc.status !== 'sent' && pcc.status !== 'enviat'"
                     type="button"
-                    class="btn btn-success btn-sm"
+                    class="btn btn-primary btn-sm"
                     title="Marcar com a Verificat"
                   >
                     <i class="bi bi-shield-check"></i></button

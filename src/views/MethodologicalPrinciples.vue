@@ -496,8 +496,7 @@ export default {
       </div>
       </template>
       <template v-if="isMethodologicalPrinciplesStep">
-        <h2>5. Principis metodològics</h2>
-        <h3>5.a Principis metodològics</h3>
+        <h2>5. Principis, Metodologíes i Enfocaments </h2>
         <div v-if="mandatoryPrinciplesPending.length" class="alert alert-warning" role="alert">
           <strong>Falten principis metodològics obligatoris per afegir.</strong>
           <div class="mt-2">
@@ -561,7 +560,7 @@ export default {
           title="Afegir activitat"
           @click="showModal('principles')"
         >
-          Afegir criteris metodològics
+          Afegir
         </button>
       </div>
       </template>

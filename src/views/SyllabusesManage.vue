@@ -14,9 +14,14 @@ export default {
   async mounted() {
     this.getSyllabuses()
     try {
-      const [respCycles, respModules] = await Promise.all([api.getCycles(), api.getModules()])
+      const [respCycles, respModules, respCurrentData] = await Promise.all([
+        api.getCycles(),
+        api.getModules(),
+        api.getCurrentData()
+      ])
       this.cycles = respCycles.data
       this.modules = respModules.data
+      this.currentData = respCurrentData.data
     } catch (error) {
       this.addMessage('error', error)
     }
@@ -28,6 +33,7 @@ export default {
       syllabuses: [],
       cycles: [],
       modules: [],
+      currentData: {},
       status: ['enviada', 'pendent', 'aprovada', 'rebutjada'],
       checkeable: false,
       cycleFilter: 0,
@@ -60,6 +66,9 @@ export default {
     },
     statusClass(status) {
       return statusClass(status)
+    },
+    isCurrentCourseSyllabus(syllabus) {
+      return syllabus.courseYear === this.currentData.currentSchoolYear?.course
     },
     clear() {
       this.cycleFilter = 0
@@ -269,15 +278,18 @@ export default {
             <td v-else>No establit</td>
             <td>{{ syl.courseYear }}</td>
             <td class="align-middle">
-                <span :class="statusClass(syl.status)">{{
+                <span v-if="isCurrentCourseSyllabus(syl)" :class="statusClass(syl.status)">{{
                     syl.status
                   }}</span>
+                <span v-else class="badge bg-danger">
+                  No actual
+                </span>
             </td>
             <td>
               <div class="btn-group">
                 <button
                   @click="accept(syl)"
-                  :hidden="syl.status != 'enviada'"
+                  :hidden="syl.status != 'enviada' || !isCurrentCourseSyllabus(syl)"
                   type="button"
                   class="btn btn-success btn-sm"
                   title="Aprovar"
@@ -286,7 +298,7 @@ export default {
                 >&nbsp;
                 <button
                   @click="showRejectModal(syl)"
-                  :hidden="syl.status !== 'enviada'"
+                  :hidden="syl.status !== 'enviada' || !isCurrentCourseSyllabus(syl)"
                   type="button"
                   class="btn btn-danger btn-sm"
                   title="Rebutjar"
@@ -295,7 +307,7 @@ export default {
                 >&nbsp;
                 <button
                   @click="setPending(syl)"
-                  :hidden="syl.status === 'pendent'"
+                  :hidden="syl.status === 'pendent' || !isCurrentCourseSyllabus(syl)"
                   type="button"
                   class="btn btn-warning btn-sm"
                   title="Posar Pendent"

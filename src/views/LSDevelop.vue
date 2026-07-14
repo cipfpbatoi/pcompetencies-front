@@ -460,7 +460,7 @@ export default {
         >
           <h5>Selecciona les metodologies</h5>
           <div class="alert alert-info" role="alert">
-            Només es poden seleccionar metodologies assignades prèviament a la programació.
+            Només es poden seleccionar metodologies assignades prèviament a la programació. (Pas 5)
           </div>
           <ShowTable
             :checkeable="true"

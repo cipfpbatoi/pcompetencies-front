@@ -149,6 +149,8 @@ export default {
       const response = await api.getAvailableSyllabusMethodologicalPrinciples(this.syllabus.id)
       this.setMethodologicalPrinciplesData(response.data)
       this.applySelectedMethodologicalPrinciples(selectedPrincipleIds)
+      const learningSituationsResponse = await api.getLearningSituationsBySyllabusId(this.syllabus.id)
+      this.syllabus.learningSituations = learningSituationsResponse.data
     },
     async addMethodologicalPrinciple(principle) {
       try {

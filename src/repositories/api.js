@@ -180,6 +180,8 @@ export const api = {
     instance.post(`/syllabus/learningSituation/${lsId}/competences`, data),
   saveLearningSituationPriorKnowledge: (lsId, data) =>
     instance.post(`/syllabus/learningSituation/${lsId}/priorKnowledge`, data),
+  saveLearningSituationMethodologies: (lsId, data) =>
+    instance.post(`/syllabus/learningSituation/${lsId}/methodologies`, data),
   createLearningSituation: (id, data) => instance.post(`/syllabus/${id}/learningSituation`, data),
   getLearningSituationsBySyllabusId: (id) => instance.get(`/syllabus/${id}/learningSituations`),
   saveLearningSituationContents: (lsId, data) =>

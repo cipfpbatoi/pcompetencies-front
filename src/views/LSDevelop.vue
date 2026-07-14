@@ -48,6 +48,17 @@ const moduleCycleCompetencesColumns = [
   }
 ]
 
+const methodologiesColumns = [
+  {
+    title: 'Nom',
+    value: 'name'
+  },
+  {
+    title: 'Descripció',
+    value: 'description'
+  }
+]
+
 export default {
   props: ['lsId'],
   components: {
@@ -103,7 +114,9 @@ export default {
       errors: {},
       modal: '',
       moduleCycleCompetencesColumns,
+      methodologiesColumns,
       competencesCheckeables: [],
+      methodologiesCheckeables: [],
       // Modal generic
       GenericModal: null,
       modalId: '',
@@ -117,17 +130,20 @@ export default {
       assessmentToolsSource: '',
       availableAssessmentTools: [],
       mandatoryAssessmentTools: [],
+      availableMethodologies: [],
       transversalObjectivesColumns
     }
   },
   async mounted() {
     await this.fetchLearningSituation()
     await this.loadAssessmentToolsStatus()
+    await this.loadAvailableMethodologies()
     this.lsLoaded = true
   },
   watch: {
     'syllabus.id'() {
       this.loadAssessmentToolsStatus()
+      this.loadAvailableMethodologies()
     }
   },
   methods: {
@@ -147,12 +163,26 @@ export default {
       }
     },
     async loadAssessmentToolsStatus() {
+      if (!this.syllabus.id) return
+
       try {
         const response = await api.getAvailableSyllabusAssessmentTools(this.syllabus.id)
         this.assessmentToolsSource = response.data?.source || ''
         this.availableAssessmentTools = response.data?.available || []
         this.mandatoryAssessmentTools =
           response.data?.mandatory || this.availableAssessmentTools.filter((tool) => tool.mandatory)
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    async loadAvailableMethodologies() {
+      if (!this.syllabus.id) return
+
+      try {
+        const response = await api.getAvailableSyllabusMethodologicalPrinciples(this.syllabus.id)
+        this.availableMethodologies = (response.data?.available || []).filter(
+          (item) => item.selected && item.category === 'methodology'
+        )
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -191,6 +221,16 @@ export default {
           this.GenericModal = new Modal(document.getElementById(this.modalId))
           this.GenericModal.show()
           break
+        case 'methodologies':
+          this.methodologiesCheckeables = makeCheckeableArray(
+            this.availableMethodologies,
+            this.learningSituation.methodologicalPrinciples
+          )
+          this.errors.methodologies = ''
+          this.modalTitle = `${this.learningSituation.position}: ${this.learningSituation.title}`
+          this.GenericModal = new Modal(document.getElementById(this.modalId))
+          this.GenericModal.show()
+          break
         case 'priorKnowledge':
           this.modalTitle = `${this.learningSituation.position}: ${this.learningSituation.title}`
           this.modalFields = { priorKnowledge: this.learningSituation.priorKnowledge }
@@ -221,6 +261,26 @@ export default {
         response = await this.saveLearningSituationCompetences(this.learningSituation.id, {
           competencesIds: getObjectsIds(competencesChecked)
         })
+      } else if (this.modal === 'methodologies') {
+        const methodologiesChecked = this.methodologiesCheckeables.filter((item) => item.checked)
+        try {
+          const apiResponse = await api.saveLearningSituationMethodologies(this.learningSituation.id, {
+            methodologicalPrinciplesIds: getObjectsIds(methodologiesChecked)
+          })
+          this.learningSituation = apiResponse.data
+          const lsIndex = this.syllabus.learningSituations?.findIndex(
+            (item) => item.id === this.learningSituation.id
+          )
+          if (lsIndex > -1) {
+            this.syllabus.learningSituations.splice(lsIndex, 1, apiResponse.data)
+          }
+          this.GenericModal.hide()
+          this.addMessage('success', 'Metodologies guardades')
+          return
+        } catch (error) {
+          this.addMessage('error', error)
+          return
+        }
       } else if (this.modal === 'transversals') {
         const transversalObjectivesChecked = this.transversalsCheckeables.filter((item) => item.checked)
         response = await this.saveLSTransversalObjectives(this.learningSituation.id, {
@@ -257,15 +317,15 @@ export default {
     <div class="p-lg-4 p-1" :class="{ 'd-none': !this.lsLoaded }">
       <h3>S.A. {{ learningSituation.position }}: {{ learningSituation.title }} - <span class= "fw-bold text-primary"> ({{learningSituation.hours}} Hores)</span></h3>
       <div>
-        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.1 Objectius</h4>
+        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.1 Objectius</h4>
         <div class="bordered border-primary-subtle mt-0">
-          <h5 class="fw-bold p-2">5.1.1 Objectius generals</h5>
+          <h5 class="fw-bold p-2">6.1.1 Objectius generals</h5>
           <show-table
             :data="learningSituation.generalObjectives"
             :columns="generaObjectivesColumns"
           >
           </show-table>
-          <h5 class="fw-bold p-2">5.1.2 Objectius didàctics</h5>
+          <h5 class="fw-bold p-2">6.1.2 Objectius didàctics</h5>
           <p v-html="learningSituation.didacticObjectives"></p>
         </div>
         <div class="text-center">
@@ -280,7 +340,7 @@ export default {
       </div>
       <br />
       <div>
-        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.2 Objectius transversals</h4>
+        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.2 Objectius transversals</h4>
         <div class="bordered border-primary-subtle mt-0">
           <ModalComponent
             v-if="lsLoaded"
@@ -318,7 +378,7 @@ export default {
       </div>
       <br />
       <div>
-        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.3 Competències</h4>
+        <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.3 Competències</h4>
         <div class="bordered border-primary-subtle mt-0">
           <ModalComponent
             v-if="lsLoaded"
@@ -361,7 +421,7 @@ export default {
         :unit="learningSituation"
       ></ObjectivesModal>
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.4 Coneixements previs</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.4 Coneixements previs</h4>
       <div class="bordered border-primary-subtle mt-0">
         <ModalComponent
           v-if="lsLoaded"
@@ -390,7 +450,51 @@ export default {
       </div>
       <br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.5 Continguts</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.5 Metodologies Específiques</h4>
+      <div class="bordered border-primary-subtle mt-0">
+        <ModalComponent
+          v-if="lsLoaded"
+          @save="saveData"
+          modalId="methodologiesModal"
+          :title="modalTitle"
+        >
+          <h5>Selecciona les metodologies</h5>
+          <div class="alert alert-info" role="alert">
+            Només es poden seleccionar metodologies assignades prèviament a la programació.
+          </div>
+          <ShowTable
+            :checkeable="true"
+            :actions="false"
+            :data="methodologiesCheckeables"
+            :columns="methodologiesColumns"
+          >
+          </ShowTable>
+          <p v-if="errors.methodologies" class="error">{{ errors.methodologies }}</p>
+        </ModalComponent>
+        <div v-if="!learningSituation.methodologicalPrinciples?.length" class="alert alert-warning">
+          Aquesta situació d'aprenentatge no té cap metodologia assignada.
+        </div>
+        <ShowTable
+          v-else
+          class="bordered"
+          :actions="false"
+          :data="learningSituation.methodologicalPrinciples"
+          :columns="methodologiesColumns"
+        >
+        </ShowTable>
+      </div>
+      <div class="text-center">
+        <button
+          @click="showModal('methodologies')"
+          class="btn btn-success"
+          title="Establir metodologies"
+        >
+          Establir les metodologies
+        </button>
+      </div>
+      <br />
+
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.6 Continguts</h4>
       <div class="bordered border-primary-subtle mt-0">
         <LsDevContents
           :learningSituation="learningSituation"
@@ -398,7 +502,7 @@ export default {
         ></LsDevContents>
       </div>
       <br />
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.6 Activitats Qualificables</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.7 Activitats Qualificables</h4>
       <div v-if="pendingMandatoryAssessmentTools.length" class="alert alert-warning" role="alert">
         <strong>Falten instruments d'avaluació obligatoris per utilitzar.</strong>
         <div>
@@ -425,7 +529,7 @@ export default {
       <br /><br />
 
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">
-        5.7 Activitats Formatives (NO qualificables)
+        6.8 Activitats Formatives (NO qualificables)
       </h4>
       <LsDevActivity
       v-if="lsLoaded"
@@ -435,7 +539,7 @@ export default {
       ></LsDevActivity>
       <br /><br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.8 Activitats de Repàs</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.9 Activitats de Repàs</h4>
       <LsDevActivity
       v-if="lsLoaded"
         type="reinforcement"
@@ -444,7 +548,7 @@ export default {
       ></LsDevActivity>
       <br /><br />
 
-      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.9 Activitats d'Aprofundiment</h4>
+      <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">6.10 Activitats d'Aprofundiment</h4>
       <LsDevActivity
       v-if="lsLoaded"
         type="deepening"

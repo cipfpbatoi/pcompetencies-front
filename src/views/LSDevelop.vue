@@ -60,6 +60,17 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module', 'transversalObjectives']),
+    assessmentToolsSourceLabel() {
+      if (this.assessmentToolsSource === 'pcc') return 'PCC'
+      if (this.assessmentToolsSource === 'center') return 'centre'
+      return 'no indicat'
+    },
+    pendingMandatoryAssessmentTools() {
+      const selectedIds = this.availableAssessmentTools
+        .filter((tool) => tool.selected)
+        .map((tool) => tool.id)
+      return this.mandatoryAssessmentTools.filter((tool) => !selectedIds.includes(tool.id))
+    },
     done() {
       return (
         this.learningSituation.generalObjectives?.length &&
@@ -103,12 +114,21 @@ export default {
       TransversalObjectivesModal: null,
       transversalsCheckeables: [],
       generaObjectivesColumns,
+      assessmentToolsSource: '',
+      availableAssessmentTools: [],
+      mandatoryAssessmentTools: [],
       transversalObjectivesColumns
     }
   },
   async mounted() {
     await this.fetchLearningSituation()
+    await this.loadAssessmentToolsStatus()
     this.lsLoaded = true
+  },
+  watch: {
+    'syllabus.id'() {
+      this.loadAssessmentToolsStatus()
+    }
   },
   methods: {
     ...mapActions(useDataStore, [
@@ -125,6 +145,21 @@ export default {
       } catch (error) {
         this.addMessage('error', error)
       }
+    },
+    async loadAssessmentToolsStatus() {
+      try {
+        const response = await api.getAvailableSyllabusAssessmentTools(this.syllabus.id)
+        this.assessmentToolsSource = response.data?.source || ''
+        this.availableAssessmentTools = response.data?.available || []
+        this.mandatoryAssessmentTools =
+          response.data?.mandatory || this.availableAssessmentTools.filter((tool) => tool.mandatory)
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    },
+    async refreshLearningSituationAndAssessmentTools() {
+      await this.fetchLearningSituation()
+      await this.loadAssessmentToolsStatus()
     },
 
     showModal(modal) {
@@ -214,7 +249,7 @@ export default {
 </script>
 <template>
   <main class="border shadow view-main">
-    <app-breadcrumb :actualStep="5" :done="true" :back="true"></app-breadcrumb>
+    <app-breadcrumb :actualStep="6" :done="true" :back="true"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="text-center mt-5" :class="{ 'd-none': this.lsLoaded }">
       <span class="spinner-border text-primary"></span>
@@ -364,10 +399,28 @@ export default {
       </div>
       <br />
       <h4 class="bg-primary-subtle p-2 mb-0 fw-bold">5.6 Activitats Qualificables</h4>
+      <div v-if="pendingMandatoryAssessmentTools.length" class="alert alert-warning" role="alert">
+        <strong>Falten instruments d'avaluació obligatoris per utilitzar.</strong>
+        <div>
+          Cada instrument obligatori ha d'aparéixer almenys en una activitat qualificable d'alguna
+          S.A.
+        </div>
+        <div class="mt-2">
+          <span>Obligatoris pendents segons {{ assessmentToolsSourceLabel }}:</span>
+          <ul class="mb-0">
+            <li v-for="tool in pendingMandatoryAssessmentTools" :key="tool.id">
+              {{ tool.name }}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div v-else class="alert alert-success" role="alert">
+        Tots els instruments d'avaluació obligatoris estan utilitzats en activitats qualificables.
+      </div>
       <LsDevActivity v-if="lsLoaded"
         type="marking"
         :learningSituation="learningSituation"
-        @saved="fetchLearningSituation"
+        @saved="refreshLearningSituationAndAssessmentTools"
       ></LsDevActivity>
       <br /><br />
 

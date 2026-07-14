@@ -129,6 +129,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/activities-materials',
+      name: 'ActivitiesMaterials',
+      component: MethodologicalPrinciples,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/validate',
       name: 'ValidateSyllabus',
       component: ValidateSyllabus,

@@ -203,6 +203,10 @@ export default {
         this.addMessage('error', "No s'ha pogut carregar el PCC")
         return
       }
+      if (['pending', 'pendent'].includes(refreshed.status || pcc.status)) {
+        this.$router.push({ name: 'contextPCC' })
+        return
+      }
       this.$router.push({ name: 'selectSyllabus', query: { cycleId } })
     }
   }

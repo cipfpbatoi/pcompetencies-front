@@ -448,14 +448,14 @@ export default {
       </div>
     </ModalComponent>
 
-    <app-breadcrumb :actualStep="8" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="9" :done="done"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
       {{ syllabus.module?.name }} ({{
         syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 mt-2">
-      <h2>8. Temporalització</h2>
+      <h2>9. Temporalització</h2>
       <div class="container">
         <div
           v-for="(schedule, scheduleIndex) in syllabus.schedules"

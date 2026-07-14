@@ -160,14 +160,14 @@ export default {
 
 <template>
   <main class="border shadow view-main">
-    <app-breadcrumb :actualStep="10" :done="false"></app-breadcrumb>
+    <app-breadcrumb :actualStep="11" :done="false"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
       {{ syllabus.module?.name }} ({{
         syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>10.1. Altres consideracions</h2>
+      <h2>11.1. Altres consideracions</h2>
       <div class="border p-2 bg-secondary-subtle border-dark card" style="min-height: 100px">
         <p class="text-start" v-html="syllabus.othersConsiderations"></p>
         <cite v-if="!syllabus.othersConsiderations">No s'han especificat altres consideracions</cite>
@@ -220,6 +220,13 @@ export default {
             <li v-if="errors.improvementsProposals">{{ errors.improvementsProposals }}</li>
             <li v-if="errors.didacticResources">{{ errors.didacticResources }}</li>
             <li v-if="errors.methodologicalPrinciples">{{ errors.methodologicalPrinciples }}</li>
+            <li v-if="errors.curricularProject">{{ errors.curricularProject }}</li>
+            <li v-if="errors.curricularProjectMethodologicalPrinciples">
+              {{ errors.curricularProjectMethodologicalPrinciples }}
+            </li>
+            <li v-if="errors.curricularProjectAssessmentTools">
+              {{ errors.curricularProjectAssessmentTools }}
+            </li>
             <li v-if="errors.technologicalModuleProcess">
               {{ errors.technologicalModuleProcess }}
             </li>

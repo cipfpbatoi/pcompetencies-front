@@ -42,6 +42,11 @@ export default {
         {
           title: 'Comprova els RA',
           path: 'LSTest',
+          nextPath: 'MethodologicalPrinciples'
+        },
+        {
+          title: 'Principis metodològics',
+          path: 'MethodologicalPrinciples',
           nextPath: 'LSsDevelopment'
         },
         {
@@ -62,11 +67,11 @@ export default {
         {
           title: 'Temporalització',
           path: 'SyllabusSchedule',
-          nextPath: 'MethodologicalPrinciples'
+          nextPath: 'ActivitiesMaterials'
         },
         {
-          title: 'Act. compl., Metodologia i Materials',
-          path: 'MethodologicalPrinciples',
+          title: 'Act. compl. i Materials',
+          path: 'ActivitiesMaterials',
           nextPath: 'ValidateSyllabus'
         },
         {

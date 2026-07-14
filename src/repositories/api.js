@@ -219,6 +219,8 @@ export const api = {
   createSyllabusCourseYear: (id) => instance.post(`/syllabus/${id}/currentCourseYear`, {}),
   createSyllabusGroupContext: (id, data) => instance.post(`/syllabus/${id}/groupContext`, data),
   getSyllabusMarkingActivities: (id) => instance.get(`/syllabus/${id}/marking`),
+  getAvailableSyllabusAssessmentTools: (id) =>
+    instance.get(`/syllabus/${id}/available-assessment-tools`),
   saveSyllabusMarkingActivities: (id, data) => instance.post(`/syllabus/${id}/marking`, data),
   getSyllabusInstructionalUnits: (id) => instance.get(`/syllabus/${id}/instructionalUnit`),
   saveSyllabusInstructionalUnit: (id, data) =>

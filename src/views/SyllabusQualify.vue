@@ -224,14 +224,14 @@ export default {
         <p v-if="errors.fundamental" class="error">{{ errors.fundamental }}</p>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="6" :done="done"></app-breadcrumb>
+    <app-breadcrumb :actualStep="7" :done="done"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
       {{ syllabus.module?.name }} ({{
         syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>6. Qualificació <span class="text-secondary small">(Avaluació Contínua)</span></h2>
+      <h2>7. Qualificació <span class="text-secondary small">(Avaluació Contínua)</span></h2>
       <div class="bg-danger m-1"></div>
       <div class="text-center mt-5" :class="{ 'd-none': !this.loading }">
         <span class="spinner-border text-primary"></span>

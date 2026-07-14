@@ -34,18 +34,32 @@ export default {
     },
     availableOptionalMethodologicalPrinciples() {
       return this.methodologicalPrinciplesCheckeables.filter((item) => !item.checked)
+    },
+    mandatoryPrinciplesPending() {
+      const selectedIds = this.syllabusMethodologicalPrinciples.map((item) => item.id)
+      return this.methodologicalPrinciples.mandatory.filter(
+        (principle) => !selectedIds.includes(principle.id)
+      )
+    },
+    isMethodologicalPrinciplesStep() {
+      return this.$route.name === 'MethodologicalPrinciples'
+    },
+    isActivitiesMaterialsStep() {
+      return this.$route.name === 'ActivitiesMaterials'
+    },
+    breadcrumbStep() {
+      return this.isMethodologicalPrinciplesStep ? 5 : 10
     }
   },
   mounted() {
     if (this.syllabus.id) {
       this.loadData()
     }
-    this.ActivitiesModal = new Modal(document.getElementById('complementaryActivitiesModal'))
-    this.PrinciplesModal = new Modal(document.getElementById('methodologicalPrinciples'))
-    this.MaterialsModal = new Modal(document.getElementById('materialsModal'))
+    this.initializeModals()
   },
   watch: {
-    'syllabus.id': 'loadData'
+    'syllabus.id': 'loadData',
+    '$route.name': 'initializeModals'
   },
   data() {
     return {
@@ -74,6 +88,16 @@ export default {
   },
   methods: {
     ...mapActions(useDataStore, ['addMessage']),
+    initializeModals() {
+      this.$nextTick(() => {
+        const activitiesModal = document.getElementById('complementaryActivitiesModal')
+        const principlesModal = document.getElementById('methodologicalPrinciples')
+        const materialsModal = document.getElementById('materialsModal')
+        this.ActivitiesModal = activitiesModal ? new Modal(activitiesModal) : null
+        this.PrinciplesModal = principlesModal ? new Modal(principlesModal) : null
+        this.MaterialsModal = materialsModal ? new Modal(materialsModal) : null
+      })
+    },
     async loadData() {
       try {
         const response = await api.getAvailableSyllabusMethodologicalPrinciples(this.syllabus.id)
@@ -283,6 +307,7 @@ export default {
 <template>
   <main class="border shadow view-main">
     <ModalComponent
+      v-if="isMethodologicalPrinciplesStep"
       title="Afegir principis metodològics"
       modalId="methodologicalPrinciples"
       :save-button="false"
@@ -339,6 +364,7 @@ export default {
       </div>
     </ModalComponent>
     <ModalComponent
+      v-if="isActivitiesMaterialsStep"
       @save="saveMaterials"
       title=" Materials i recursos didàctics"
       modalId="materialsModal"
@@ -381,7 +407,12 @@ export default {
         </div>
       </div>
     </ModalComponent>
-    <ModalComponent @save="saveContents" :title="modalTitle" modalId="complementaryActivitiesModal">
+    <ModalComponent
+      v-if="isActivitiesMaterialsStep"
+      @save="saveContents"
+      :title="modalTitle"
+      modalId="complementaryActivitiesModal"
+    >
       <div class="row p-2">
         <div class="input-group cols-8 p-2">
           <label class="form-label p-2 fw-bold col-sm-2 col-lg-1">Nom</label>
@@ -420,15 +451,16 @@ export default {
         <p v-if="errors.contentDescriptors" class="error">{{ errors.contentDescriptors }}</p>
       </div>
     </ModalComponent>
-    <app-breadcrumb :actualStep="9" :done="true"></app-breadcrumb>
+    <app-breadcrumb :actualStep="breadcrumbStep" :done="true"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">
       {{ syllabus.module?.name }} ({{
         syllabus.turn === 'presential' ? 'Presencial' : 'Semi-presencial'
       }}) - {{ syllabus.courseYear }}
     </div>
     <div class="p-lg-4 p-1 p-sm-0">
-      <h2>9. Activitats complementàries, Principis metodològics i Recursos didàctics</h2>
-      <h3>9.a Activitats complementàries</h3>
+      <template v-if="isActivitiesMaterialsStep">
+      <h2>10. Activitats complementàries i Recursos didàctics</h2>
+      <h3>10.a Activitats complementàries</h3>
       <div class="alert alert-primary text-dark" role="alert">
         <span class="bi bi-eye-fill"></span> Són les organitzades en horari escolar y que es
         diferèncien de les lectives pel moment, espais o recursos que utilitzen. <br /><cite
@@ -460,8 +492,25 @@ export default {
           Afegir activitat complementària
         </button>
       </div>
-      <h3>9.b Principis metodològics</h3>
-      <ul class="list-group list-group-flush principles-list border border-black">
+      </template>
+      <template v-if="isMethodologicalPrinciplesStep">
+        <h2>5. Principis metodològics</h2>
+        <h3>5.a Principis metodològics</h3>
+        <div v-if="mandatoryPrinciplesPending.length" class="alert alert-warning" role="alert">
+          <strong>Falten principis metodològics obligatoris per afegir.</strong>
+          <div class="mt-2">
+            <span>Obligatoris pendents segons {{ methodologicalPrinciplesSourceLabel }}:</span>
+            <ul class="mb-0">
+              <li v-for="principle in mandatoryPrinciplesPending" :key="principle.id">
+                {{ principle.name }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div v-else class="alert alert-success" role="alert">
+          Tots els principis metodològics obligatoris estan afegits.
+        </div>
+        <ul class="list-group list-group-flush principles-list border border-black">
         <li v-if="syllabusMethodologicalPrinciples.length === 0" class="list-group-item text-muted">
           Encara no hi ha principis metodològics afegits
         </li>
@@ -513,8 +562,10 @@ export default {
           Afegir criteris metodològics
         </button>
       </div>
+      </template>
+      <template v-if="isActivitiesMaterialsStep">
       <br /><br />
-      <h3>9.c Materials i recursos didàctics</h3>
+      <h3>10.b Materials i recursos didàctics</h3>
       <h4>Materials didàctics</h4>
       <p>
         Són aquells que s'han el·laborat exclusivament amb l'intenció de facilitar els processos
@@ -545,6 +596,7 @@ export default {
         </button>
       </div>
       <br />
+      </template>
     </div>
   </main>
 </template>

@@ -23,6 +23,7 @@ export default {
         'SyllabusQualify',
         'FinalQualify',
         'MethodologicalPrinciples',
+        'ActivitiesMaterials',
         'ValidateSyllabus'
       ]
     },

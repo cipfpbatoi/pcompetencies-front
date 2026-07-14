@@ -47,7 +47,7 @@ export default {
     router() {
       return router
     },
-    ...mapActions(useDataStore, ['addMessage']),
+    ...mapActions(useDataStore, ['addMessage', 'fetchCycle', 'fetchData']),
     async getSyllabuses() {
       try {
         this.loading = true;
@@ -137,6 +137,16 @@ export default {
           this.addMessage('error', error)
         }
       }
+    },
+    async viewSyllabus(syllabus) {
+      if (syllabus.status === 'pendent') {
+        await this.fetchCycle(syllabus.cycle.id, syllabus.turn, { filterByDepartment: false })
+        await this.fetchData(syllabus.module.code, syllabus.id)
+        this.$router.push('/context')
+        return
+      }
+
+      this.$router.push('/select/' + syllabus.cycle.id + '/' + syllabus.module.code)
     },
     async reject() {
       if (this.modalFields.reason.length < 8) {
@@ -293,7 +303,7 @@ export default {
                   <i class="bi bi-unlock-fill"></i></button
                 >&nbsp;
                 <button
-                  @click="this.$router.push('/select/' + syl.cycle.id + '/' + syl.module.code)"
+                  @click="viewSyllabus(syl)"
                   type="button"
                   class="btn btn-info btn-sm"
                   title="Veure"

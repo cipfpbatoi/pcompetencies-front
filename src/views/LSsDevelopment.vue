@@ -1,9 +1,10 @@
 <script>
 import ShowTable from '@/components/ShowTable.vue'
-import { mapState } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 import { useDataStore } from '../stores/data'
 import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import LrTable from '@/components/LrTable.vue'
+import { api } from '@/repositories/api'
 
 const learningSituationsColumns = [
 {
@@ -53,24 +54,79 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module']),
+    assessmentToolsSourceLabel() {
+      if (this.assessmentToolsSource === 'pcc') return 'PCC'
+      if (this.assessmentToolsSource === 'center') return 'centre'
+      return 'no indicat'
+    },
+    pendingMandatoryAssessmentTools() {
+      const selectedIds = this.availableAssessmentTools
+        .filter((tool) => tool.selected)
+        .map((tool) => tool.id)
+      return this.mandatoryAssessmentTools.filter((tool) => !selectedIds.includes(tool.id))
+    }
   },
   data() {
     return {
       itemToModify: '',
-      learningSituationsColumns
+      learningSituationsColumns,
+      assessmentToolsSource: '',
+      availableAssessmentTools: [],
+      mandatoryAssessmentTools: []
     }
   },
-  methods: {}
+  mounted() {
+    if (this.syllabus.id) {
+      this.loadAssessmentToolsStatus()
+    }
+  },
+  watch: {
+    'syllabus.id'() {
+      this.loadAssessmentToolsStatus()
+    }
+  },
+  methods: {
+    ...mapActions(useDataStore, ['addMessage']),
+    async loadAssessmentToolsStatus() {
+      try {
+        const response = await api.getAvailableSyllabusAssessmentTools(this.syllabus.id)
+        this.assessmentToolsSource = response.data?.source || ''
+        this.availableAssessmentTools = response.data?.available || []
+        this.mandatoryAssessmentTools =
+          response.data?.mandatory || this.availableAssessmentTools.filter((tool) => tool.mandatory)
+      } catch (error) {
+        this.addMessage('error', error)
+      }
+    }
+  }
 }
 </script>
 
 <template>
   <main class="border shadow view-main">
-    <app-breadcrumb :actualStep="5" :done="true"></app-breadcrumb>
+    <app-breadcrumb :actualStep="6" :done="true"></app-breadcrumb>
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1">
-      <h2>5. Desenvolupament de les Situacions d'Aprenentatge</h2>
+      <h2>6. Desenvolupament de les Situacions d'Aprenentatge</h2>
       <p>Des d'ací pots desenvolupar cada situació d'aprenentatge.</p>
+      <div v-if="pendingMandatoryAssessmentTools.length" class="alert alert-warning" role="alert">
+        <strong>Falten instruments d'avaluació obligatoris per utilitzar.</strong>
+        <div>
+          Cada instrument obligatori ha d'aparéixer almenys en una activitat qualificable d'alguna
+          S.A.
+        </div>
+        <div class="mt-2">
+          <span>Obligatoris pendents segons {{ assessmentToolsSourceLabel }}:</span>
+          <ul class="mb-0">
+            <li v-for="tool in pendingMandatoryAssessmentTools" :key="tool.id">
+              {{ tool.name }}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div v-else class="alert alert-success" role="alert">
+        Tots els instruments d'avaluació obligatoris estan utilitzats en activitats qualificables.
+      </div>
       <show-table :data="syllabus.learningSituations" :columns="learningSituationsColumns">
         <template v-slot="{ item }">
           <button type="button"

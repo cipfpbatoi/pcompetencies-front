@@ -63,6 +63,8 @@ export default {
   },
   watch: {
     unit(newValue) {
+      this.errors = {}
+      this.newLearningResult = {}
       if (newValue) {
         this.editedUnit = JSON.parse(JSON.stringify(newValue))
         this.simplifyPLR(newValue)
@@ -153,7 +155,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header bg-darkgrey">
           <h1 class="modal-title fs-5" id="unit-modal">
-            {{ editing ? 'Editar' : 'Afegir' }} Situació d'AprenentatgeASD
+            {{ editing ? 'Editar' : 'Afegir' }} Situació d'Aprenentatge
           </h1>
           <button
             type="button"

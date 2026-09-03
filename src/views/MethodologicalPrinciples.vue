@@ -35,6 +35,22 @@ export default {
     availableOptionalMethodologicalPrinciples() {
       return this.methodologicalPrinciplesCheckeables.filter((item) => !item.checked)
     },
+    availableOptionalPrinciplesAndFocus() {
+      return this.availableOptionalMethodologicalPrinciples.filter(
+        (item) => item.category !== 'methodology'
+      )
+    },
+    availableOptionalMethodologies() {
+      return this.availableOptionalMethodologicalPrinciples.filter(
+        (item) => item.category === 'methodology'
+      )
+    },
+    syllabusPrinciplesAndFocus() {
+      return this.syllabusMethodologicalPrinciples.filter((item) => item.category !== 'methodology')
+    },
+    syllabusMethodologies() {
+      return this.syllabusMethodologicalPrinciples.filter((item) => item.category === 'methodology')
+    },
     mandatoryPrinciplesPending() {
       const selectedIds = this.syllabusMethodologicalPrinciples.map((item) => item.id)
       return this.methodologicalPrinciples.mandatory.filter(
@@ -314,22 +330,64 @@ export default {
       modalId="methodologicalPrinciples"
       :save-button="false"
     >
-      <h4>Principis metodològics disponibles per afegir</h4>
+      <h4>Principis, enfocaments i metodologies disponibles per afegir</h4>
       <p class="text-muted">
-        Usa el botó <strong>+</strong> per afegir una metodologia a la programació. Les obligatòries
-        apareixen marcades amb el seu origen.
+        Usa el botó <strong>+</strong> per afegir elements a la programació. Els obligatoris
+        apareixen marcats amb el seu origen.
       </p>
       <div class="card mb-2">
-        <div class="card-header fw-bold text-center">Disponibles per afegir</div>
+        <div class="card-header fw-bold text-center">Principis i enfocaments disponibles</div>
         <ul class="list-group list-group-flush principles-list">
           <li
-            v-if="availableOptionalMethodologicalPrinciples.length === 0"
+            v-if="availableOptionalPrinciplesAndFocus.length === 0"
             class="list-group-item text-muted"
           >
-            No hi ha metodologies disponibles per afegir
+            Tots els principis i enfocaments disponibles ja estan afegits a la programació
           </li>
           <li
-            v-for="principle in availableOptionalMethodologicalPrinciples"
+            v-for="principle in availableOptionalPrinciplesAndFocus"
+            :key="principle.id"
+            class="list-group-item"
+          >
+            <div class="principle-row d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 principle-title-row">
+                  <strong class="principle-title">{{ principle.name }}</strong>
+                  <span
+                    v-if="getPrincipleCategory(principle)"
+                    class="badge"
+                    :class="getCategoryBadgeClass(principle.category)"
+                  >
+                    {{ getPrincipleCategory(principle) }}
+                  </span>
+                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                    Obligatòria: {{ methodologicalPrinciplesSourceLabel }}
+                  </span>
+                </div>
+                <div v-if="principle.description" class="text-muted small mt-1">
+                  {{ principle.description }}
+                </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                title="Afegir a la selecció"
+                @click="addMethodologicalPrinciple(principle)"
+              >
+                <i class="bi bi-plus-circle"></i>
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="card mb-2">
+        <div class="card-header fw-bold text-center">Metodologies disponibles</div>
+        <ul class="list-group list-group-flush principles-list">
+          <li v-if="availableOptionalMethodologies.length === 0" class="list-group-item text-muted">
+            Totes les metodologies disponibles ja estan afegides a la programació
+          </li>
+          <li
+            v-for="principle in availableOptionalMethodologies"
             :key="principle.id"
             class="list-group-item"
           >
@@ -496,7 +554,7 @@ export default {
       </div>
       </template>
       <template v-if="isMethodologicalPrinciplesStep">
-        <h2>5. Principis, Metodologíes i Enfocaments </h2>
+        <h2>5. Principis, enfocaments i metodologies</h2>
         <div v-if="mandatoryPrinciplesPending.length" class="alert alert-warning" role="alert">
           <strong>Falten principis metodològics obligatoris per afegir.</strong>
           <div class="mt-2">
@@ -511,58 +569,108 @@ export default {
         <div v-else class="alert alert-success" role="alert">
           Tots els principis metodològics obligatoris estan afegits.
         </div>
-        <ul class="list-group list-group-flush principles-list border border-black">
-        <li v-if="syllabusMethodologicalPrinciples.length === 0" class="list-group-item text-muted">
-          Encara no hi ha principis metodològics afegits
-        </li>
-        <li
-          v-for="principle in syllabusMethodologicalPrinciples"
-          :key="principle.id"
-          class="list-group-item"
-        >
-          <div class="principle-row d-flex justify-content-between align-items-start">
-            <div class="d-flex align-items-start flex-grow-1 principle-row">
-              <i class="bi bi-check-circle-fill text-success mt-1" title="Afegit"></i>
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center gap-2 principle-title-row">
-                  <strong class="principle-title">{{ principle.name }}</strong>
-                  <span
-                    v-if="getPrincipleCategory(principle)"
-                    class="badge"
-                    :class="getCategoryBadgeClass(principle.category)"
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-lg-6">
+            <h3>Principis i enfocaments</h3>
+            <ul class="list-group list-group-flush principles-list border border-black">
+              <li v-if="syllabusPrinciplesAndFocus.length === 0" class="list-group-item text-muted">
+                Encara no hi ha principis ni enfocaments afegits
+              </li>
+              <li
+                v-for="principle in syllabusPrinciplesAndFocus"
+                :key="principle.id"
+                class="list-group-item"
+              >
+                <div class="principle-row d-flex justify-content-between align-items-start">
+                  <div class="d-flex align-items-start flex-grow-1 principle-row">
+                    <i class="bi bi-check-circle-fill text-success mt-1" title="Afegit"></i>
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center gap-2 principle-title-row">
+                        <strong class="principle-title">{{ principle.name }}</strong>
+                        <span
+                          v-if="getPrincipleCategory(principle)"
+                          class="badge"
+                          :class="getCategoryBadgeClass(principle.category)"
+                        >
+                          {{ getPrincipleCategory(principle) }}
+                        </span>
+                        <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                          Obligatòria: {{ methodologicalPrinciplesSourceLabel }}
+                        </span>
+                      </div>
+                      <div v-if="principle.description" class="text-muted small mt-1">
+                        {{ principle.description }}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    title="Llevar de la programació"
+                    @click="deleteMethodologicalPrinciple(principle)"
                   >
-                    {{ getPrincipleCategory(principle) }}
-                  </span>
-                  <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
-                    Obligatòria: {{ methodologicalPrinciplesSourceLabel }}
-                  </span>
+                    <i class="bi bi-trash"></i>
+                  </button>
                 </div>
-                <div v-if="principle.description" class="text-muted small mt-1">
-                  {{ principle.description }}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-danger"
-              title="Llevar de la programació"
-              @click="deleteMethodologicalPrinciple(principle)"
-            >
-              <i class="bi bi-trash"></i>
-            </button>
+              </li>
+            </ul>
           </div>
-        </li>
-      </ul>
-      <div class="m-2 text-center">
-        <button
-          type="button"
-          class="btn btn-success"
-          title="Afegir activitat"
-          @click="showModal('principles')"
-        >
-          Afegir
-        </button>
-      </div>
+          <div class="col-12 col-lg-6">
+            <h3>Metodologies</h3>
+            <ul class="list-group list-group-flush principles-list border border-black">
+              <li v-if="syllabusMethodologies.length === 0" class="list-group-item text-muted">
+                Encara no hi ha metodologies afegides
+              </li>
+              <li
+                v-for="principle in syllabusMethodologies"
+                :key="principle.id"
+                class="list-group-item"
+              >
+                <div class="principle-row d-flex justify-content-between align-items-start">
+                  <div class="d-flex align-items-start flex-grow-1 principle-row">
+                    <i class="bi bi-check-circle-fill text-success mt-1" title="Afegit"></i>
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center gap-2 principle-title-row">
+                        <strong class="principle-title">{{ principle.name }}</strong>
+                        <span
+                          v-if="getPrincipleCategory(principle)"
+                          class="badge"
+                          :class="getCategoryBadgeClass(principle.category)"
+                        >
+                          {{ getPrincipleCategory(principle) }}
+                        </span>
+                        <span v-if="isMandatoryPrinciple(principle.id)" class="badge bg-danger">
+                          Obligatòria: {{ methodologicalPrinciplesSourceLabel }}
+                        </span>
+                      </div>
+                      <div v-if="principle.description" class="text-muted small mt-1">
+                        {{ principle.description }}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    title="Llevar de la programació"
+                    @click="deleteMethodologicalPrinciple(principle)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="m-2 text-center">
+          <button
+            type="button"
+            class="btn btn-success"
+            title="Afegir activitat"
+            @click="showModal('principles')"
+          >
+            Afegir
+          </button>
+        </div>
       </template>
       <template v-if="isActivitiesMaterialsStep">
       <br /><br />

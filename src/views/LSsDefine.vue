@@ -189,6 +189,11 @@ export default {
     showLSModal(unit) {
       if (unit) {
         this.modalData = unit
+      } else {
+        this.modalData = {
+          position: this.syllabus.learningSituations?.length + 1,
+          ponderedLearningResults: []
+        }
       }
       this.LearnSitModal.show()
     },

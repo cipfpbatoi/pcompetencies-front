@@ -150,7 +150,7 @@ export default {
     async viewSyllabus(syllabus) {
       if (syllabus.status === 'pendent') {
         await this.fetchCycle(syllabus.cycle.id, syllabus.turn, { filterByDepartment: false })
-        await this.fetchData(syllabus.module.code, syllabus.id)
+        await this.fetchData(syllabus.id)
         this.$router.push('/context')
         return
       }

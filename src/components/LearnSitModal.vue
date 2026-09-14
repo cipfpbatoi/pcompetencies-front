@@ -52,6 +52,9 @@ export default {
       return this.editedUnit.ponderedLearningResults.map(
         (item) => item.learningResultId || item.learningResult.id
       )
+    },
+    availableLearningResults() {
+      return this.syllabus.availableLearningResults || []
     }
   },
   data() {
@@ -239,7 +242,7 @@ export default {
                 <option :value="0">-- Tria resultat d'aprenentatge --</option>
                 <option
                   class="p-2"
-                  v-for="lr in module.learningResults"
+                  v-for="lr in availableLearningResults"
                   :key="lr.id"
                   :value="lr.id"
                   :disabled="addedLearningResultsIds.includes(lr.id)"

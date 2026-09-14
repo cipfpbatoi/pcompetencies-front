@@ -171,47 +171,49 @@ export default {
         </div>
       </div>
     </div>
-    <h5>Continguts de la Situació d'Aprenentatge</h5>
-    <show-table :data="learningSituation.didacticContents" :columns="didacticContentsColumns">
-      <template v-slot="{ item, index }">
-        <button
-          @click="changeContentPosition(item, -1)"
-          class="btn btn-secondary"
-          title="Pujar"
-          :disabled="item.position <= 1"
-        >
-          <i class="bi bi-arrow-up"></i>
-        </button>
-        <button
-          :disabled="item.position >= learningSituation.didacticContents.length"
-          @click="changeContentPosition(item, 1)"
-          class="btn btn-secondary"
-          title="Baixar"
-        >
-          <i class="bi bi-arrow-down"></i>
-        </button>
-        <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
-          <i class="bi bi-pencil"></i>
-        </button>
-        <button @click="delContent(item, index)" class="btn btn-secondary" title="Eliminar">
-          <i class="bi bi-trash"></i>
-        </button>
-      </template>
-    </show-table>
-    <form @submit.prevent="addContent">
-      <div class="input-group">
-        <input
-          type="text"
-          class="form-control"
-          v-model="newContent"
-          placeholder="Afegir nou contingut"
-        />
-        <button type="submit" class="btn btn-success" title="Establir objectiu">
-          Afegir nou contingut
-        </button>
-      </div>
-      <span v-if="errors.newContent" class="error">{{ errors.newContent }}</span>
-    </form>
+    <div class="added-contents">
+      <h5>Continguts de la Situació d'Aprenentatge</h5>
+      <show-table :data="learningSituation.didacticContents" :columns="didacticContentsColumns">
+        <template v-slot="{ item, index }">
+          <button
+            @click="changeContentPosition(item, -1)"
+            class="btn btn-secondary"
+            title="Pujar"
+            :disabled="item.position <= 1"
+          >
+            <i class="bi bi-arrow-up"></i>
+          </button>
+          <button
+            :disabled="item.position >= learningSituation.didacticContents.length"
+            @click="changeContentPosition(item, 1)"
+            class="btn btn-secondary"
+            title="Baixar"
+          >
+            <i class="bi bi-arrow-down"></i>
+          </button>
+          <button @click="showModal(item)" class="btn btn-secondary" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button @click="delContent(item, index)" class="btn btn-secondary" title="Eliminar">
+            <i class="bi bi-trash"></i>
+          </button>
+        </template>
+      </show-table>
+      <form @submit.prevent="addContent">
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            v-model="newContent"
+            placeholder="Afegir nou contingut"
+          />
+          <button type="submit" class="btn btn-success" title="Establir objectiu">
+            Afegir nou contingut
+          </button>
+        </div>
+        <span v-if="errors.newContent" class="error">{{ errors.newContent }}</span>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -223,5 +225,12 @@ export default {
 }
 .error {
   color: red;
+}
+.added-contents {
+  border: 2px solid var(--bs-success);
+  border-radius: 0.375rem;
+  background-color: var(--bs-success-bg-subtle);
+  margin-top: 1rem;
+  padding: 1rem;
 }
 </style>

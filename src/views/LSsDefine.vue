@@ -127,7 +127,7 @@ export default {
     this.LearnSitModal = new Modal(document.getElementById('unitMmodalComp'))
   },
   methods: {
-    ...mapActions(useDataStore, ['addMessage', 'saveLearningSituation', 'deleteLearningSituation']),
+    ...mapActions(useDataStore, ['addMessage', 'saveLearningSituation', 'deleteLearningSituation', 'fetchData']),
     showModal(iUnit) {
       this.errors = {}
       if (iUnit) {
@@ -186,7 +186,10 @@ export default {
         this.getIUnits()
       }
     },
-    showLSModal(unit) {
+    async showLSModal(unit) {
+      if (!this.syllabus.id) return
+
+      await this.fetchData(this.syllabus.id)
       if (unit) {
         this.modalData = unit
       }

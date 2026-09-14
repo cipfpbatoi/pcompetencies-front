@@ -525,7 +525,7 @@ const handleCreateSyllabus = async (turn) => {
 // ==========================================
 const editSyllabus = async (turn) => {
   const syllabus = getSyllabusByTurn(turn)
-  await fetchData(moduleSelect.value, syllabus.id)
+  await fetchData(syllabus.id)
   router.push('/context')
 }
 

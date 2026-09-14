@@ -271,28 +271,34 @@ export const useDataStore = defineStore('data', {
         this.user.token = localStorage.token
         if (localStorage.data) {
           const data = JSON.parse(localStorage.data)
-          this.syllabus = { id: data.syllabusId }
-          try {
-            const shouldLoadPccFromSyllabus = !window.location.pathname.startsWith('/pcc')
-            const [respMod, respSyl, respPCC] = await Promise.all([
-              api.getModuleByCode(data.moduleCode),
-              api.getSyllabusById(data.syllabusId),
-              shouldLoadPccFromSyllabus ? api.getPCCByCycleId(data.cycleId) : Promise.resolve(null)
-            ])
-            const respCycle = await api.getCycleById(data.cycleId)
-            if (respPCC) {
-              this.pcc = respPCC.data
+          if (!data.syllabusId) {
+            localStorage.removeItem('data')
+          } else {
+            this.syllabus = { id: data.syllabusId }
+            try {
+              const shouldLoadPccFromSyllabus = !window.location.pathname.startsWith('/pcc')
+              const [respSyl, respPCC] = await Promise.all([
+                api.getSyllabusById(data.syllabusId),
+                shouldLoadPccFromSyllabus ? api.getPCCByCycleId(data.cycleId) : Promise.resolve(null)
+              ])
+              const respCycle = await api.getCycleById(data.cycleId)
+              if (respPCC) {
+                this.pcc = respPCC.data
+              }
+              this.cycle = {
+                ...respCycle.data,
+                loadedTurn: null,
+                modulesFilteredByDepartment: true
+              }
+              this.filterModules()
+              this.syllabus = respSyl.data
+              this.module = {
+                ...respSyl.data.module,
+                learningResults: respSyl.data.availableLearningResults || []
+              }
+            } catch (error) {
+              this.addMessage('error', error)
             }
-            this.cycle = {
-              ...respCycle.data,
-              loadedTurn: null,
-              modulesFilteredByDepartment: true
-            }
-            this.filterModules()
-            this.module = respMod.data
-            this.syllabus = respSyl.data
-          } catch (error) {
-            this.addMessage('error', error)
           }
         }
         if (localStorage.pccCycleId && window.location.pathname.startsWith('/pcc')) {
@@ -344,14 +350,16 @@ export const useDataStore = defineStore('data', {
         this.addMessage('error', error)
       }
     },
-    async fetchData(moduleCode, syllabusId) {
+    async fetchData(syllabusId) {
+      if (!syllabusId) return
+
       try {
-        const [respMod, respSyl] = await Promise.all([
-          api.getModuleByCode(moduleCode),
-          api.getSyllabusById(syllabusId)
-        ])
-        this.module = respMod.data
+        const respSyl = await api.getSyllabusById(syllabusId)
         this.syllabus = respSyl.data
+        this.module = {
+          ...respSyl.data.module,
+          learningResults: respSyl.data.availableLearningResults || []
+        }
         localStorage.data = JSON.stringify({
           cycleId: this.cycle.id,
           moduleCode: this.module.code,

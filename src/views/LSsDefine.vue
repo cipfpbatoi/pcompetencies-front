@@ -192,6 +192,11 @@ export default {
       await this.fetchData(this.syllabus.id)
       if (unit) {
         this.modalData = unit
+      } else {
+        this.modalData = {
+          position: this.syllabus.learningSituations?.length + 1,
+          ponderedLearningResults: []
+        }
       }
       this.LearnSitModal.show()
     },

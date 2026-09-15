@@ -5,17 +5,46 @@ import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { api } from '@/repositories/api'
 import { Modal } from 'bootstrap'
 import ModalComponent from '../components/ModalComponent.vue'
-import ShowPdfButton from '../components/ShowPdfButton.vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
+
+const HANDLED_VALIDATION_ERROR_KEYS = [
+  'totalHours',
+  'groupContext',
+  'improvementsProposals',
+  'didacticResources',
+  'methodologicalPrinciples',
+  'curricularProject',
+  'curricularProjectMethodologicalPrinciples',
+  'curricularProjectAssessmentTools',
+  'technologicalModuleProcess',
+  'temporalització',
+  'learningSituations',
+  'learningSituationMethodologies',
+  'ponderedRA',
+  'evaluationCriteriaNotAssigned',
+  'finalEvaluation',
+  'InCompanyTrainingRestrictions',
+  'assessmentsToolRestrictions'
+]
 
 export default {
   components: {
     AppBreadcrumb,
-    ModalComponent,
-    ShowPdfButton
+    ModalComponent
   },
   computed: {
-    ...mapState(useDataStore, ['syllabus'])
+    ...mapState(useDataStore, ['syllabus']),
+    unhandledErrorGroups() {
+      if (!this.errors || typeof this.errors !== 'object' || Array.isArray(this.errors)) return []
+
+      return Object.entries(this.errors)
+        .filter(([key]) => !HANDLED_VALIDATION_ERROR_KEYS.includes(key))
+        .map(([key, value]) => ({
+          title: key,
+          items: this.flattenValidationErrors(value)
+        }))
+        .filter((group) => group.items.length)
+    }
   },
   data() {
     return {
@@ -122,13 +151,10 @@ export default {
     async getExcel() {
       try {
         this.isLoading = true
-        const response = await api.getExcel(
-          this.syllabus.id,
-          {
-            students:  this.modalFields.studentsCsv.split(';'),
-            nameGroup: this.modalFields.nameGroup
-          }
-        )
+        const response = await api.getExcel(this.syllabus.id, {
+          students: this.modalFields.studentsCsv.split(';'),
+          nameGroup: this.modalFields.nameGroup
+        })
         this.isLoading = false
         this.GenericModal.hide()
         if (response.status !== 200) {
@@ -142,7 +168,13 @@ export default {
         )
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'quadern_professor_'+ this.syllabus.id+'_' + this.removeBadCharactersForFileName(this.syllabus.module.name))
+        link.setAttribute(
+          'download',
+          'quadern_professor_' +
+            this.syllabus.id +
+            '_' +
+            this.removeBadCharactersForFileName(this.syllabus.module.name)
+        )
         document.body.appendChild(link)
         link.click()
       } catch (error) {
@@ -150,9 +182,27 @@ export default {
       }
     },
     removeBadCharactersForFileName(str) {
-      return str
-        .replace(/[^\w\s.-]/g, '')
-        .replace(/\s+/g, '_');
+      return str.replace(/[^\w\s.-]/g, '').replace(/\s+/g, '_')
+    },
+    flattenValidationErrors(value, prefix = '') {
+      if (!value) return []
+
+      if (typeof value === 'string') {
+        return [prefix ? `${prefix}: ${value}` : value]
+      }
+
+      if (Array.isArray(value)) {
+        return value.flatMap((item) => this.flattenValidationErrors(item, prefix))
+      }
+
+      if (typeof value === 'object') {
+        return Object.entries(value).flatMap(([key, nestedValue]) => {
+          const nextPrefix = prefix ? `${prefix} > ${key}` : key
+          return this.flattenValidationErrors(nestedValue, nextPrefix)
+        })
+      }
+
+      return [prefix ? `${prefix}: ${String(value)}` : String(value)]
     }
   }
 }
@@ -170,7 +220,9 @@ export default {
       <h2>11.1. Altres consideracions</h2>
       <div class="border p-2 bg-secondary-subtle border-dark card" style="min-height: 100px">
         <p class="text-start" v-html="syllabus.othersConsiderations"></p>
-        <cite v-if="!syllabus.othersConsiderations">No s'han especificat altres consideracions</cite>
+        <cite v-if="!syllabus.othersConsiderations"
+          >No s'han especificat altres consideracions</cite
+        >
       </div>
       <div class="text-center m-2">
         <button
@@ -234,7 +286,7 @@ export default {
               <h5>Temporalització de les Situacions d'aprenentatge</h5>
               <ul>
                 <li v-for="error in errors.temporalització" :key="error">
-                   {{ error }}
+                  {{ error }}
                 </li>
               </ul>
             </li>
@@ -249,6 +301,34 @@ export default {
                 </ul>
               </li>
             </ul>
+          </div>
+          <div v-if="errors.learningSituationMethodologies">
+            <h5>Metodologies de les situacions d'aprenentatge</h5>
+            <div v-if="errors.learningSituationMethodologies.learningSituations">
+              <h6>Situacions d'aprenentatge sense metodologia</h6>
+              <ul>
+                <li
+                  v-for="ls in errors.learningSituationMethodologies.learningSituations"
+                  :key="ls.ls"
+                >
+                  S.A. - {{ ls.ls }}
+                  <ul>
+                    <li v-for="error in ls.errors" :key="error">{{ error }}</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div v-if="errors.learningSituationMethodologies.methodologies">
+              <h6>Metodologies no assignades a cap SA</h6>
+              <ul>
+                <li
+                  v-for="error in errors.learningSituationMethodologies.methodologies"
+                  :key="error"
+                >
+                  {{ error }}
+                </li>
+              </ul>
+            </div>
           </div>
           <div v-if="errors.ponderedRA">
             <h5>Resultats d'aprenentatge</h5>
@@ -290,6 +370,19 @@ export default {
               </li>
             </ul>
           </div>
+          <div v-if="unhandledErrorGroups.length">
+            <h5>Altres errors</h5>
+            <ul>
+              <li v-for="group in unhandledErrorGroups" :key="group.title">
+                {{ group.title }}
+                <ul>
+                  <li v-for="error in group.items" :key="error">
+                    {{ error }}
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <div v-if="isValid" class="text-center m-2 row">
@@ -326,10 +419,14 @@ export default {
       </div>
       <br />
     </div>
-    <ModalComponent modalId="othersConsiderationsMmodalComp" @save="saveOtherConsiderations" title="Altres consideracions">
+    <ModalComponent
+      modalId="othersConsiderationsMmodalComp"
+      @save="saveOtherConsiderations"
+      title="Altres consideracions"
+    >
       <div class="row p-1 align-items-center">
         <p>Altres consideracions</p>
-       <div>
+        <div>
           <ckeditor
             :editor="editor"
             v-model="modalFields.othersConsiderations"
@@ -341,10 +438,19 @@ export default {
     <ModalComponent @save="getExcel" title="Quadern del professorat">
       <div class="row p-1 align-items-center">
         <div>
-          <select class="form-select form-select-lg mb-3 text-center" required
-                  v-model="modalFields.nameGroup">
+          <select
+            class="form-select form-select-lg mb-3 text-center"
+            required
+            v-model="modalFields.nameGroup"
+          >
             <option value="" selected>--- Tria el grup (opcional) ---</option>
-            <option v-for="schedule in this.syllabus.schedules" v-bind:value="schedule.nameGroup" >Grup {{ schedule.nameGroup }}</option>
+            <option
+              v-for="schedule in this.syllabus.schedules"
+              :key="schedule.nameGroup"
+              v-bind:value="schedule.nameGroup"
+            >
+              Grup {{ schedule.nameGroup }}
+            </option>
           </select>
         </div>
         <p>Pega la llista d'alumnes separats per <strong>punt i coma</strong></p>

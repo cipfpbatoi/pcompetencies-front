@@ -56,6 +56,7 @@ const form = ref({
 const formErrors = ref({})
 const applyToAllTurns = ref(true)
 const applyToAllModules = ref(true)
+const showLegacyPiNotice = ref(false)
 
 // Computeds
 const currentModules = computed(() => pcc.value?.modules || [])
@@ -90,14 +91,32 @@ const hasMultipleTurns = computed(() => {
   return availableTurns.value.length > 1
 })
 
+const isPiTool = computed(() => editingTool.value?.code === 'PI')
+
+const canConfigureModuleSelections = computed(() => {
+  return !editingTool.value?.isMandatory || isPiTool.value
+})
+
 const availableModules = computed(() => {
+  const projectCourses = new Set(
+    currentModules.value
+      .filter((module) => module?.proyect === true)
+      .map((module) => Number(module.courseLevel || 1))
+  )
   const moduleMap = new Map()
 
   currentModules.value.forEach((module) => {
     if (!module?.code) return
+    if (
+      isPiTool.value &&
+      (module.proyect === true || !projectCourses.has(Number(module.courseLevel || 1)))
+    ) {
+      return
+    }
     moduleMap.set(module.code, {
       code: module.code,
-      name: module.name || module.code
+      name: module.name || module.code,
+      courseLevel: Number(module.courseLevel || 1)
     })
   })
 
@@ -211,7 +230,7 @@ const isFormValid = computed(() => {
     if (form.value.percentage < tool.minPercentage) return false
   }
 
-  if (!editingTool.value?.isMandatory) {
+  if (canConfigureModuleSelections.value) {
     if (hasMultipleTurns.value && applyToAllModules.value) {
       if (!applyToAllTurns.value && form.value.turns.length === 0) return false
       if (!applyToAllTurns.value && form.value.turns.length >= availableTurns.value.length)
@@ -300,10 +319,19 @@ const normalizeModuleTurnSelections = (selections) => {
   if (!Array.isArray(selections)) return []
   return selections
     .map((selection) => ({
-      moduleCode: selection?.moduleCode || selection?.module?.code || '',
+      moduleCode: selection?.moduleCode || selection?.module?.code || selection?.code || '',
       turn: selection?.turn || ''
     }))
     .filter((selection) => selection.moduleCode)
+}
+
+const buildModuleTurnSelections = (moduleCodes, turns) => {
+  return moduleCodes.flatMap((moduleCode) =>
+    turns.map((turn) => ({
+      moduleCode,
+      turn
+    }))
+  )
 }
 
 const buildModuleSummary = (agreed) => {
@@ -391,10 +419,12 @@ const openEditModal = (tool) => {
   const toolDescription = getToolDescription(tool)
   const minPct = tool.minPercentage || null
   const isMandatory = !!tool.assessmentTool
+  const isPi = tool.assessmentTool?.code === 'PI' || tool.code === 'PI'
 
   editingTool.value = {
     id: assessmentToolId,
     name: toolName,
+    code: tool.assessmentTool?.code || tool.code,
     description: toolDescription || '',
     minPercentage: minPct,
     isMandatory
@@ -407,19 +437,41 @@ const openEditModal = (tool) => {
   if (hasMultipleTurns.value && agreedTurns.length >= availableTurns.value.length) {
     agreedTurns = []
   }
-  const agreedSelections = normalizeModuleTurnSelections(agreed?.moduleTurnSelections).filter(
-    (selection) => {
-      if (!availableTurns.value.includes(selection.turn)) return false
-      if (agreedTurns.length === 0) return true
-      return agreedTurns.includes(selection.turn)
+  const storedSelections = normalizeModuleTurnSelections(agreed?.moduleTurnSelections)
+  let agreedSelections = storedSelections.filter((selection) => {
+    if (!availableTurns.value.includes(selection.turn)) return false
+    if (agreedTurns.length === 0) return true
+    return agreedTurns.includes(selection.turn)
+  })
+
+  showLegacyPiNotice.value = false
+  if (isPi) {
+    const eligibleModuleCodes = new Set(availableModules.value.map((module) => module.code))
+    agreedSelections = agreedSelections.filter((selection) =>
+      eligibleModuleCodes.has(selection.moduleCode)
+    )
+
+    if (storedSelections.length === 0 && agreed) {
+      const legacyModuleCodes = Array.isArray(agreed?.modules)
+        ? agreed.modules
+            .map((module) => module?.code || module?.moduleCode || module)
+            .filter((moduleCode) => eligibleModuleCodes.has(moduleCode))
+        : []
+      const moduleCodes = legacyModuleCodes.length
+        ? [...new Set(legacyModuleCodes)]
+        : availableModules.value.map((module) => module.code)
+      const turns = agreedTurns.length ? agreedTurns : availableTurns.value
+
+      agreedSelections = buildModuleTurnSelections(moduleCodes, turns)
+      showLegacyPiNotice.value = true
     }
-  )
+  }
 
   form.value = {
     assessmentToolId,
     percentage: agreed?.minimumPercentage ?? minPct ?? null,
-    turns: isMandatory ? [] : agreedTurns,
-    moduleTurnSelections: isMandatory ? [] : agreedSelections
+    turns: isMandatory && !isPi ? [] : agreedTurns,
+    moduleTurnSelections: isMandatory && !isPi ? [] : agreedSelections
   }
 
   if (!hasMultipleTurns.value) {
@@ -431,8 +483,11 @@ const openEditModal = (tool) => {
     }))
   }
 
-  applyToAllTurns.value = isMandatory || !hasMultipleTurns.value || form.value.turns.length === 0
-  applyToAllModules.value = isMandatory || form.value.moduleTurnSelections.length === 0
+  applyToAllTurns.value =
+    (isMandatory && !isPi) || !hasMultipleTurns.value || form.value.turns.length === 0
+  applyToAllModules.value = isPi
+    ? false
+    : isMandatory || form.value.moduleTurnSelections.length === 0
 
   formErrors.value = {}
   showEditModal.value = true
@@ -449,6 +504,7 @@ const closeEditModal = () => {
   }
   applyToAllTurns.value = true
   applyToAllModules.value = true
+  showLegacyPiNotice.value = false
   formErrors.value = {}
 }
 
@@ -462,7 +518,7 @@ const validateForm = () => {
     }
   }
 
-  if (!editingTool.value?.isMandatory) {
+  if (canConfigureModuleSelections.value) {
     if (hasMultipleTurns.value && applyToAllModules.value && !applyToAllTurns.value) {
       if (form.value.turns.length === 0) {
         errors.turns = 'Has de seleccionar almenys un règim'
@@ -532,23 +588,25 @@ const saveAgreed = async () => {
 
   isSaving.value = true
   try {
+    const moduleTurnSelections = form.value.moduleTurnSelections.map((selection) => ({
+      moduleCode: selection.moduleCode,
+      turn: selection.turn
+    }))
     const data = {
       assessmentToolId: form.value.assessmentToolId,
       minPercentage: form.value.percentage,
-      turns:
-        editingTool.value?.isMandatory ||
-        !hasMultipleTurns.value ||
-        !applyToAllModules.value ||
-        applyToAllTurns.value
+      turns: isPiTool.value
+        ? [...new Set(moduleTurnSelections.map((selection) => selection.turn))]
+        : editingTool.value?.isMandatory ||
+            !hasMultipleTurns.value ||
+            !applyToAllModules.value ||
+            applyToAllTurns.value
           ? []
           : form.value.turns,
       moduleTurnSelections:
-        editingTool.value?.isMandatory || applyToAllModules.value
+        (editingTool.value?.isMandatory && !isPiTool.value) || applyToAllModules.value
           ? []
-          : form.value.moduleTurnSelections.map((selection) => ({
-              moduleCode: selection.moduleCode,
-              turn: selection.turn
-            }))
+          : moduleTurnSelections
     }
 
     const success = await savePCCAgreedAssessmentTool(props.pccId, data)
@@ -844,7 +902,7 @@ onMounted(() => {
                   }}
                 </blockquote>
 
-                <div v-if="editingTool.isMandatory" class="alert alert-danger mb-3">
+                <div v-if="editingTool.isMandatory && !isPiTool" class="alert alert-danger mb-3">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i>
                   <strong>Instrument obligatori</strong> pel Projecte Educatiu de Centre
                 </div>
@@ -853,7 +911,9 @@ onMounted(() => {
                 <div class="mb-3">
                   <label class="form-label fw-bold">
                     Percentatge mínim
-                    <span v-if="!editingTool.isMandatory" class="text-muted">(opcional)</span>
+                    <span v-if="!editingTool.isMandatory || isPiTool" class="text-muted"
+                      >(opcional)</span
+                    >
                     <span v-if="editingTool.minPercentage" class="text-danger">
                       (mínim: {{ editingTool.minPercentage }}%)
                     </span>
@@ -878,11 +938,20 @@ onMounted(() => {
                 <!-- Torns i mòduls -->
                 <div class="mb-3">
                   <label class="form-label fw-bold">Aplicació de l'instrument</label>
-                  <div v-if="editingTool.isMandatory" class="alert alert-info py-2">
+                  <div v-if="editingTool.isMandatory && !isPiTool" class="alert alert-info py-2">
                     Instrument obligatori per a tots els mòduls i règims.
                   </div>
-                  <template v-else>
-                    <div class="form-check">
+                  <template v-if="canConfigureModuleSelections">
+                    <div v-if="isPiTool" class="alert alert-info py-2">
+                      L'instrument PI s'ha d'aplicar a mòduls concrets vinculats al mateix curs que
+                      un mòdul de projecte.
+                    </div>
+                    <div v-if="showLegacyPiNotice" class="alert alert-warning py-2">
+                      <strong>Configuració anterior detectada.</strong> S'han convertit les
+                      seleccions als mòduls compatibles amb el projecte intermodular; revisa'ls
+                      abans de guardar.
+                    </div>
+                    <div v-if="!isPiTool" class="form-check">
                       <input
                         class="form-check-input"
                         type="radio"
@@ -894,7 +963,7 @@ onMounted(() => {
                       <label class="form-check-label" for="allModulesTools">Tots els mòduls</label>
                     </div>
 
-                    <div class="form-check">
+                    <div v-if="!isPiTool" class="form-check">
                       <input
                         class="form-check-input"
                         type="radio"
@@ -964,7 +1033,7 @@ onMounted(() => {
                       </fieldset>
                     </div>
 
-                    <fieldset v-if="!applyToAllModules" class="suboption-fieldset mt-3">
+                    <fieldset v-if="isPiTool || !applyToAllModules" class="suboption-fieldset mt-3">
                       <legend class="suboption-legend">Configura els mòduls concrets</legend>
                       <label class="form-label">
                         {{
@@ -994,6 +1063,9 @@ onMounted(() => {
                             <tr v-for="module in availableModules" :key="`row-${module.code}`">
                               <th scope="row" class="module-cell">
                                 <strong>{{ module.code }}</strong>
+                                <span class="badge bg-secondary ms-2">
+                                  {{ module.courseLevel === 1 ? '1r curs' : '2n curs' }}
+                                </span>
                                 <div class="small text-muted">{{ module.name }}</div>
                               </th>
                               <td

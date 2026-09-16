@@ -33,7 +33,10 @@ export default {
     ModalComponent
   },
   computed: {
-    ...mapState(useDataStore, ['syllabus']),
+    ...mapState(useDataStore, ['syllabus', 'pcc']),
+    isPccApproved() {
+      return this.pcc?.status === 'aprovat'
+    },
     unhandledErrorGroups() {
       if (!this.errors || typeof this.errors !== 'object' || Array.isArray(this.errors)) return []
 
@@ -77,6 +80,11 @@ export default {
       }
     },
     async sendSyllabus() {
+      if (!this.isPccApproved) {
+        this.addMessage('error', "No es pot enviar la programació fins que el PCC estiga aprovat")
+        return
+      }
+
       if (confirm('Una vegada enviada ja no es pot modificar la programació. Vols continuar?')) {
         try {
           await api.syllabusSend(this.syllabus.id)
@@ -250,6 +258,9 @@ export default {
           <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar
         </div>
       </div>
+      <div v-if="isValid && !isPccApproved" class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
+        No es pot enviar la programació fins que el PCC estiga aprovat.
+      </div>
       <div class="text-center m-2">
         <button
           @click="validate"
@@ -390,6 +401,7 @@ export default {
           @click="sendSyllabus"
           class="btn btn-success col-sm-5 col-12 mx-auto"
           title="Enviar programació"
+          :disabled="!isPccApproved"
         >
           <i class="bi bi-send mx-2"></i>
           Enviar programació al departament

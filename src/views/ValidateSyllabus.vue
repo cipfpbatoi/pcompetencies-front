@@ -258,8 +258,8 @@ export default {
           <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar
         </div>
       </div>
-      <div v-if="isValid && !isPccApproved" class="alert alert-warning p-2 col-sm-12 col-12 mx-auto">
-        No es pot enviar la programació fins que el PCC estiga aprovat.
+      <div v-if="isValid && !isPccApproved" class="text-center alert alert-warning p-2 col-sm-12 col-12 mx-auto">
+        <strong>ATENCIÓ:</strong> No es pot enviar la programació fins que el PCC estiga aprovat.
       </div>
       <div class="text-center m-2">
         <button

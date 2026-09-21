@@ -17,6 +17,10 @@ export default {
       type: Boolean,
       default: false
     },
+    rowClass: {
+      type: Function,
+      default: null
+    },
     class: {
       type: [Boolean, String],
       default: false
@@ -51,7 +55,7 @@ export default {
         <th v-if="actions">Accions</th>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in data" :key="index">
+        <tr v-for="(item, index) in data" :key="index" :class="rowClass?.(item)">
           <td v-if="checkeable" class="text-center">
             <input type="checkbox" v-model="item.checked" />
           </td>

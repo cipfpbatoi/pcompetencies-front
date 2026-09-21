@@ -75,7 +75,7 @@ export default {
   computed: {
     ...mapState(useDataStore, ['syllabus', 'module', 'activitiesData']),
     qualificationsSummaryColumns() {
-      const columns = this.syllabusFinalActivities.map((activ) => {
+      const columns = this.validFinalActivities.map((activ) => {
         return {
           title: `${activ.code}<br>(${activ.assessmentTool.name})`,
           value: activ.code
@@ -97,14 +97,14 @@ export default {
       return columns
     },
     qualificationsSummaryData() {
-      if (!this.syllabusFinalActivities.length) return []
+      if (!this.validFinalActivities.length) return []
       const data = []
       this.syllabusPonderedLearningResults?.forEach((lr) => {
         const row = {
           ra: '<strong>RA' + lr.number + '</strong>'
         }
         let totalPercentageWeight = 0
-        this.syllabusFinalActivities.forEach((activ) => {
+        this.validFinalActivities.forEach((activ) => {
           const percentageWeight =
             this.activitiesPonderedLearningResults['RA' + lr.number][activ.code]
           if (percentageWeight) {
@@ -123,12 +123,35 @@ export default {
     totalRa() {
       return this.qualificationsSummaryData.some((ra) => ra.totalRa !== '100 %')
     },
+    invalidFinalActivities() {
+      if (!Array.isArray(this.module.learningResults)) return []
+      const availableLearningResultNumbers = new Set(
+        this.syllabusPonderedLearningResults?.map((lr) => lr.number)
+      )
+      return this.syllabusFinalActivities
+        .map((activity) => {
+          const learningResultNumbers = [
+            ...new Set(
+              activity.ponderedLearningResults
+                .filter((lr) => !availableLearningResultNumbers.has(lr.learningResult.number))
+                .map((lr) => lr.learningResult.number)
+            )
+          ]
+          return { activity, learningResultNumbers }
+        })
+        .filter(({ learningResultNumbers }) => learningResultNumbers.length)
+    },
+    validFinalActivities() {
+      return this.syllabusFinalActivities.filter(
+        (activity) => !this.invalidFinalActivities.some((invalid) => invalid.activity === activity)
+      )
+    },
     activitiesPonderedLearningResults() {
       const aPLR = {}
       this.syllabusPonderedLearningResults?.forEach((lr) => {
         aPLR['RA' + lr.number] = {}
       })
-      this.syllabusFinalActivities.forEach((activ) => {
+      this.validFinalActivities.forEach((activ) => {
         activ.ponderedLearningResults.forEach((lr) => {
           aPLR['RA' + lr.learningResult.number][activ.code] = lr.percentageWeight
         })
@@ -330,6 +353,13 @@ export default {
     changeRAWeight(lrChanged) {
       this.modalFields['RA' + lrChanged.number] = lrChanged.percentageWeight
     },
+    isInvalidFinalActivity(activity) {
+      return this.invalidFinalActivities.some(
+        (invalid) => invalid.activity === activity || invalid.activity.id === activity.id
+      )
+        ? 'table-danger'
+        : ''
+    },
     async delActivity(activity, index) {
       if (
         confirm(
@@ -436,9 +466,23 @@ export default {
     <div class="mt-2 text-white border-bottom bg-secondary border-2 p-2 text-center border-dark h3">{{ syllabus.module?.name }} ({{ (syllabus.turn === 'presential') ? 'Presencial' : 'Semi-presencial'  }}) - {{ syllabus.courseYear }}</div>
     <div class="p-lg-4 p-1 p-sm-0">
       <h2>8. Avaluació de tipus Final <span class="text-secondary small">(C. Extraordinària, A. Pèrdua Avaluació Contínua, Convocatòria de gràcia, Recuperació RA complets,...)</span></h2>
+      <div v-if="invalidFinalActivities.length" class="alert alert-danger" role="alert">
+        <strong>ATENCIÓ:</strong> aquestes activitats estan associades a RAs que ja no formen part de
+        la programació. Elimina-les i torna-les a crear si cal.
+        <ul class="mb-0">
+          <li v-for="invalid in invalidFinalActivities" :key="invalid.activity.id">
+            Activitat <strong>{{ invalid.activity.code }}</strong>: RA{{
+              invalid.learningResultNumbers.join(', RA')
+            }}
+          </li>
+        </ul>
+      </div>
       <h3>Activitats de Qualificació</h3>
       <div class="border border-black">
-        <show-table :data="syllabusFinalActivities" :columns="activityColumns">
+        <show-table
+          :data="syllabusFinalActivities"
+          :columns="activityColumns"
+          :rowClass="isInvalidFinalActivity">
           <template v-slot="{ item, index }">
             <button @click="showActivityDetails = item" class="btn btn-secondary" title="Veure">
               <i class="bi bi-eye"></i>

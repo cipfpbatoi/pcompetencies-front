@@ -264,16 +264,10 @@ export default {
       } else if (this.modal === 'methodologies') {
         const methodologiesChecked = this.methodologiesCheckeables.filter((item) => item.checked)
         try {
-          const apiResponse = await api.saveLearningSituationMethodologies(this.learningSituation.id, {
+          await api.saveLearningSituationMethodologies(this.learningSituation.id, {
             methodologicalPrinciplesIds: getObjectsIds(methodologiesChecked)
           })
-          this.learningSituation = apiResponse.data
-          const lsIndex = this.syllabus.learningSituations?.findIndex(
-            (item) => item.id === this.learningSituation.id
-          )
-          if (lsIndex > -1) {
-            this.syllabus.learningSituations.splice(lsIndex, 1, apiResponse.data)
-          }
+          await this.fetchLearningSituation()
           this.GenericModal.hide()
           this.addMessage('success', 'Metodologies guardades')
           return

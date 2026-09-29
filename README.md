@@ -77,3 +77,5 @@ npm run lint
   - `DELETE /pcc/{id}/intermodular-project-guide/participants/{moduleCode}/{courseLevel}`
   - `POST /pcc/{id}/intermodular-project-guide/orientations`
   - `DELETE /pcc/{id}/intermodular-project-guide/orientations/{moduleCode}/{courseLevel}`
+
+rsync -av --no-perms --progress dist/ pcompetencies@programacions.cipfpbatoi.es:/home/pcompetencies/var/www-pcompetencies/

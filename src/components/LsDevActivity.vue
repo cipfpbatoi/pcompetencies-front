@@ -89,7 +89,15 @@ export default {
         columns.push({
           title: 'C.A.',
           hint: 'Criteris d\'avaluació associats',
-          func: (x) => (x ? x?.map((item) => this.getRaNumberFromId(item.learningResultId) +'.'+ item.code).join(', ') || '---' : '---'),
+          func: (x) =>
+            x
+              ? x
+                  .map((item) => {
+                    const raNumber = this.getRaNumberFromId(item.learningResultId)
+                    return raNumber ? raNumber + '.' + item.code : item.code
+                  })
+                  .join(', ') || '---'
+              : '---',
           param: 'evaluationCriterias'
         })
         columns.push({
@@ -128,6 +136,11 @@ export default {
             typeTitle: this.activityTypes.find((aT) => aT.type === item.type)?.title || ''
           }
         })
+    },
+    hasUnavailableLearningResults() {
+      return this.activitiesOfType?.some((activity) =>
+        this.hasUnavailableLearningResult(activity)
+      )
     },
     didacticContents() {
       return makeCheckeableArray(
@@ -245,12 +258,14 @@ export default {
         ...activity,
         learningResults: []
       }
-      const ecWithLr = activity.evaluationCriterias.map((ec) => {
-        return {
-          ...ec,
-          lr: this.moduleEcWithLr.find((item) => item.id === ec.id)?.lr
-        }
-      })
+      const ecWithLr = activity.evaluationCriterias
+        .map((ec) => {
+          return {
+            ...ec,
+            lr: this.moduleEcWithLr.find((item) => item.id === ec.id)?.lr
+          }
+        })
+        .filter((ec) => ec.lr)
       ecWithLr.forEach((ec) => {
         if (details.learningResults['RA' + ec.lr.number]) {
           details.learningResults['RA' + ec.lr.number].evaluationCriterias.push({
@@ -274,7 +289,18 @@ export default {
       this.showActivityDetails = details
     },
     getRaNumberFromId(id) {
-      return this.module?.learningResults?.find((element) => element.id === id).number;
+      return this.module?.learningResults?.find((element) => String(element.id) === String(id))?.number
+    },
+    hasUnavailableLearningResult(activity) {
+      return activity.evaluationCriterias?.some(
+        (evaluationCriteria) =>
+          !this.module?.learningResults?.some(
+            (learningResult) => String(learningResult.id) === String(evaluationCriteria.learningResultId)
+          )
+      )
+    },
+    markingActivityRowClass(activity) {
+      return this.type === 'marking' && this.hasUnavailableLearningResult(activity) ? 'text-danger' : ''
     },
     showModal(activity) {
       this.errors = []
@@ -527,7 +553,11 @@ export default {
         </div>
       </div>
     </ModalComponent>
-    <show-table :data="activitiesOfType" :columns="activityColumns">
+    <div v-if="type === 'marking' && hasUnavailableLearningResults" class="alert alert-danger">
+      Hi ha criteris d'avaluació associats a resultats d'aprenentatge que no estan disponibles.
+      Revisa les activitats qualificables.
+    </div>
+    <show-table :data="activitiesOfType" :columns="activityColumns" :row-class="markingActivityRowClass">
       <template v-slot="{ item, index }">
         <button
           v-if="type === 'marking'"

@@ -11,9 +11,9 @@ const normalizeCourseLevel = (value) => {
 }
 
 const normalizeCourseLevels = (courseLevels) => {
-  return [...new Set((courseLevels || []).map((level) => normalizeCourseLevel(level)).filter(Boolean))].sort(
-    (a, b) => a - b
-  )
+  return [
+    ...new Set((courseLevels || []).map((level) => normalizeCourseLevel(level)).filter(Boolean))
+  ].sort((a, b) => a - b)
 }
 
 const getOrientationCourseLevel = (orientation) => {
@@ -133,9 +133,9 @@ const removeOrientationFromCollections = (pcc, moduleCode, courseLevel) => {
     )
   }
 
-  pcc.intermodularProjectModuleOrientations = asArray(pcc.intermodularProjectModuleOrientations).filter(
-    (orientation) => !matchesTarget(orientation)
-  )
+  pcc.intermodularProjectModuleOrientations = asArray(
+    pcc.intermodularProjectModuleOrientations
+  ).filter((orientation) => !matchesTarget(orientation))
 
   if (!pcc.intermodularProjectGuide) return
 
@@ -279,7 +279,9 @@ export const useDataStore = defineStore('data', {
               const shouldLoadPccFromSyllabus = !window.location.pathname.startsWith('/pcc')
               const [respSyl, respPCC] = await Promise.all([
                 api.getSyllabusById(data.syllabusId),
-                shouldLoadPccFromSyllabus ? api.getPCCByCycleId(data.cycleId) : Promise.resolve(null)
+                shouldLoadPccFromSyllabus
+                  ? api.getPCCByCycleId(data.cycleId)
+                  : Promise.resolve(null)
               ])
               const respCycle = await api.getCycleById(data.cycleId)
               if (respPCC) {
@@ -449,6 +451,120 @@ export const useDataStore = defineStore('data', {
         return error
       }
     },
+    async createIndividualTrainingPlan(pccId, data) {
+      try {
+        const response = await api.createIndividualTrainingPlan(pccId, data)
+        const plan = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (!this.pcc.individualTrainingPlans) {
+          this.pcc.individualTrainingPlans = []
+        }
+        this.pcc.individualTrainingPlans.push(plan)
+        this.addMessage('success', 'Pla formatiu individual creat')
+        return plan
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
+    async updateIndividualTrainingPlan(pccId, planId, data) {
+      try {
+        const response = await api.updateIndividualTrainingPlan(pccId, planId, data)
+        const plan = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (!this.pcc.individualTrainingPlans) {
+          this.pcc.individualTrainingPlans = []
+        }
+        const index = this.pcc.individualTrainingPlans.findIndex((item) => item.id === planId)
+        if (index > -1) {
+          this.pcc.individualTrainingPlans.splice(index, 1, plan)
+        } else {
+          this.pcc.individualTrainingPlans.push(plan)
+        }
+        this.addMessage('success', 'Pla formatiu individual actualitzat')
+        return plan
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
+    async deleteIndividualTrainingPlan(pccId, planId) {
+      try {
+        await api.deleteIndividualTrainingPlan(pccId, planId)
+        if (this.pcc?.individualTrainingPlans) {
+          this.pcc.individualTrainingPlans = this.pcc.individualTrainingPlans.filter(
+            (item) => item.id !== planId
+          )
+        }
+        this.addMessage('success', 'Pla formatiu individual eliminat')
+        return true
+      } catch (error) {
+        this.addMessage('error', error)
+        return false
+      }
+    },
+    replaceIndividualTrainingPlan(plan) {
+      if (!this.pcc) {
+        this.pcc = {}
+      }
+      if (!this.pcc.individualTrainingPlans) {
+        this.pcc.individualTrainingPlans = []
+      }
+      const index = this.pcc.individualTrainingPlans.findIndex((item) => item.id === plan.id)
+      if (index > -1) {
+        this.pcc.individualTrainingPlans.splice(index, 1, plan)
+      } else {
+        this.pcc.individualTrainingPlans.push(plan)
+      }
+    },
+    async sendIndividualTrainingPlan(pccId, planId) {
+      try {
+        const response = await api.individualTrainingPlanSend(pccId, planId)
+        this.replaceIndividualTrainingPlan(response.data)
+        this.addMessage('success', 'Pla formatiu individual enviat')
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
+    async approveIndividualTrainingPlan(pccId, planId) {
+      try {
+        const response = await api.individualTrainingPlanApprove(pccId, planId)
+        this.replaceIndividualTrainingPlan(response.data)
+        this.addMessage('success', 'Pla formatiu individual aprovat')
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
+    async rejectIndividualTrainingPlan(pccId, planId, data) {
+      try {
+        const response = await api.individualTrainingPlanReject(pccId, planId, data)
+        this.replaceIndividualTrainingPlan(response.data)
+        this.addMessage('success', 'Pla formatiu individual rebutjat')
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
+    async setPendingIndividualTrainingPlan(pccId, planId) {
+      try {
+        const response = await api.individualTrainingPlanPending(pccId, planId)
+        this.replaceIndividualTrainingPlan(response.data)
+        this.addMessage('success', 'Pla formatiu individual posat com a pendent')
+        return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
     async savePCCIntermodularGuide(pccId, data) {
       try {
         const response = await api.savePCCIntermodularGuide(pccId, data)
@@ -495,7 +611,9 @@ export const useDataStore = defineStore('data', {
             payload.courseLevels || (payload.courseLevel ? [payload.courseLevel] : [])
           )
           const index = this.pcc.intermodularProjectLearningResultDistributions.findIndex(
-            (distribution) => (distribution.learningResult?.id || distribution.learningResultId) === payloadLearningResultId
+            (distribution) =>
+              (distribution.learningResult?.id || distribution.learningResultId) ===
+              payloadLearningResultId
           )
           const nextDistribution = {
             ...payload,
@@ -503,7 +621,11 @@ export const useDataStore = defineStore('data', {
             courseLevel: courseLevels[0] || null
           }
           if (index > -1) {
-            this.pcc.intermodularProjectLearningResultDistributions.splice(index, 1, nextDistribution)
+            this.pcc.intermodularProjectLearningResultDistributions.splice(
+              index,
+              1,
+              nextDistribution
+            )
           } else {
             this.pcc.intermodularProjectLearningResultDistributions.push(nextDistribution)
           }
@@ -521,7 +643,11 @@ export const useDataStore = defineStore('data', {
     },
     async deletePCCIntermodularDistribution(pccId, learningResultId, courseLevel) {
       try {
-        const response = await api.deletePCCIntermodularDistribution(pccId, learningResultId, courseLevel)
+        const response = await api.deletePCCIntermodularDistribution(
+          pccId,
+          learningResultId,
+          courseLevel
+        )
         const payload = response.data
         if (!this.pcc) {
           this.pcc = {}
@@ -562,8 +688,9 @@ export const useDataStore = defineStore('data', {
         if (payload?.intermodularProjectGuide) {
           this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
         } else if (payload?.intermodularProjectModuleOrientations) {
-          this.pcc.intermodularProjectModuleOrientations =
-            asArray(payload.intermodularProjectModuleOrientations)
+          this.pcc.intermodularProjectModuleOrientations = asArray(
+            payload.intermodularProjectModuleOrientations
+          )
         } else if (payload?.orientations) {
           if (!this.pcc.intermodularProjectGuide) {
             this.pcc.intermodularProjectGuide = {}
@@ -614,7 +741,9 @@ export const useDataStore = defineStore('data', {
           )
         } else if ((payload?.module || payload?.moduleCode) && payload?.courseLevel) {
           if (!this.pcc.intermodularProjectParticipatingModules) {
-            this.pcc.intermodularProjectParticipatingModules = getParticipantsCollectionFromPcc(this.pcc)
+            this.pcc.intermodularProjectParticipatingModules = getParticipantsCollectionFromPcc(
+              this.pcc
+            )
           }
           const payloadCourseLevel = normalizeCourseLevel(payload.courseLevel)
           const index = this.pcc.intermodularProjectParticipatingModules.findIndex(
@@ -682,8 +811,9 @@ export const useDataStore = defineStore('data', {
         if (payload?.intermodularProjectGuide) {
           this.pcc.intermodularProjectGuide = payload.intermodularProjectGuide
         } else if (payload?.intermodularProjectModuleOrientations) {
-          this.pcc.intermodularProjectModuleOrientations =
-            asArray(payload.intermodularProjectModuleOrientations)
+          this.pcc.intermodularProjectModuleOrientations = asArray(
+            payload.intermodularProjectModuleOrientations
+          )
         } else if (payload?.orientations) {
           if (!this.pcc.intermodularProjectGuide) {
             this.pcc.intermodularProjectGuide = {}
@@ -691,8 +821,8 @@ export const useDataStore = defineStore('data', {
           this.pcc.intermodularProjectGuide.orientations = payload.orientations
         } else if (this.pcc.intermodularProjectModuleOrientations) {
           const targetLevel = normalizeCourseLevel(courseLevel)
-          this.pcc.intermodularProjectModuleOrientations = this.pcc.intermodularProjectModuleOrientations.map(
-            (orientation) => {
+          this.pcc.intermodularProjectModuleOrientations =
+            this.pcc.intermodularProjectModuleOrientations.map((orientation) => {
               if (
                 getOrientationModuleCode(orientation) !== moduleCode ||
                 getOrientationCourseLevel(orientation) !== targetLevel
@@ -705,8 +835,7 @@ export const useDataStore = defineStore('data', {
                 supportLearningResultIds: [],
                 supportLearningResults: []
               }
-            }
-          )
+            })
         } else {
           this.pcc = payload
         }

@@ -96,11 +96,7 @@ export const api = {
     instance.delete(
       `/pcc/${pccId}/intermodular-project-guide/participants/${moduleCode}/${courseLevel}`
     ),
-  deletePCCIntermodularOrientation: (
-    pccId,
-    moduleCode,
-    courseLevel
-  ) =>
+  deletePCCIntermodularOrientation: (pccId, moduleCode, courseLevel) =>
     instance.delete(
       `/pcc/${pccId}/intermodular-project-guide/orientations/${moduleCode}/${courseLevel}`
     ),
@@ -145,6 +141,31 @@ export const api = {
     instance.get(`/curricular-projects/${pccId}/module/${moduleCode}/center-projects`),
   getModuleCenterProjectsCollection: (pccId) =>
     instance.get(`/curricular-projects/${pccId}/module-organizations/center-projects`),
+  getIndividualTrainingPlanAvailableItems: (pccId, turn, planId) =>
+    instance.get(`/pcc/${pccId}/individual-training-plans/available-items`, {
+      params: planId ? { turn, planId } : { turn }
+    }),
+  createIndividualTrainingPlan: (pccId, data) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans`, data),
+  updateIndividualTrainingPlan: (pccId, planId, data) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}`, data),
+  deleteIndividualTrainingPlan: (pccId, planId) =>
+    instance.delete(`/pcc/${pccId}/individual-training-plans/${planId}`),
+  getIndividualTrainingPlanPdf: (pccId, planId) =>
+    axios.get(`${BASE_URL}pcc/${pccId}/individual-training-plans/${planId}/pdf`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.token}`
+      },
+      responseType: 'blob'
+    }),
+  individualTrainingPlanPending: (pccId, planId) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/pending`, {}),
+  individualTrainingPlanSend: (pccId, planId) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/send`, {}),
+  individualTrainingPlanReject: (pccId, planId, data) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/reject`, data),
+  individualTrainingPlanApprove: (pccId, planId) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/approve`, {}),
   addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) =>
     instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, {
       centerProjectIds

@@ -761,6 +761,14 @@ const getTurnLabel = (turn) => {
                 >
                   <i class="bi bi-clock-history"></i> Històric
                 </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  title="Gestionar plans formatius individuals"
+                  @click="router.push({ name: 'individualTrainingPlansPCC' })"
+                >
+                  <i class="bi bi-mortarboard-fill"></i> Plans Formatius Individuals
+                </button>
               </template>
               <ActionButton
                 v-else

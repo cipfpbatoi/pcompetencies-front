@@ -121,7 +121,6 @@ export default {
     ...mapActions(useDataStore, [
       'addMessage',
       'refreshPccByCycleId',
-      'sendIndividualTrainingPlan',
       'approveIndividualTrainingPlan',
       'rejectIndividualTrainingPlan',
       'setPendingIndividualTrainingPlan'
@@ -288,22 +287,6 @@ export default {
       const index = this.plans.findIndex((item) => item.id === planId)
       if (index > -1) {
         this.plans.splice(index, 1, { ...this.plans[index], ...patch })
-      }
-    },
-    async handleSendPlan(plan) {
-      if (
-        !confirm(`Vas a enviar el pla formatiu individual "${plan.name}" per a la seua aprovació.`)
-      )
-        return
-
-      this.changingStatusPlanId = plan.id
-      try {
-        const result = await this.sendIndividualTrainingPlan(plan.curricularProject.id, plan.id)
-        this.mergePlanStatus(plan.id, { status: result.status })
-      } catch (error) {
-        this.showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error)
-      } finally {
-        this.changingStatusPlanId = null
       }
     },
     async handleApprovePlan(plan) {
@@ -596,18 +579,6 @@ export default {
                           class="spinner-border spinner-border-sm"
                         ></span>
                         <i v-else class="bi bi-file-earmark-pdf-fill"></i>
-                      </button>
-                      <button
-                        v-if="
-                          ['pendent', 'rebutjada'].includes(plan.status) &&
-                          isPlanOfCurrentSchoolYear(plan)
-                        "
-                        class="btn btn-sm btn-outline-info"
-                        title="Enviar per a aprovació"
-                        :disabled="changingStatusPlanId === plan.id"
-                        @click="handleSendPlan(plan)"
-                      >
-                        <i class="bi bi-send-fill"></i>
                       </button>
                       <button
                         v-if="plan.status === 'enviada' && isPlanOfCurrentSchoolYear(plan)"

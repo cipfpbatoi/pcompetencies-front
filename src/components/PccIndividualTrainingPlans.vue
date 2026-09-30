@@ -123,7 +123,8 @@ const form = reactive({
   observations: '',
   requiresExtraordinaryAuthorizations: false,
   extraordinaryAuthorizations: '',
-  moduleHours: {}
+  moduleHours: {},
+  moduleActivities: {}
 })
 
 const selectedLearningResultIds = ref(new Set())
@@ -172,7 +173,8 @@ const buildFormSnapshot = () =>
     extraordinaryAuthorizations: form.extraordinaryAuthorizations,
     learningResultIds: [...selectedLearningResultIds.value].sort((a, b) => a - b),
     evaluationCriteriaIds: [...selectedEvaluationCriteriaIds.value].sort((a, b) => a - b),
-    moduleHours: relevantModuleHoursEntries.value
+    moduleHours: relevantModuleHoursEntries.value,
+    moduleActivities: relevantModuleActivitiesEntries.value
   })
 
 const markSnapshotAsSaved = () => {
@@ -288,6 +290,13 @@ const relevantModuleHoursEntries = computed(() =>
 
 const totalModuleHours = computed(() =>
   relevantModuleHoursEntries.value.reduce((sum, [, hours]) => sum + hours, 0)
+)
+
+// Activitats (text lliure, opcional) per a cada mòdul amb algun RA/CE seleccionat
+const relevantModuleActivitiesEntries = computed(() =>
+  selectedSummaryByModule.value
+    .map((entry) => [entry.moduleCode, form.moduleActivities[entry.moduleCode] || ''])
+    .sort((a, b) => a[0].localeCompare(b[0]))
 )
 
 // El curs (courseLevel) és un camp obligatori i fix per a tot el pla: en canviar-lo es lleven
@@ -420,6 +429,7 @@ const openCreateModal = async () => {
   form.requiresExtraordinaryAuthorizations = false
   form.extraordinaryAuthorizations = ''
   form.moduleHours = {}
+  form.moduleActivities = {}
   selectedLearningResultIds.value = new Set()
   selectedEvaluationCriteriaIds.value = new Set()
   selectionErrorLines.value = []
@@ -443,6 +453,11 @@ const openEditModal = async (plan) => {
     (plan.moduleHours || [])
       .filter((entry) => entry.module?.code)
       .map((entry) => [entry.module.code, entry.hours])
+  )
+  form.moduleActivities = Object.fromEntries(
+    (plan.moduleHours || [])
+      .filter((entry) => entry.module?.code)
+      .map((entry) => [entry.module.code, entry.activities || ''])
   )
   selectionErrorLines.value = []
   currentStep.value = 1
@@ -562,6 +577,9 @@ const handleSavePlan = async () => {
   selectionErrorLines.value = []
 
   const moduleHours = Object.fromEntries(relevantModuleHoursEntries.value)
+  const moduleActivities = Object.fromEntries(
+    relevantModuleActivitiesEntries.value.filter(([, activities]) => activities.trim() !== '')
+  )
 
   const payload = {
     name: form.name.trim(),
@@ -574,7 +592,8 @@ const handleSavePlan = async () => {
       : null,
     learningResultIds: [...selectedLearningResultIds.value],
     evaluationCriteriaIds: [...selectedEvaluationCriteriaIds.value],
-    moduleHours
+    moduleHours,
+    moduleActivities
   }
 
   isSaving.value = true
@@ -936,26 +955,34 @@ const handleCopyPlanToCurrentYear = async (plan) => {
 
               <template v-if="selectedSummaryByModule.length > 0">
                 <hr />
-                <h6 class="fw-bold">Hores en empresa per mòdul</h6>
+                <h6 class="fw-bold">Hores per mòduls i altres especificacions</h6>
                 <div
                   v-for="entry in selectedSummaryByModule"
                   :key="entry.moduleCode"
-                  class="d-flex justify-content-between align-items-center gap-2 mb-2 rounded px-3 py-2"
+                  class="mb-2 rounded px-3 py-2"
                   :class="getModuleSubtleClass(entry.moduleCode)"
                 >
-                  <span class="fw-bold">
-                    {{ entry.moduleName }} (Hores SA Dualitzables PD:
-                    {{ suggestedHoursByModuleCode.get(entry.moduleCode) || 0 }}h)
-                  </span>
-                  <div class="input-group input-group-sm" style="width: 10rem">
-                    <input
-                      v-model.number="form.moduleHours[entry.moduleCode]"
-                      type="number"
-                      min="1"
-                      class="form-control"
-                    />
-                    <span class="input-group-text">hores</span>
+                  <div class="d-flex justify-content-between align-items-center gap-2">
+                    <span class="fw-bold">
+                      {{ entry.moduleName }} (Hores SA Dualitzables PD:
+                      {{ suggestedHoursByModuleCode.get(entry.moduleCode) || 0 }}h)
+                    </span>
+                    <div class="input-group input-group-sm" style="width: 10rem">
+                      <input
+                        v-model.number="form.moduleHours[entry.moduleCode]"
+                        type="number"
+                        min="1"
+                        class="form-control"
+                      />
+                      <span class="input-group-text">hores</span>
+                    </div>
                   </div>
+                  <textarea
+                    v-model="form.moduleActivities[entry.moduleCode]"
+                    class="form-control form-control-sm mt-2"
+                    rows="2"
+                    placeholder="(Opcional) Ací pots especificar qualssevol observació sobre les activitats a dessenvolupar a la empresa"
+                  ></textarea>
                 </div>
 
                 <div

@@ -24,7 +24,8 @@ const HANDLED_VALIDATION_ERROR_KEYS = [
   'evaluationCriteriaNotAssigned',
   'finalEvaluation',
   'InCompanyTrainingRestrictions',
-  'assessmentsToolRestrictions'
+  'assessmentsToolRestrictions',
+  'dualizableModule'
 ]
 
 export default {
@@ -81,7 +82,7 @@ export default {
     },
     async sendSyllabus() {
       if (!this.isPccApproved) {
-        this.addMessage('error', "No es pot enviar la programació fins que el PCC estiga aprovat")
+        this.addMessage('error', 'No es pot enviar la programació fins que el PCC estiga aprovat')
         return
       }
 
@@ -258,7 +259,10 @@ export default {
           <strong>ATENCIÓ:</strong> Un cop enviada la programació ja no es pot modificar
         </div>
       </div>
-      <div v-if="isValid && !isPccApproved" class="text-center alert alert-warning p-2 col-sm-12 col-12 mx-auto">
+      <div
+        v-if="isValid && !isPccApproved"
+        class="text-center alert alert-warning p-2 col-sm-12 col-12 mx-auto"
+      >
         <strong>ATENCIÓ:</strong> No es pot enviar la programació fins que el PCC estiga aprovat.
       </div>
       <div class="text-center m-2">
@@ -377,6 +381,14 @@ export default {
             <h5>Projecte Funcional - Instruments d'avaluació</h5>
             <ul>
               <li v-for="error in errors.assessmentsToolRestrictions" :key="error">
+                {{ error }}
+              </li>
+            </ul>
+          </div>
+          <div v-if="errors.dualizableModule">
+            <h5>Formació en Empresa</h5>
+            <ul>
+              <li v-for="error in flattenValidationErrors(errors.dualizableModule)" :key="error">
                 {{ error }}
               </li>
             </ul>

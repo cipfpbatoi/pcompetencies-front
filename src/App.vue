@@ -39,22 +39,23 @@ export default {
 
 <template>
   <div class="container-fluid h-100 px-lg-5">
-    <header class="input-group mt-3 justify-content-center container-fluid">
-      <img
-        alt="CIP FP Batoi logo"
-        class="logo m-lg-2 mx-auto d-none d-sm-block"
-        src="/batoi_logo.png"
-        height="100px"
-      />
-      <div class="m-2 col-10">
-        <h1 class="text-xl-end">{{ title }}</h1>
-        <div class="wrapper navbar-expand">
-          <AppNav />
-        </div>
+    <header
+      class="app-header mt-3 d-flex flex-wrap align-items-center justify-content-between gap-3"
+    >
+      <div class="d-flex align-items-center gap-3">
+        <img
+          alt="CIP FP Batoi logo"
+          class="logo d-none d-sm-block"
+          src="/batoi_logo.png"
+          height="60px"
+        />
+        <h1 class="h4 fw-bold m-0">{{ title }}</h1>
+      </div>
+      <div>
+        <AppNav />
       </div>
     </header>
     <AppLocationBreadcrumb />
-    <!-- <button @click="arregla" disabled>Arregla</button> -->
     <RouterView />
     <show-messages></show-messages>
   </div>
@@ -71,11 +72,22 @@ export default {
   color: red;
 }
 
-header {
-  text-align: center;
+.app-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
 }
-.input-group {
-  padding: 10px 10px;
+
+/* Sota el trencament lg, l'AppNav ja es mostra centrat (text-lg-end/justify-content-lg-end
+   deixen d'aplicar-se): apilem títol i navegació a ample complet en compte de mantindre-les
+   forçades en la mateixa fila, on quedaven comprimides */
+@media (max-width: 991.98px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .app-header > div {
+    justify-content: center !important;
+  }
 }
 
 .view-main {

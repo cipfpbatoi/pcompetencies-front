@@ -8,7 +8,14 @@ export default {
     isAdminOrHeadOfDepartament() {
       return (
         this.user.info?.roles.includes('ROLE_HEAD_DEPARTMENT') ||
-        this.user.info?.roles.includes('ROLE_ADMIN')
+        this.user.info?.roles.includes('ROLE_ADMIN') ||
+        this.user.info?.roles.includes('ROLE_COORDINADOR_FCT')
+      )
+    },
+    canManageIndividualTrainingPlans() {
+      return (
+        this.user.info?.roles.includes('ROLE_ADMIN') ||
+        this.user.info?.roles.includes('ROLE_COORDINADOR_FCT')
       )
     },
     canManagePcc() {
@@ -81,6 +88,16 @@ export default {
             </li>
             <li v-if="user.info?.roles.includes('ROLE_ADMIN')">
               <RouterLink class="dropdown-item" to="/pcc/stats">Estadistiques PCC</RouterLink>
+            </li>
+            <li v-if="canManageIndividualTrainingPlans">
+              <RouterLink class="dropdown-item" to="/individual-training-plans/manage"
+                >Plans Formatius Individuals</RouterLink
+              >
+            </li>
+            <li v-if="canManageIndividualTrainingPlans">
+              <RouterLink class="dropdown-item" to="/individual-training-plans/stats"
+                >Estadistiques Plans Formatius Individuals</RouterLink
+              >
             </li>
           </ul>
         </li>

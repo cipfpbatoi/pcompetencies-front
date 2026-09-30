@@ -116,6 +116,24 @@ export const api = {
   pccVerify: (id) => instance.post(`/pcc/${id}/verify`, {}),
   getPccStats: () => instance.get('/pcc/stats'),
   getPccDepartmentStats: (departmentId) => instance.get(`/pcc/department/${departmentId}/stats`),
+  // Llistats paginats (API Platform): demanem ld+json per rebre hydra:totalItems
+  // i poder construir la paginació al front
+  getIndividualTrainingPlansCenter: (params) =>
+    instance.get('/individual-training-plans', {
+      params,
+      headers: { Accept: 'application/ld+json' }
+    }),
+  getIndividualTrainingPlansByDepartment: (departmentId, params) =>
+    instance.get(`/individual-training-plans/department/${departmentId}`, {
+      params,
+      headers: { Accept: 'application/ld+json' }
+    }),
+  getIndividualTrainingPlansStats: (params) =>
+    instance.get('/individual-training-plans/stats', { params }),
+  getIndividualTrainingPlansDepartmentStats: (departmentId, params) =>
+    instance.get(`/individual-training-plans/department/${departmentId}/stats`, { params }),
+  getIndividualTrainingPlansDepartmentCyclesStats: (departmentId, params) =>
+    instance.get(`/individual-training-plans/department/${departmentId}/cycles-stats`, { params }),
 
   getPCCMethodologicalPrinciples: (pccId, mpContext) =>
     instance.get(`/pcc/${pccId}/mp-context`, mpContext),
@@ -166,6 +184,8 @@ export const api = {
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/reject`, data),
   individualTrainingPlanApprove: (pccId, planId) =>
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/approve`, {}),
+  individualTrainingPlanCopy: (pccId, planId) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/copy`, {}),
   addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) =>
     instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, {
       centerProjectIds

@@ -528,8 +528,8 @@ export const useDataStore = defineStore('data', {
         this.addMessage('success', 'Pla formatiu individual enviat')
         return response.data
       } catch (error) {
-        this.addMessage('error', error)
-        return null
+        // No s'afig el toast: la pantalla ja mostra el motiu exacte en un modal ben visible
+        throw error
       }
     },
     async approveIndividualTrainingPlan(pccId, planId) {
@@ -560,6 +560,24 @@ export const useDataStore = defineStore('data', {
         this.replaceIndividualTrainingPlan(response.data)
         this.addMessage('success', 'Pla formatiu individual posat com a pendent')
         return response.data
+      } catch (error) {
+        this.addMessage('error', error)
+        return null
+      }
+    },
+    async copyIndividualTrainingPlan(pccId, planId) {
+      try {
+        const response = await api.individualTrainingPlanCopy(pccId, planId)
+        const plan = response.data
+        if (!this.pcc) {
+          this.pcc = {}
+        }
+        if (!this.pcc.individualTrainingPlans) {
+          this.pcc.individualTrainingPlans = []
+        }
+        this.pcc.individualTrainingPlans.push(plan)
+        this.addMessage('success', 'Pla formatiu individual copiat al curs escolar actual')
+        return plan
       } catch (error) {
         this.addMessage('error', error)
         return null

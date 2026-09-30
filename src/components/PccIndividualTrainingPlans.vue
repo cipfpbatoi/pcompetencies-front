@@ -1,5 +1,6 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import * as yup from 'yup'
 import { useDataStore } from '../stores/data'
@@ -17,16 +18,14 @@ const props = defineProps({
 })
 
 const store = useDataStore()
-const { pcc, cycle } = storeToRefs(store)
+const { pcc, cycle, user } = storeToRefs(store)
 const {
   addMessage,
   createIndividualTrainingPlan,
   updateIndividualTrainingPlan,
   deleteIndividualTrainingPlan,
   sendIndividualTrainingPlan,
-  approveIndividualTrainingPlan,
-  rejectIndividualTrainingPlan,
-  setPendingIndividualTrainingPlan
+  copyIndividualTrainingPlan
 } = store
 
 // ==========================================
@@ -34,11 +33,67 @@ const {
 // ==========================================
 const plans = computed(() => pcc.value?.individualTrainingPlans || [])
 
+// Si s'arriba des de la pantalla de gestió amb ?openPlanId=X (pla pendent), s'obri
+// directament el modal d'edició d'eixe pla
+const route = useRoute()
+const router = useRouter()
+
+onMounted(() => {
+  const openPlanId = route.query.openPlanId ? Number(route.query.openPlanId) : null
+  if (!openPlanId) return
+
+  const plan = plans.value.find((item) => item.id === openPlanId)
+  if (plan) {
+    openEditModal(plan)
+  }
+
+  const restQuery = { ...route.query }
+  delete restQuery.openPlanId
+  router.replace({ query: restQuery })
+})
+
+const currentSchoolYear = ref('')
+
+onMounted(async () => {
+  try {
+    const response = await api.getCurrentData()
+    currentSchoolYear.value = response.data?.currentSchoolYear?.course || ''
+  } catch (error) {
+    addMessage('error', error)
+  }
+})
+
+const isPlanOfCurrentSchoolYear = (plan) =>
+  !currentSchoolYear.value || plan.courseYear === currentSchoolYear.value
+
+const currentYearPlans = computed(() =>
+  plans.value.filter((plan) => isPlanOfCurrentSchoolYear(plan))
+)
+const historicPlans = computed(() => plans.value.filter((plan) => !isPlanOfCurrentSchoolYear(plan)))
+
+// Eliminar un pla que ja no és pendent requerix ser admin o coordinador FCT
+// (posar pendent / rebutjar / aprovar es fan des de la pantalla de gestió, no ací)
+const canDeleteNonPendingPlan = computed(
+  () =>
+    !!user.value?.info?.roles?.includes('ROLE_ADMIN') ||
+    !!user.value?.info?.roles?.includes('ROLE_COORDINADOR_FCT')
+)
+
+// Un pla enviat o aprovat ja no es pot editar (nomes pendent o rebutjat)
+const isPlanEditable = (plan) => plan.status !== 'enviada' && plan.status !== 'aprovada'
+
 const TURN_LABELS = {
   presential: 'Presencial',
   'half-presential': 'Semi-presencial'
 }
 const getTurnLabel = (turn) => TURN_LABELS[turn] || turn
+
+// Mòduls inclosos en un pla: la resposta del pla ja porta moduleHours[] amb
+// { hours, module: { code, name } }, un element per mòdul inclòs
+const getPlanModulesLabel = (plan) =>
+  (plan.moduleHours || [])
+    .map((entry) => `${entry.module?.code} - ${entry.module?.name} (${entry.hours}h)`)
+    .join(', ')
 
 const availableTurns = computed(() => cycle.value?.availableTurns || [])
 
@@ -231,6 +286,10 @@ const relevantModuleHoursEntries = computed(() =>
     .sort((a, b) => a[0].localeCompare(b[0]))
 )
 
+const totalModuleHours = computed(() =>
+  relevantModuleHoursEntries.value.reduce((sum, [, hours]) => sum + hours, 0)
+)
+
 // El curs (courseLevel) és un camp obligatori i fix per a tot el pla: en canviar-lo es lleven
 // del pla les RA/CE que ja no pertanguen al nou curs (el backend ho fa igual en editar)
 const handleCourseLevelChange = () => {
@@ -380,7 +439,11 @@ const openEditModal = async (plan) => {
   form.observations = plan.observations || ''
   form.requiresExtraordinaryAuthorizations = !!plan.requiresExtraordinaryAuthorizations
   form.extraordinaryAuthorizations = plan.extraordinaryAuthorizations || ''
-  form.moduleHours = { ...(plan.moduleHours || {}) }
+  form.moduleHours = Object.fromEntries(
+    (plan.moduleHours || [])
+      .filter((entry) => entry.module?.code)
+      .map((entry) => [entry.module.code, entry.hours])
+  )
   selectionErrorLines.value = []
   currentStep.value = 1
   activeModuleCode.value = ''
@@ -587,6 +650,30 @@ const handleDownloadPlanPdf = async (plan) => {
 // ==========================================
 const changingStatusPlanId = ref(null)
 
+const getErrorMessage = (error) => {
+  if (typeof error?.response?.data === 'string') return error.response.data
+  return (
+    error?.response?.data?.detail ||
+    error?.response?.data?.message ||
+    error?.response?.data?.title ||
+    error?.message ||
+    'Error desconegut'
+  )
+}
+
+// ==========================================
+// MODAL: ERROR EN UNA ACCIÓ SOBRE UN PLA
+// ==========================================
+const actionErrorModalRef = ref(null)
+const actionErrorTitle = ref('')
+const actionErrorMessage = ref('')
+
+const showActionError = (title, error) => {
+  actionErrorTitle.value = title
+  actionErrorMessage.value = getErrorMessage(error)
+  actionErrorModalRef.value?.show()
+}
+
 const handleSendPlan = async (plan) => {
   if (!confirm(`Vas a enviar el pla formatiu individual "${plan.name}" per a la seua aprovació.`))
     return
@@ -594,66 +681,26 @@ const handleSendPlan = async (plan) => {
   changingStatusPlanId.value = plan.id
   try {
     await sendIndividualTrainingPlan(props.pccId, plan.id)
+  } catch (error) {
+    showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error)
   } finally {
     changingStatusPlanId.value = null
   }
 }
 
-const handleApprovePlan = async (plan) => {
-  if (!confirm(`Vas a aprovar el pla formatiu individual "${plan.name}".`)) return
-
-  changingStatusPlanId.value = plan.id
-  try {
-    await approveIndividualTrainingPlan(props.pccId, plan.id)
-  } finally {
-    changingStatusPlanId.value = null
-  }
-}
-
-const handleSetPendingPlan = async (plan) => {
-  if (!confirm(`Vas a posar el pla formatiu individual "${plan.name}" com a pendent.`)) return
-
-  changingStatusPlanId.value = plan.id
-  try {
-    await setPendingIndividualTrainingPlan(props.pccId, plan.id)
-  } finally {
-    changingStatusPlanId.value = null
-  }
-}
-
-// ==========================================
-// MODAL: REBUTJAR PLA
-// ==========================================
-const rejectPlanModalRef = ref(null)
-const rejectPlanTarget = ref(null)
-const rejectPlanReason = ref('')
-const rejectPlanError = ref('')
-const isRejectingPlan = ref(false)
-
-const openRejectPlanModal = (plan) => {
-  rejectPlanTarget.value = plan
-  rejectPlanReason.value = ''
-  rejectPlanError.value = ''
-  rejectPlanModalRef.value?.show()
-}
-
-const handleRejectPlan = async () => {
-  if (rejectPlanReason.value.trim().length < 8) {
-    rejectPlanError.value = 'El motiu és obligatori i ha de tindre almenys 8 caràcters'
+const handleCopyPlanToCurrentYear = async (plan) => {
+  if (
+    !confirm(
+      `Es crearà una còpia del pla formatiu individual "${plan.name}" per al curs escolar actual, amb estat "pendent". El pla original no es modificarà.`
+    )
+  )
     return
-  }
-  rejectPlanError.value = ''
 
-  isRejectingPlan.value = true
+  changingStatusPlanId.value = plan.id
   try {
-    const result = await rejectIndividualTrainingPlan(props.pccId, rejectPlanTarget.value.id, {
-      reason: rejectPlanReason.value.trim()
-    })
-    if (result) {
-      rejectPlanModalRef.value?.hide()
-    }
+    await copyIndividualTrainingPlan(props.pccId, plan.id)
   } finally {
-    isRejectingPlan.value = false
+    changingStatusPlanId.value = null
   }
 }
 </script>
@@ -755,6 +802,7 @@ const handleRejectPlan = async () => {
         </div>
 
         <template v-else>
+          <h6 class="fw-bold">Afegir RA/CE d'un mòdul</h6>
           <p v-if="selectableModulesForCourse.length === 0" class="alert alert-secondary mb-0">
             Aquest cicle no té cap mòdul dualitzable amb programació per a aquest torn.
           </p>
@@ -857,54 +905,68 @@ const handleRejectPlan = async () => {
 
           <hr />
 
-          <h6 class="fw-bold">Resum de la selecció</h6>
-          <p v-if="selectedSummaryByModule.length === 0" class="text-muted small">
-            Encara no has seleccionat cap RA ni criteri.
-          </p>
-          <div v-else class="d-flex flex-wrap gap-2">
-            <span
-              v-for="entry in selectedSummaryByModule"
-              :key="entry.moduleCode"
-              class="badge py-2 px-2"
-              :class="getModuleBadgeClass(entry.moduleCode)"
-            >
-              <strong class="me-1">{{ entry.moduleName }} · RA:</strong>
-              <template v-for="(item, index) in entry.items" :key="item.key"
-                ><span
-                  class="pfi-summary-item"
-                  role="button"
-                  :title="`Llevar ${item.label}`"
-                  @click="item.remove"
-                  >{{ item.label }}</span
-                ><span v-if="index < entry.items.length - 1">,&nbsp;</span></template
-              >
-            </span>
-          </div>
-
-          <template v-if="selectedSummaryByModule.length > 0">
-            <hr />
-            <h6 class="fw-bold">Hores en empresa per mòdul</h6>
-            <div
-              v-for="entry in selectedSummaryByModule"
-              :key="entry.moduleCode"
-              class="d-flex justify-content-between align-items-center gap-2 mb-2 rounded px-3 py-2"
-              :class="getModuleSubtleClass(entry.moduleCode)"
-            >
-              <span class="fw-bold">
-                {{ entry.moduleName }} (Hores SA Dualitzables PD:
-                {{ suggestedHoursByModuleCode.get(entry.moduleCode) || 0 }}h)
-              </span>
-              <div class="input-group input-group-sm" style="width: 10rem">
-                <input
-                  v-model.number="form.moduleHours[entry.moduleCode]"
-                  type="number"
-                  min="1"
-                  class="form-control"
-                />
-                <span class="input-group-text">hores</span>
-              </div>
+          <div class="card mb-3">
+            <div class="card-header bg-light fw-bold">
+              <i class="bi bi-clipboard-check me-1"></i> Contingut actual del pla
             </div>
-          </template>
+            <div class="card-body">
+              <h6 class="fw-bold">Resum de la selecció</h6>
+              <p v-if="selectedSummaryByModule.length === 0" class="text-muted small mb-0">
+                Encara no has seleccionat cap RA ni criteri.
+              </p>
+              <div v-else class="d-flex flex-wrap gap-2">
+                <span
+                  v-for="entry in selectedSummaryByModule"
+                  :key="entry.moduleCode"
+                  class="badge py-2 px-2"
+                  :class="getModuleBadgeClass(entry.moduleCode)"
+                >
+                  <strong class="me-1">{{ entry.moduleName }} · RA:</strong>
+                  <template v-for="(item, index) in entry.items" :key="item.key"
+                    ><span
+                      class="pfi-summary-item"
+                      role="button"
+                      :title="`Llevar ${item.label}`"
+                      @click="item.remove"
+                      >{{ item.label }}</span
+                    ><span v-if="index < entry.items.length - 1">,&nbsp;</span></template
+                  >
+                </span>
+              </div>
+
+              <template v-if="selectedSummaryByModule.length > 0">
+                <hr />
+                <h6 class="fw-bold">Hores en empresa per mòdul</h6>
+                <div
+                  v-for="entry in selectedSummaryByModule"
+                  :key="entry.moduleCode"
+                  class="d-flex justify-content-between align-items-center gap-2 mb-2 rounded px-3 py-2"
+                  :class="getModuleSubtleClass(entry.moduleCode)"
+                >
+                  <span class="fw-bold">
+                    {{ entry.moduleName }} (Hores SA Dualitzables PD:
+                    {{ suggestedHoursByModuleCode.get(entry.moduleCode) || 0 }}h)
+                  </span>
+                  <div class="input-group input-group-sm" style="width: 10rem">
+                    <input
+                      v-model.number="form.moduleHours[entry.moduleCode]"
+                      type="number"
+                      min="1"
+                      class="form-control"
+                    />
+                    <span class="input-group-text">hores</span>
+                  </div>
+                </div>
+
+                <div
+                  class="d-flex justify-content-between align-items-center fw-bold border-top pt-2 mt-1 fs-5 text-primary"
+                >
+                  <span>Total hores</span>
+                  <span>{{ totalModuleHours }}h</span>
+                </div>
+              </template>
+            </div>
+          </div>
         </template>
       </template>
       <div v-else-if="isLoadingItems" class="text-center py-4">
@@ -922,24 +984,15 @@ const handleRejectPlan = async () => {
     </ModalComponent>
 
     <ModalComponent
-      ref="rejectPlanModalRef"
-      modal-id="rejectIndividualTrainingPlanModal"
-      title="Rebutjar pla formatiu individual"
-      :saving="isRejectingPlan"
-      save-button-text="Rebutjar"
-      save-button-class="btn-danger"
-      @save="handleRejectPlan"
+      ref="actionErrorModalRef"
+      modal-id="planActionErrorModal"
+      :title="actionErrorTitle"
+      header-class="bg-danger text-white"
+      :show-save-button="false"
+      close-button-text="Tanca"
     >
-      <div class="form-group">
-        <label class="form-label fw-bold" for="rejectPlanReason">Motiu del rebutjament</label>
-        <textarea
-          id="rejectPlanReason"
-          v-model="rejectPlanReason"
-          class="form-control"
-          rows="3"
-          placeholder="Escriu el motiu del rebutjament (mínim 8 caràcters)"
-        ></textarea>
-        <p v-if="rejectPlanError" class="text-danger small mb-0">{{ rejectPlanError }}</p>
+      <div class="alert alert-danger mb-0 error-message-text">
+        {{ actionErrorMessage }}
       </div>
     </ModalComponent>
 
@@ -959,116 +1012,195 @@ const handleRejectPlan = async () => {
       Encara no hi ha cap pla formatiu individual creat per a este PCC.
     </div>
 
-    <div v-else class="table-responsive">
-      <table class="table table-bordered align-middle">
-        <thead class="table-light">
-          <tr>
-            <th>Nom</th>
-            <th>Torn</th>
-            <th>Curs</th>
-            <th>Estat</th>
-            <th class="text-center">RA seleccionats</th>
-            <th class="text-center">CE seleccionats</th>
-            <th class="text-center">Accions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="plan in plans" :key="plan.id">
-            <td>
-              {{ plan.name }}
-              <i
-                v-if="plan.requiresExtraordinaryAuthorizations"
-                class="bi bi-exclamation-triangle-fill text-warning ms-1"
-                :title="
-                  plan.extraordinaryAuthorizations || 'Requereix autoritzacions extraordinàries'
-                "
-              ></i>
-            </td>
-            <td>
-              <span class="badge bg-info text-dark">{{ getTurnLabel(plan.turn) }}</span>
-            </td>
-            <td>{{ plan.courseLevel === 2 ? '2n' : '1r' }}</td>
-            <td>
-              <span
-                class="badge"
-                :class="statusClass(plan.status)"
-                :title="plan.status === 'rebutjada' ? plan.rejectedMessage?.reason : ''"
-              >
-                {{ plan.status }}
-              </span>
-            </td>
-            <td class="text-center">{{ plan.learningResults?.length || 0 }}</td>
-            <td class="text-center">{{ plan.evaluationCriterias?.length || 0 }}</td>
-            <td class="text-center">
-              <div class="btn-group" role="group">
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  title="Veure PDF (Annex I)"
-                  :disabled="downloadingPlanId === plan.id"
-                  @click="handleDownloadPlanPdf(plan)"
+    <template v-else>
+      <h5 class="fw-bold">Plans del curs actual</h5>
+      <div v-if="currentYearPlans.length === 0" class="alert alert-secondary">
+        No hi ha cap pla del curs escolar actual.
+      </div>
+      <div v-else class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Nom</th>
+              <th>Curs escolar</th>
+              <th>Torn</th>
+              <th>Curs</th>
+              <th>Estat</th>
+              <th>Mòduls</th>
+              <th class="text-center">Accions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="plan in currentYearPlans" :key="plan.id">
+              <td>
+                {{ plan.name }}
+                <i
+                  v-if="plan.requiresExtraordinaryAuthorizations"
+                  class="bi bi-exclamation-triangle-fill text-warning ms-1"
+                  :title="
+                    plan.extraordinaryAuthorizations || 'Requereix autoritzacions extraordinàries'
+                  "
+                ></i>
+              </td>
+              <td>{{ plan.courseYear }}</td>
+              <td>
+                <span class="badge bg-info text-dark">{{ getTurnLabel(plan.turn) }}</span>
+              </td>
+              <td>{{ plan.courseLevel === 2 ? '2n' : '1r' }}</td>
+              <td>
+                <span
+                  class="badge"
+                  :class="statusClass(plan.status)"
+                  :title="plan.status === 'rebutjada' ? plan.rejectedMessage?.reason : ''"
                 >
+                  {{ plan.status }}
+                </span>
+              </td>
+              <td>{{ getPlanModulesLabel(plan) }}</td>
+              <td class="text-center">
+                <div class="btn-group" role="group">
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    title="Veure PDF (Annex I)"
+                    :disabled="downloadingPlanId === plan.id"
+                    @click="handleDownloadPlanPdf(plan)"
+                  >
+                    <span
+                      v-if="downloadingPlanId === plan.id"
+                      class="spinner-border spinner-border-sm"
+                    ></span>
+                    <i v-else class="bi bi-file-earmark-pdf-fill"></i>
+                  </button>
+                  <button
+                    v-if="isPlanEditable(plan)"
+                    class="btn btn-sm btn-outline-primary"
+                    title="Editar pla"
+                    @click="openEditModal(plan)"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button
+                    v-if="plan.status === 'pendent' || canDeleteNonPendingPlan"
+                    class="btn btn-sm btn-outline-danger"
+                    title="Eliminar pla"
+                    :disabled="deletingPlanId === plan.id"
+                    @click="handleDeletePlan(plan)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  <button
+                    v-if="['pendent', 'rebutjada'].includes(plan.status)"
+                    class="btn btn-sm btn-outline-info"
+                    title="Enviar per a aprovació"
+                    :disabled="changingStatusPlanId === plan.id"
+                    @click="handleSendPlan(plan)"
+                  >
+                    <i class="bi bi-send-fill"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Duplicar pla (crea una còpia per al curs actual)"
+                    :disabled="changingStatusPlanId === plan.id"
+                    @click="handleCopyPlanToCurrentYear(plan)"
+                  >
+                    <i class="bi bi-files"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <template v-if="historicPlans.length > 0">
+        <h5 class="fw-bold mt-4">Històric (cursos anteriors)</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Nom</th>
+                <th>Curs escolar</th>
+                <th>Torn</th>
+                <th>Curs</th>
+                <th>Estat</th>
+                <th>Mòduls</th>
+                <th class="text-center">Accions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="plan in historicPlans" :key="plan.id">
+                <td>
+                  {{ plan.name }}
+                  <i
+                    v-if="plan.requiresExtraordinaryAuthorizations"
+                    class="bi bi-exclamation-triangle-fill text-warning ms-1"
+                    :title="
+                      plan.extraordinaryAuthorizations || 'Requereix autoritzacions extraordinàries'
+                    "
+                  ></i>
+                </td>
+                <td>{{ plan.courseYear }}</td>
+                <td>
+                  <span class="badge bg-info text-dark">{{ getTurnLabel(plan.turn) }}</span>
+                </td>
+                <td>{{ plan.courseLevel === 2 ? '2n' : '1r' }}</td>
+                <td>
                   <span
-                    v-if="downloadingPlanId === plan.id"
-                    class="spinner-border spinner-border-sm"
-                  ></span>
-                  <i v-else class="bi bi-file-earmark-pdf-fill"></i>
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  title="Editar pla"
-                  @click="openEditModal(plan)"
-                >
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  title="Eliminar pla"
-                  :disabled="deletingPlanId === plan.id"
-                  @click="handleDeletePlan(plan)"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-                <button
-                  v-if="plan.status === 'pendent'"
-                  class="btn btn-sm btn-outline-info"
-                  title="Enviar per a aprovació"
-                  :disabled="changingStatusPlanId === plan.id"
-                  @click="handleSendPlan(plan)"
-                >
-                  <i class="bi bi-send-fill"></i>
-                </button>
-                <button
-                  v-if="plan.status === 'enviada'"
-                  class="btn btn-sm btn-outline-success"
-                  title="Aprovar"
-                  :disabled="changingStatusPlanId === plan.id"
-                  @click="handleApprovePlan(plan)"
-                >
-                  <i class="bi bi-check2-circle"></i>
-                </button>
-                <button
-                  v-if="['enviada', 'rebutjada'].includes(plan.status)"
-                  class="btn btn-sm btn-outline-danger"
-                  title="Rebutjar"
-                  @click="openRejectPlanModal(plan)"
-                >
-                  <i class="bi bi-x-circle"></i>
-                </button>
-                <button
-                  v-if="plan.status !== 'pendent'"
-                  class="btn btn-sm btn-outline-warning"
-                  title="Posar com a pendent"
-                  :disabled="changingStatusPlanId === plan.id"
-                  @click="handleSetPendingPlan(plan)"
-                >
-                  <i class="bi bi-unlock-fill"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+                    class="badge"
+                    :class="statusClass(plan.status)"
+                    :title="plan.status === 'rebutjada' ? plan.rejectedMessage?.reason : ''"
+                  >
+                    {{ plan.status }}
+                  </span>
+                </td>
+                <td>{{ getPlanModulesLabel(plan) }}</td>
+                <td class="text-center">
+                  <div class="btn-group" role="group">
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      title="Veure PDF (Annex I)"
+                      :disabled="downloadingPlanId === plan.id"
+                      @click="handleDownloadPlanPdf(plan)"
+                    >
+                      <span
+                        v-if="downloadingPlanId === plan.id"
+                        class="spinner-border spinner-border-sm"
+                      ></span>
+                      <i v-else class="bi bi-file-earmark-pdf-fill"></i>
+                    </button>
+                    <button
+                      v-if="isPlanEditable(plan)"
+                      class="btn btn-sm btn-outline-primary"
+                      title="Editar pla"
+                      @click="openEditModal(plan)"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      v-if="plan.status === 'pendent' || canDeleteNonPendingPlan"
+                      class="btn btn-sm btn-outline-danger"
+                      title="Eliminar pla"
+                      :disabled="deletingPlanId === plan.id"
+                      @click="handleDeletePlan(plan)"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      title="Duplicar pla (crea una còpia per al curs actual)"
+                      :disabled="changingStatusPlanId === plan.id"
+                      @click="handleCopyPlanToCurrentYear(plan)"
+                    >
+                      <i class="bi bi-files"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+    </template>
   </div>
 </template>
 
@@ -1078,6 +1210,12 @@ const handleRejectPlan = async () => {
   max-width: 80%;
   margin-left: auto;
   margin-right: auto;
+}
+
+.error-message-text {
+  white-space: pre-line;
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 .pfi-summary-item {

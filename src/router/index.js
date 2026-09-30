@@ -29,6 +29,8 @@ import ValidatePCC from '../views/pcc/ValidatePCC.vue'
 import PccManage from '../views/pcc/PccManage.vue'
 import IndividualTrainingPlansPCC from '../views/pcc/IndividualTrainingPlansPCC.vue'
 import PccStats from '../views/pcc/PccStats.vue'
+import IndividualTrainingPlansManage from '../views/pcc/IndividualTrainingPlansManage.vue'
+import IndividualTrainingPlansStats from '../views/pcc/IndividualTrainingPlansStats.vue'
 import { isTokenExpired, clearAuthStorage } from '../utils/auth.js'
 
 const router = createRouter({
@@ -223,6 +225,18 @@ const router = createRouter({
       path: '/pcc/stats',
       name: 'pccStats',
       component: PccStats,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/individual-training-plans/manage',
+      name: 'individualTrainingPlansManage',
+      component: IndividualTrainingPlansManage,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/individual-training-plans/stats',
+      name: 'individualTrainingPlansStats',
+      component: IndividualTrainingPlansStats,
       meta: { requiresAuth: true }
     },
     {

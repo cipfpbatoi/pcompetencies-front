@@ -522,6 +522,7 @@ export default {
                   <th v-if="isAdmin">Departament</th>
                   <th>Cicle</th>
                   <th>Mòduls</th>
+                  <th class="text-center">Total hores</th>
                   <th>Torn</th>
                   <th>Curs</th>
                   <th>Curs escolar</th>
@@ -545,6 +546,7 @@ export default {
                   <td v-if="isAdmin">{{ plan.curricularProject?.cycle?.department?.shortName }}</td>
                   <td>{{ plan.curricularProject?.cycle?.shortName }}</td>
                   <td>{{ getModulesLabel(plan) }}</td>
+                  <td class="text-center">{{ plan.totalHours }}h</td>
                   <td>
                     <span class="badge bg-info text-dark">{{ getTurnLabel(plan.turn) }}</span>
                   </td>

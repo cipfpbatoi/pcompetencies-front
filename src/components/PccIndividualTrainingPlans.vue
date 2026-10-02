@@ -95,6 +95,11 @@ const getPlanModulesLabel = (plan) =>
     .map((entry) => `${entry.module?.code} - ${entry.module?.name} (${entry.hours}h)`)
     .join(', ')
 
+// El pla ja porta totalHours calculat al backend; si no hi és (resposta antiga/incompleta),
+// es calcula a partir de moduleHours[] com a reforç
+const getPlanTotalHours = (plan) =>
+  plan.totalHours ?? (plan.moduleHours || []).reduce((sum, entry) => sum + (entry.hours || 0), 0)
+
 const availableTurns = computed(() => cycle.value?.availableTurns || [])
 
 // ==========================================
@@ -1054,6 +1059,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
               <th>Curs</th>
               <th>Estat</th>
               <th>Mòduls</th>
+              <th class="text-center">Total hores</th>
               <th class="text-center">Accions</th>
             </tr>
           </thead>
@@ -1084,6 +1090,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 </span>
               </td>
               <td>{{ getPlanModulesLabel(plan) }}</td>
+              <td class="text-center">{{ getPlanTotalHours(plan) }}h</td>
               <td class="text-center">
                 <div class="btn-group" role="group">
                   <button
@@ -1151,6 +1158,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 <th>Curs</th>
                 <th>Estat</th>
                 <th>Mòduls</th>
+                <th class="text-center">Total hores</th>
                 <th class="text-center">Accions</th>
               </tr>
             </thead>
@@ -1181,6 +1189,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   </span>
                 </td>
                 <td>{{ getPlanModulesLabel(plan) }}</td>
+                <td class="text-center">{{ getPlanTotalHours(plan) }}h</td>
                 <td class="text-center">
                   <div class="btn-group" role="group">
                     <button

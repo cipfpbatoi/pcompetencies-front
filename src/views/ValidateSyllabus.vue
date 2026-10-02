@@ -35,6 +35,9 @@ export default {
   },
   computed: {
     ...mapState(useDataStore, ['syllabus', 'pcc']),
+    hasPcc() {
+      return !!this.pcc?.id
+    },
     isPccApproved() {
       return this.pcc?.status === 'aprovat'
     },
@@ -81,7 +84,7 @@ export default {
       }
     },
     async sendSyllabus() {
-      if (!this.isPccApproved) {
+      if (this.hasPcc && !this.isPccApproved) {
         this.addMessage('error', 'No es pot enviar la programació fins que el PCC estiga aprovat')
         return
       }
@@ -260,7 +263,7 @@ export default {
         </div>
       </div>
       <div
-        v-if="isValid && !isPccApproved"
+        v-if="isValid && hasPcc && !isPccApproved"
         class="text-center alert alert-warning p-2 col-sm-12 col-12 mx-auto"
       >
         <strong>ATENCIÓ:</strong> No es pot enviar la programació fins que el PCC estiga aprovat.
@@ -413,7 +416,7 @@ export default {
           @click="sendSyllabus"
           class="btn btn-success col-sm-5 col-12 mx-auto"
           title="Enviar programació"
-          :disabled="!isPccApproved"
+          :disabled="hasPcc && !isPccApproved"
         >
           <i class="bi bi-send mx-2"></i>
           Enviar programació al departament

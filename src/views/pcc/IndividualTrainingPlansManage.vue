@@ -4,6 +4,7 @@ import { Modal } from 'bootstrap'
 import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api'
 import { statusClass } from '@/utils/utils.js'
+import IndividualTrainingPlanViewModal from '@/components/IndividualTrainingPlanViewModal.vue'
 
 const TURN_LABELS = {
   presential: 'Presencial',
@@ -11,6 +12,9 @@ const TURN_LABELS = {
 }
 
 export default {
+  components: {
+    IndividualTrainingPlanViewModal
+  },
   computed: {
     ...mapState(useDataStore, ['user']),
     isAdmin() {
@@ -19,26 +23,20 @@ export default {
     isCoordinadorFct() {
       return this.user.info?.roles?.includes('ROLE_COORDINADOR_FCT')
     },
+    // El coordinador FCT també ha de poder consultar els plans de tots els departaments,
+    // no només el propi, així que admin i coordinador FCT fan sempre la mateixa crida
     canView() {
       return this.isAdmin || this.isCoordinadorFct
     },
-    ownDepartmentId() {
-      return this.user.info?.department?.id || null
-    },
     pageTitle() {
-      if (this.isAdmin) return 'Plans Formatius Individuals (tot el centre)'
-      if (this.isCoordinadorFct) {
-        const name = this.user.info?.department?.shortName || this.user.info?.department?.name
-        return name ? `Plans Formatius Individuals (${name})` : 'Plans Formatius Individuals'
-      }
-      return 'Plans Formatius Individuals'
+      return 'Plans Formatius Individuals (tot el centre)'
     },
     // Quan hi ha un departament triat, el llistat de plans ja ve filtrat pel backend
     // per eixe departament: els cicles del select ixen dels cicles vistos fins ara
     // (this.cycleOptionsMap), acumulats pàgina a pàgina ja que el llistat de plans
     // ara ve paginat i no porta mai tots els plans d'un colp
     cycleFilterOptions() {
-      if (!this.isAdmin || !this.filters.departmentId) return this.cycles
+      if (!this.filters.departmentId) return this.cycles
       return Object.values(this.cycleOptionsMap)
     },
     totalPages() {
@@ -52,7 +50,6 @@ export default {
       currentSchoolYear: '',
       plans: [],
       departmentOptions: [],
-      departmentOptionsMap: {},
       cycleOptionsMap: {},
       loadingPlans: false,
       filters: {
@@ -100,14 +97,23 @@ export default {
       if (this.pageInitialized) return
       this.pageInitialized = true
       try {
-        const [cyclesResponse, schoolYearsResponse, currentDataResponse] = await Promise.all([
-          api.getCycles(),
-          api.getSchoolYears(),
-          api.getCurrentData()
-        ])
+        const [cyclesResponse, schoolYearsResponse, currentDataResponse, departmentsResponse] =
+          await Promise.all([
+            api.getCycles(),
+            api.getSchoolYears(),
+            api.getCurrentData(),
+            api.getDepartments()
+          ])
         this.cycles = cyclesResponse.data
         this.schoolYears = schoolYearsResponse.data
         this.currentSchoolYear = currentDataResponse.data?.currentSchoolYear?.course || ''
+        // El llistat de departaments del filtre ve de /departments (tots els departaments
+        // del centre), no dels plans ja carregats: així el filtre permet triar un
+        // departament encara que no tinga cap pla visible amb els filtres actuals
+        this.departmentOptions = departmentsResponse.data.map((department) => ({
+          id: department.id,
+          name: department.name
+        }))
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -120,7 +126,6 @@ export default {
     },
     ...mapActions(useDataStore, [
       'addMessage',
-      'refreshPccByCycleId',
       'approveIndividualTrainingPlan',
       'rejectIndividualTrainingPlan',
       'setPendingIndividualTrainingPlan'
@@ -194,23 +199,11 @@ export default {
       }
       return params
     },
-    // El llistat ara ve paginat: no podem derivar la llista completa de departaments/cicles
-    // d'un sol llistat, així que anem acumulant els que veiem a cada pàgina carregada
-    captureDepartmentOptions() {
-      if (!this.isAdmin) return
-      this.plans.forEach((plan) => {
-        const department = plan.curricularProject?.cycle?.department
-        if (department?.id && !this.departmentOptionsMap[department.id]) {
-          this.departmentOptionsMap[department.id] = {
-            id: department.id,
-            name: department.name || department.shortName
-          }
-        }
-      })
-      this.departmentOptions = Object.values(this.departmentOptionsMap)
-    },
+    // El llistat ara ve paginat: no podem derivar la llista completa de cicles d'un sol
+    // llistat (a diferència dels departaments, que ixen tots de /stats), així que anem
+    // acumulant els cicles que veiem a cada pàgina carregada
     captureCycleOptions() {
-      if (!this.isAdmin || !this.filters.departmentId) return
+      if (!this.filters.departmentId) return
       this.plans.forEach((plan) => {
         const cycle = plan.curricularProject?.cycle
         if (cycle?.id && !this.cycleOptionsMap[cycle.id]) {
@@ -222,23 +215,14 @@ export default {
       this.plans = data['hydra:member'] || data
       this.totalItems =
         typeof data['hydra:totalItems'] === 'number' ? data['hydra:totalItems'] : this.plans.length
-      this.captureDepartmentOptions()
       this.captureCycleOptions()
     },
     async loadPlans() {
       if (!this.canView) return
       try {
         this.loadingPlans = true
-        if (this.isAdmin) {
-          const response = await api.getIndividualTrainingPlansCenter(this.getListParams(true))
-          this.applyPlansResponse(response.data)
-        } else if (this.isCoordinadorFct && this.ownDepartmentId) {
-          const response = await api.getIndividualTrainingPlansByDepartment(
-            this.ownDepartmentId,
-            this.getListParams(false)
-          )
-          this.applyPlansResponse(response.data)
-        }
+        const response = await api.getIndividualTrainingPlansCenter(this.getListParams(true))
+        this.applyPlansResponse(response.data)
       } catch (error) {
         this.addMessage('error', error)
       } finally {
@@ -269,19 +253,8 @@ export default {
       this.cycleOptionsMap = {}
       this.resetPageAndLoad()
     },
-    async viewPlanCycle(plan) {
-      const cycleId = plan.curricularProject?.cycle?.id
-      if (!cycleId) {
-        this.addMessage('error', "No s'ha pogut determinar el cicle d'este pla")
-        return
-      }
-      localStorage.pccCycleId = cycleId
-      const refreshed = await this.refreshPccByCycleId(cycleId)
-      if (!refreshed) return
-      this.$router.push({
-        name: 'individualTrainingPlansPCC',
-        query: plan.status === 'pendent' ? { openPlanId: plan.id } : {}
-      })
+    viewPlan(plan) {
+      this.$refs.viewPlanModalRef?.show(plan)
     },
     mergePlanStatus(planId, patch) {
       const index = this.plans.findIndex((item) => item.id === planId)
@@ -425,6 +398,8 @@ export default {
       </div>
     </div>
 
+    <IndividualTrainingPlanViewModal ref="viewPlanModalRef" />
+
     <div class="p-lg-4 p-1 overflow-auto">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <h2 class="fw-bold m-0">{{ pageTitle }}</h2>
@@ -475,7 +450,7 @@ export default {
                 @blur="resetPageAndLoad"
               />
             </div>
-            <div v-if="isAdmin" class="col-12 col-lg-3">
+            <div class="col-12 col-lg-3">
               <label class="form-label fw-bold small mb-1">Departament</label>
               <select
                 v-model.number="filters.departmentId"
@@ -519,7 +494,7 @@ export default {
               <thead class="table-light">
                 <tr>
                   <th>Nom</th>
-                  <th v-if="isAdmin">Departament</th>
+                  <th>Departament</th>
                   <th>Cicle</th>
                   <th>Mòduls</th>
                   <th class="text-center">Total hores</th>
@@ -543,7 +518,7 @@ export default {
                       "
                     ></i>
                   </td>
-                  <td v-if="isAdmin">{{ plan.curricularProject?.cycle?.department?.shortName }}</td>
+                  <td>{{ plan.curricularProject?.cycle?.department?.shortName }}</td>
                   <td>{{ plan.curricularProject?.cycle?.shortName }}</td>
                   <td>{{ getModulesLabel(plan) }}</td>
                   <td class="text-center">{{ plan.totalHours }}h</td>
@@ -563,11 +538,7 @@ export default {
                   </td>
                   <td class="text-center">
                     <div class="btn-group" role="group">
-                      <button
-                        class="btn btn-sm btn-info"
-                        title="Veure cicle"
-                        @click="viewPlanCycle(plan)"
-                      >
+                      <button class="btn btn-sm btn-info" title="Veure pla" @click="viewPlan(plan)">
                         <i class="bi bi-eye-fill"></i>
                       </button>
                       <button

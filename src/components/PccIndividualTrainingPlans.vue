@@ -34,7 +34,8 @@ const {
 const plans = computed(() => pcc.value?.individualTrainingPlans || [])
 
 // Si s'arriba des de la pantalla de gestió amb ?openPlanId=X (pla pendent), s'obri
-// directament el modal d'edició d'eixe pla
+// directament el pla, però sols en mode vista: eixa pantalla és de revisió
+// (aprovar/rebutjar), no d'edició del contingut del pla
 const route = useRoute()
 const router = useRouter()
 
@@ -44,7 +45,7 @@ onMounted(() => {
 
   const plan = plans.value.find((item) => item.id === openPlanId)
   if (plan) {
-    openEditModal(plan)
+    openViewModal(plan)
   }
 
   const restQuery = { ...route.query }
@@ -109,6 +110,7 @@ const planFormModalRef = ref(null)
 const isSaving = ref(false)
 const isLoadingItems = ref(false)
 const editingPlanId = ref(null)
+const isViewOnly = ref(false)
 const modules = ref([])
 const selectionErrorLines = ref([])
 const currentStep = ref(1)
@@ -126,10 +128,76 @@ const form = reactive({
   turn: '',
   courseLevel: '',
   observations: '',
+  coordinationMechanisms: '',
+  visitPeriodicity: '',
   requiresExtraordinaryAuthorizations: false,
   extraordinaryAuthorizations: '',
   moduleHours: {},
-  moduleActivities: {}
+  moduleActivities: {},
+  periods: []
+})
+
+const createEmptyPeriod = () => ({ startDate: '', endDate: '', hours: null, company: '' })
+
+// L'input type="date" sols accepta "AAAA-MM-DD": si el backend torna un datetime
+// complet (p. ex. "2026-01-15T00:00:00+00:00") cal retallar-lo o el camp es veu buit
+const toDateInputValue = (value) => (value ? String(value).slice(0, 10) : '')
+
+const addPeriod = () => {
+  form.periods.push(createEmptyPeriod())
+}
+
+const removePeriod = (index) => {
+  form.periods.splice(index, 1)
+}
+
+// Curs escolar del pla (p. ex. "2025-2026"): per a un pla nou és el curs actual, per a
+// un pla existent és el que ja tenia. S'usa per a acotar les dates dels períodes
+const planCourseYear = ref('')
+
+// No hi ha dates de curs al backend: s'asumeix l'any acadèmic estàndard, de l'1 de
+// setembre de l'any d'inici fins al 31 d'agost de l'any de fi
+const getSchoolYearBounds = (courseYear) => {
+  const match = /^(\d{4})-(\d{4})$/.exec(courseYear || '')
+  if (!match) return null
+  const [, startYear, endYear] = match
+  return { min: `${startYear}-09-01`, max: `${endYear}-08-31` }
+}
+
+const schoolYearBounds = computed(() => getSchoolYearBounds(planCourseYear.value))
+
+// Suma de les hores de tots els períodes: ha de coincidir amb el total d'hores del pla
+// (comprovació real pendent per al moment d'enviar la programació; de moment sols avís)
+const totalPeriodsHours = computed(() =>
+  form.periods.reduce((sum, period) => sum + (Number(period.hours) || 0), 0)
+)
+
+const periodsHoursMismatch = computed(
+  () => form.periods.length > 0 && totalPeriodsHours.value !== totalModuleHours.value
+)
+
+// Períodes amb alguna data fora del curs escolar del pla (comprovació real pendent
+// per al moment d'enviar la programació; de moment sols avís)
+const periodsOutOfSchoolYear = computed(() => {
+  if (!schoolYearBounds.value) return false
+  const { min, max } = schoolYearBounds.value
+  return form.periods.some(
+    (period) =>
+      (period.startDate && (period.startDate < min || period.startDate > max)) ||
+      (period.endDate && (period.endDate < min || period.endDate > max))
+  )
+})
+
+// Períodes que se solapen entre ells (comparació de cadenes "AAAA-MM-DD", vàlida
+// cronològicament); de moment sols avís
+const periodsOverlap = computed(() => {
+  const withDates = form.periods.filter((period) => period.startDate && period.endDate)
+  return withDates.some((period, index) =>
+    withDates.some(
+      (other, otherIndex) =>
+        otherIndex > index && period.startDate <= other.endDate && other.startDate <= period.endDate
+    )
+  )
 })
 
 const selectedLearningResultIds = ref(new Set())
@@ -155,9 +223,17 @@ const { errors, validate, clearErrors } = planValidation
 
 const isEditing = computed(() => !!editingPlanId.value)
 
-const modalTitle = computed(() =>
-  isEditing.value ? 'Editar pla formatiu individual' : 'Nou pla formatiu individual'
-)
+const stepLabel = computed(() => {
+  if (currentStep.value === 1) return 'Pas 1: Dades bàsiques'
+  if (currentStep.value === 2) return 'Pas 2: RA, criteris i hores'
+  return 'Pas 3: Coordinació i seguiment'
+})
+
+const modalTitle = computed(() => {
+  if (isViewOnly.value) return 'Veure pla formatiu individual'
+  const base = isEditing.value ? 'Editar pla formatiu individual' : 'Nou pla formatiu individual'
+  return `${base} — ${stepLabel.value}`
+})
 
 const selectedCount = computed(
   () => selectedLearningResultIds.value.size + selectedEvaluationCriteriaIds.value.size
@@ -174,12 +250,15 @@ const buildFormSnapshot = () =>
     turn: form.turn,
     courseLevel: form.courseLevel,
     observations: form.observations,
+    coordinationMechanisms: form.coordinationMechanisms,
+    visitPeriodicity: form.visitPeriodicity,
     requiresExtraordinaryAuthorizations: form.requiresExtraordinaryAuthorizations,
     extraordinaryAuthorizations: form.extraordinaryAuthorizations,
     learningResultIds: [...selectedLearningResultIds.value].sort((a, b) => a - b),
     evaluationCriteriaIds: [...selectedEvaluationCriteriaIds.value].sort((a, b) => a - b),
     moduleHours: relevantModuleHoursEntries.value,
-    moduleActivities: relevantModuleActivitiesEntries.value
+    moduleActivities: relevantModuleActivitiesEntries.value,
+    periods: form.periods
   })
 
 const markSnapshotAsSaved = () => {
@@ -260,6 +339,9 @@ const selectedSummaryByModule = computed(() => {
     addItem(entry.mod.moduleCode, entry.mod.moduleName, {
       key: `lr-${id}`,
       label: `RA${entry.lr.number}`,
+      lrNumber: entry.lr.number,
+      // Les entrades de RA sencer van abans que els seus criteris individuals
+      order: 0,
       remove: () => toggleLearningResult(entry.lr)
     })
   })
@@ -268,9 +350,18 @@ const selectedSummaryByModule = computed(() => {
     if (!entry) return
     addItem(entry.mod.moduleCode, entry.mod.moduleName, {
       key: `ce-${id}`,
-      label: entry.ce.code,
+      // El codi del criteri (p.ex. "a") es repeteix entre RA, cal prefixar-lo amb el RA al qual pertany
+      label: `RA${entry.lr.number}.${entry.ce.code}`,
+      lrNumber: entry.lr.number,
+      order: 1,
       remove: () => toggleEvaluationCriteria(entry.ce)
     })
+  })
+
+  byModule.forEach((entry) => {
+    entry.items.sort(
+      (a, b) => a.lrNumber - b.lrNumber || a.order - b.order || a.label.localeCompare(b.label)
+    )
   })
 
   return [...byModule.values()]
@@ -279,6 +370,29 @@ const selectedSummaryByModule = computed(() => {
 const modulesWithSelectionCodes = computed(
   () => new Set(selectedSummaryByModule.value.map((entry) => entry.moduleCode))
 )
+
+// Mode vista: en lloc del selector de mòdul, es mostren directament tots els mòduls
+// amb selecció, i de cada un només els RA/CE seleccionats (no tot el catàleg)
+const viewSummaryModules = computed(() => {
+  if (!isViewOnly.value) return []
+  return modules.value
+    .filter((mod) => modulesWithSelectionCodes.value.has(mod.moduleCode))
+    .map((mod) => ({
+      ...mod,
+      learningResults: mod.learningResults
+        .filter(
+          (lr) =>
+            selectedLearningResultIds.value.has(lr.id) ||
+            lr.evaluationCriterias.some((ce) => selectedEvaluationCriteriaIds.value.has(ce.id))
+        )
+        .map((lr) => ({
+          ...lr,
+          evaluationCriterias: selectedLearningResultIds.value.has(lr.id)
+            ? lr.evaluationCriterias
+            : lr.evaluationCriterias.filter((ce) => selectedEvaluationCriteriaIds.value.has(ce.id))
+        }))
+    }))
+})
 
 const suggestedHoursByModuleCode = computed(() => {
   const map = new Map()
@@ -427,14 +541,19 @@ const handleTurnChange = () => {
 
 const openCreateModal = async () => {
   editingPlanId.value = null
+  isViewOnly.value = false
   form.name = ''
   form.turn = availableTurns.value[0] || ''
   form.courseLevel = ''
   form.observations = ''
+  form.coordinationMechanisms = ''
+  form.visitPeriodicity = ''
   form.requiresExtraordinaryAuthorizations = false
   form.extraordinaryAuthorizations = ''
   form.moduleHours = {}
   form.moduleActivities = {}
+  form.periods = []
+  planCourseYear.value = currentSchoolYear.value
   selectedLearningResultIds.value = new Set()
   selectedEvaluationCriteriaIds.value = new Set()
   selectionErrorLines.value = []
@@ -446,12 +565,13 @@ const openCreateModal = async () => {
   markSnapshotAsSaved()
 }
 
-const openEditModal = async (plan) => {
-  editingPlanId.value = plan.id
+const populateFormFromPlan = (plan) => {
   form.name = plan.name
   form.turn = plan.turn
   form.courseLevel = plan.courseLevel
   form.observations = plan.observations || ''
+  form.coordinationMechanisms = plan.coordinationMechanisms || ''
+  form.visitPeriodicity = plan.visitPeriodicity || ''
   form.requiresExtraordinaryAuthorizations = !!plan.requiresExtraordinaryAuthorizations
   form.extraordinaryAuthorizations = plan.extraordinaryAuthorizations || ''
   form.moduleHours = Object.fromEntries(
@@ -464,14 +584,47 @@ const openEditModal = async (plan) => {
       .filter((entry) => entry.module?.code)
       .map((entry) => [entry.module.code, entry.activities || ''])
   )
+  form.periods = (plan.periods || []).map((period) => ({
+    startDate: toDateInputValue(period.startDate),
+    endDate: toDateInputValue(period.endDate),
+    hours: period.hours ?? null,
+    company: period.company || ''
+  }))
+  planCourseYear.value = plan.courseYear || currentSchoolYear.value
+}
+
+const openEditModal = async (plan, { viewOnly = false } = {}) => {
+  editingPlanId.value = plan.id
+  isViewOnly.value = viewOnly
+  // Primer es mostra amb les dades que ja teníem (llistat del PCC), per a obrir el
+  // modal a l'instant; després es recarrega el detall complet del pla, ja que el
+  // llistat pot no portar tots els camps (p. ex. coordinationMechanisms, periods...)
+  populateFormFromPlan(plan)
   selectionErrorLines.value = []
   currentStep.value = 1
   activeModuleCode.value = ''
   clearErrors()
   planFormModalRef.value?.show()
-  await loadAvailableItems({ keepServerSelection: true })
+
+  const detailPromise = api.getIndividualTrainingPlan(props.pccId, plan.id).catch((error) => {
+    addMessage('error', error)
+    return null
+  })
+
+  const [, detailResponse] = await Promise.all([
+    loadAvailableItems({ keepServerSelection: true }),
+    detailPromise
+  ])
+
+  if (detailResponse) {
+    populateFormFromPlan(detailResponse.data)
+  }
+
   markSnapshotAsSaved()
 }
+
+// Veure un pla sense poder editar-lo: reutilitza la càrrega de l'edició però en mode lectura
+const openViewModal = (plan) => openEditModal(plan, { viewOnly: true })
 
 const goToStep2 = async () => {
   const isValid = await validate({
@@ -528,22 +681,32 @@ const toggleEvaluationCriteria = (evaluationCriteria) => {
   selectedEvaluationCriteriaIds.value = next
 }
 
-const handleSavePlan = async () => {
-  const isValid = await validate({
-    name: form.name,
-    turn: form.turn,
-    courseLevel: form.courseLevel,
-    requiresExtraordinaryAuthorizations: form.requiresExtraordinaryAuthorizations,
-    extraordinaryAuthorizations: form.extraordinaryAuthorizations
-  })
-  if (!isValid) return
+const selectAllCriteriaForLr = (learningResult) => {
+  const nextCe = new Set(selectedEvaluationCriteriaIds.value)
+  learningResult.evaluationCriterias.forEach((ce) => nextCe.add(ce.id))
+  selectedEvaluationCriteriaIds.value = nextCe
 
+  if (
+    learningResult.allCriteriaEligible &&
+    !selectedLearningResultIds.value.has(learningResult.id)
+  ) {
+    const nextLr = new Set(selectedLearningResultIds.value)
+    nextLr.add(learningResult.id)
+    selectedLearningResultIds.value = nextLr
+  }
+
+  ensureSuggestedHours(activeModuleCode.value)
+}
+
+// Comprova la selecció de RA/CE i les hores per mòdul (pas 2); s'usa tant per a avançar
+// al pas 3 com com a xarxa de seguretat abans de guardar
+const validateSelection = () => {
   if (selectedCount.value === 0) {
     selectionErrorLines.value = [
       "Cal seleccionar almenys un resultat d'aprenentatge o criteri d'avaluació"
     ]
     scrollModalToTop()
-    return
+    return false
   }
 
   const missingCriteriaByModule = modules.value
@@ -566,7 +729,7 @@ const handleSavePlan = async () => {
         `${entry.moduleName}: cal marcar algun criteri d'avaluació de ${entry.raLabels.join(', ')}`
     )
     scrollModalToTop()
-    return
+    return false
   }
   const modulesMissingHours = selectedSummaryByModule.value.filter(
     (entry) => !(Number(form.moduleHours[entry.moduleCode]) > 0)
@@ -577,20 +740,81 @@ const handleSavePlan = async () => {
       (entry) => `${entry.moduleName}: cal indicar les hores en empresa d'este mòdul`
     )
     scrollModalToTop()
+    return false
+  }
+
+  selectionErrorLines.value = []
+  return true
+}
+
+const goToStep3 = () => {
+  if (!validateSelection()) {
+    currentStep.value = 2
     return
   }
-  selectionErrorLines.value = []
+  currentStep.value = 3
+}
+
+const goBackToStep2 = () => {
+  currentStep.value = 2
+}
+
+// Navegació directa en clicar una etiqueta del indicador de pas: cap arrere sempre es
+// permet, cap avant cal validar cada pas intermedi (reutilitzant la mateixa lògica
+// que els botons Següent)
+const goToStep = async (target) => {
+  if (target === currentStep.value) return
+  if (target < currentStep.value) {
+    currentStep.value = target
+    return
+  }
+  if (currentStep.value === 1) {
+    await goToStep2()
+    if (currentStep.value !== 2) return
+  }
+  if (target === 3 && currentStep.value === 2) {
+    goToStep3()
+  }
+}
+
+const handleSavePlan = async () => {
+  const isValid = await validate({
+    name: form.name,
+    turn: form.turn,
+    courseLevel: form.courseLevel,
+    requiresExtraordinaryAuthorizations: form.requiresExtraordinaryAuthorizations,
+    extraordinaryAuthorizations: form.extraordinaryAuthorizations
+  })
+  if (!isValid) {
+    currentStep.value = 1
+    return
+  }
+
+  if (!validateSelection()) {
+    currentStep.value = 2
+    return
+  }
 
   const moduleHours = Object.fromEntries(relevantModuleHoursEntries.value)
   const moduleActivities = Object.fromEntries(
     relevantModuleActivitiesEntries.value.filter(([, activities]) => activities.trim() !== '')
   )
+  const periods = form.periods
+    .filter((period) => period.company.trim() !== '')
+    .map((period) => ({
+      startDate: period.startDate || null,
+      endDate: period.endDate || null,
+      hours: Number(period.hours) || 0,
+      company: period.company.trim()
+    }))
 
   const payload = {
     name: form.name.trim(),
     turn: form.turn,
     courseLevel: Number(form.courseLevel),
     observations: form.observations.trim() || null,
+    coordinationMechanisms: form.coordinationMechanisms.trim() || null,
+    visitPeriodicity: form.visitPeriodicity.trim() || null,
     requiresExtraordinaryAuthorizations: form.requiresExtraordinaryAuthorizations,
     extraordinaryAuthorizations: form.requiresExtraordinaryAuthorizations
       ? form.extraordinaryAuthorizations.trim() || null
@@ -598,7 +822,8 @@ const handleSavePlan = async () => {
     learningResultIds: [...selectedLearningResultIds.value],
     evaluationCriteriaIds: [...selectedEvaluationCriteriaIds.value],
     moduleHours,
-    moduleActivities
+    moduleActivities,
+    periods
   }
 
   isSaving.value = true
@@ -738,21 +963,67 @@ const handleCopyPlanToCurrentYear = async (plan) => {
       size="xl"
       scrollable
       :saving="isSaving"
-      :show-save-button="isEditing || currentStep === 2"
+      :show-save-button="!isViewOnly && currentStep === 3"
       save-button-text="Guarda"
       @save="handleSavePlan"
     >
       <template #header>
         <h1 id="individualTrainingPlanModalLabel" class="modal-title fs-5">
           {{ modalTitle }}
-          <span v-if="isDirty" class="badge bg-warning text-dark ms-2">
+          <span v-if="isDirty && !isViewOnly" class="badge bg-warning text-dark ms-2">
             <i class="bi bi-exclamation-circle-fill"></i> Canvis sense guardar
           </span>
         </h1>
       </template>
 
-      <!-- NOM, TORN, CURS I OBSERVACIONS: sempre visibles -->
-      <div class="row g-3">
+      <!-- Indicador de pas: sols té sentit quan es crea/edita en 3 passos, no en mode vista.
+           Cada etiqueta es pot clicar per a anar directament a eixe pas -->
+      <div
+        v-if="!isViewOnly"
+        class="d-flex align-items-center justify-content-center gap-2 mb-3 py-2 rounded bg-light"
+      >
+        <span
+          class="d-flex align-items-center gap-2 step-indicator-item"
+          role="button"
+          @click="goToStep(1)"
+        >
+          <span
+            class="badge rounded-pill"
+            :class="currentStep === 1 ? 'bg-primary' : 'bg-secondary'"
+            >1</span
+          >
+          <span :class="currentStep === 1 ? 'fw-bold' : 'text-muted'">Dades bàsiques</span>
+        </span>
+        <i class="bi bi-arrow-right text-muted"></i>
+        <span
+          class="d-flex align-items-center gap-2 step-indicator-item"
+          role="button"
+          @click="goToStep(2)"
+        >
+          <span
+            class="badge rounded-pill"
+            :class="currentStep === 2 ? 'bg-primary' : 'bg-secondary'"
+            >2</span
+          >
+          <span :class="currentStep === 2 ? 'fw-bold' : 'text-muted'">RA, criteris i hores</span>
+        </span>
+        <i class="bi bi-arrow-right text-muted"></i>
+        <span
+          class="d-flex align-items-center gap-2 step-indicator-item"
+          role="button"
+          @click="goToStep(3)"
+        >
+          <span
+            class="badge rounded-pill"
+            :class="currentStep === 3 ? 'bg-primary' : 'bg-secondary'"
+            >3</span
+          >
+          <span :class="currentStep === 3 ? 'fw-bold' : 'text-muted'">Coordinació i seguiment</span>
+        </span>
+      </div>
+
+      <!-- PAS 1: dades bàsiques -->
+      <div v-if="isViewOnly || currentStep === 1" class="row g-3">
         <div class="col-12 col-md-6">
           <label class="form-label fw-bold">Nom del pla</label>
           <input
@@ -760,12 +1031,18 @@ const handleCopyPlanToCurrentYear = async (plan) => {
             type="text"
             class="form-control"
             placeholder="Ex: Pla PFI - Maria"
+            :disabled="isViewOnly"
           />
           <p v-if="errors.name" class="text-danger small mb-0">{{ errors.name }}</p>
         </div>
         <div class="col-6 col-md-3">
           <label class="form-label fw-bold">Torn</label>
-          <select v-model="form.turn" class="form-select" @change="handleTurnChange">
+          <select
+            v-model="form.turn"
+            class="form-select"
+            :disabled="isViewOnly"
+            @change="handleTurnChange"
+          >
             <option value="">-- Selecciona torn --</option>
             <option v-for="turn in availableTurns" :key="turn" :value="turn">
               {{ getTurnLabel(turn) }}
@@ -775,16 +1052,17 @@ const handleCopyPlanToCurrentYear = async (plan) => {
         </div>
         <div class="col-6 col-md-3">
           <label class="form-label fw-bold">Curs</label>
-          <select v-model="form.courseLevel" class="form-select" @change="handleCourseLevelChange">
+          <select
+            v-model="form.courseLevel"
+            class="form-select"
+            :disabled="isViewOnly"
+            @change="handleCourseLevelChange"
+          >
             <option value="">-- Selecciona curs --</option>
             <option :value="1">1r Curs</option>
             <option :value="2">2n Curs</option>
           </select>
           <p v-if="errors.courseLevel" class="text-danger small mb-0">{{ errors.courseLevel }}</p>
-        </div>
-        <div class="col-12">
-          <label class="form-label fw-bold">Observacions</label>
-          <textarea v-model="form.observations" class="form-control" rows="2"></textarea>
         </div>
         <div class="col-12">
           <div class="form-check">
@@ -793,6 +1071,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
               v-model="form.requiresExtraordinaryAuthorizations"
               class="form-check-input"
               type="checkbox"
+              :disabled="isViewOnly"
             />
             <label class="form-check-label fw-bold" for="requiresExtraordinaryAuthorizations">
               Requereix autoritzacions extraordinàries
@@ -805,18 +1084,26 @@ const handleCopyPlanToCurrentYear = async (plan) => {
               class="form-control"
               rows="2"
               placeholder="Descriu quines autoritzacions extraordinàries calen"
+              :disabled="isViewOnly"
             ></textarea>
             <p v-if="errors.extraordinaryAuthorizations" class="text-danger small mb-0">
               {{ errors.extraordinaryAuthorizations }}
             </p>
           </div>
         </div>
+        <div class="col-12">
+          <label class="form-label fw-bold">Observacions</label>
+          <textarea
+            v-model="form.observations"
+            class="form-control"
+            rows="2"
+            :disabled="isViewOnly"
+          ></textarea>
+        </div>
       </div>
 
-      <!-- Editant: tot en un sol pas. Creant: la resta només apareix al pas 2 -->
-      <template v-if="isEditing || currentStep === 2">
-        <hr />
-
+      <!-- PAS 2: RA, criteris i hores -->
+      <template v-if="isViewOnly || currentStep === 2">
         <div v-if="selectionErrorLines.length" class="alert alert-danger py-2 px-3 mb-3">
           <div v-for="(line, index) in selectionErrorLines" :key="index">{{ line }}</div>
         </div>
@@ -824,89 +1111,34 @@ const handleCopyPlanToCurrentYear = async (plan) => {
         <div v-if="isLoadingItems" class="text-center py-4">
           <span class="spinner-border text-primary"></span>
         </div>
-
         <template v-else>
-          <h6 class="fw-bold">Afegir RA/CE d'un mòdul</h6>
-          <p v-if="selectableModulesForCourse.length === 0" class="alert alert-secondary mb-0">
-            Aquest cicle no té cap mòdul dualitzable amb programació per a aquest torn.
-          </p>
-
-          <template v-else>
-            <label class="form-label fw-bold">Mòdul</label>
-            <select v-model="activeModuleCode" class="form-select mb-3">
-              <option value="">-- Selecciona un mòdul --</option>
-              <optgroup v-if="allowedModulesByCourse[1].length" label="1r Curs">
-                <option
-                  v-for="mod in allowedModulesByCourse[1]"
-                  :key="mod.moduleCode"
-                  :value="mod.moduleCode"
-                >
-                  {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
-                  }}{{ mod.moduleName }} ({{ mod.moduleCode }})
-                </option>
-              </optgroup>
-              <optgroup v-if="allowedModulesByCourse[2].length" label="2n Curs">
-                <option
-                  v-for="mod in allowedModulesByCourse[2]"
-                  :key="mod.moduleCode"
-                  :value="mod.moduleCode"
-                >
-                  {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
-                  }}{{ mod.moduleName }} ({{ mod.moduleCode }})
-                </option>
-              </optgroup>
-            </select>
-
-            <div v-if="activeModule" class="card mb-3">
-              <div
-                class="card-header bg-light fw-bold d-flex justify-content-between align-items-center"
-              >
-                <span>{{ activeModule.moduleName }} ({{ activeModule.moduleCode }})</span>
-                <span v-if="!activeModule.hasSyllabus" class="badge bg-warning text-dark">
-                  Sense programació per a este torn
-                </span>
+          <template v-if="isViewOnly">
+            <h6 class="fw-bold">RA i criteris seleccionats</h6>
+            <p v-if="viewSummaryModules.length === 0" class="alert alert-secondary mb-0">
+              Este pla no té cap RA ni criteri seleccionat.
+            </p>
+            <div v-for="mod in viewSummaryModules" :key="mod.moduleCode" class="card mb-3">
+              <div class="card-header bg-light fw-bold">
+                {{ mod.moduleName }} ({{ mod.moduleCode }})
               </div>
               <ul class="list-group list-group-flush">
-                <li v-for="lr in activeModule.learningResults" :key="lr.id" class="list-group-item">
+                <li v-for="lr in mod.learningResults" :key="lr.id" class="list-group-item">
                   <div class="row g-2 align-items-start">
                     <div class="col">
-                      <div v-if="lr.allCriteriaEligible" class="form-check mb-1">
-                        <input
-                          :id="`lr-${lr.id}`"
-                          class="form-check-input"
-                          type="checkbox"
-                          :checked="selectedLearningResultIds.has(lr.id)"
-                          @change="toggleLearningResult(lr)"
-                        />
-                        <label class="form-check-label fw-bold" :for="`lr-${lr.id}`">
-                          <strong>RA{{ lr.number }}</strong> - {{ lr.descriptor }} (tot el RA)
-                        </label>
-                      </div>
-                      <div v-else class="fw-bold mb-1">
+                      <div class="fw-bold mb-1">
                         <strong>RA{{ lr.number }}</strong> - {{ lr.descriptor }}
+                        <span
+                          v-if="selectedLearningResultIds.has(lr.id)"
+                          class="badge bg-primary ms-1"
+                          >Tot el RA</span
+                        >
                       </div>
-
-                      <div
-                        class="form-check ms-3"
-                        v-for="ce in lr.evaluationCriterias"
-                        :key="ce.id"
-                      >
-                        <input
-                          :id="`ce-${ce.id}`"
-                          class="form-check-input"
-                          type="checkbox"
-                          :checked="selectedEvaluationCriteriaIds.has(ce.id)"
-                          :disabled="
-                            lr.allCriteriaEligible && !selectedLearningResultIds.has(lr.id)
-                          "
-                          @change="toggleEvaluationCriteria(ce)"
-                        />
-                        <label class="form-check-label" :for="`ce-${ce.id}`">
+                      <ul v-if="lr.evaluationCriterias.length" class="mb-0 ps-4">
+                        <li v-for="ce in lr.evaluationCriterias" :key="ce.id">
                           <strong>{{ ce.code }}</strong> - {{ ce.description }}
-                        </label>
-                      </div>
+                        </li>
+                      </ul>
                     </div>
-
                     <div class="col-auto">
                       <span
                         class="badge"
@@ -925,6 +1157,133 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 </li>
               </ul>
             </div>
+          </template>
+          <template v-else>
+            <h6 class="fw-bold">2.1 Afegir RA/CE d'un mòdul</h6>
+            <p v-if="selectableModulesForCourse.length === 0" class="alert alert-secondary mb-0">
+              Aquest cicle no té cap mòdul dualitzable amb programació per a aquest torn.
+            </p>
+
+            <template v-else>
+              <label class="form-label fw-bold">Mòdul</label>
+              <select v-model="activeModuleCode" class="form-select mb-3">
+                <option value="">-- Selecciona un mòdul --</option>
+                <optgroup v-if="allowedModulesByCourse[1].length" label="1r Curs">
+                  <option
+                    v-for="mod in allowedModulesByCourse[1]"
+                    :key="mod.moduleCode"
+                    :value="mod.moduleCode"
+                  >
+                    {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
+                    }}{{ mod.moduleName }} ({{ mod.moduleCode }})
+                  </option>
+                </optgroup>
+                <optgroup v-if="allowedModulesByCourse[2].length" label="2n Curs">
+                  <option
+                    v-for="mod in allowedModulesByCourse[2]"
+                    :key="mod.moduleCode"
+                    :value="mod.moduleCode"
+                  >
+                    {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
+                    }}{{ mod.moduleName }} ({{ mod.moduleCode }})
+                  </option>
+                </optgroup>
+              </select>
+
+              <div v-if="activeModule" class="card mb-3">
+                <div
+                  class="card-header bg-light fw-bold d-flex justify-content-between align-items-center"
+                >
+                  <span>{{ activeModule.moduleName }} ({{ activeModule.moduleCode }})</span>
+                  <span v-if="!activeModule.hasSyllabus" class="badge bg-warning text-dark">
+                    Sense programació per a este torn
+                  </span>
+                </div>
+                <ul class="list-group list-group-flush">
+                  <li
+                    v-for="lr in activeModule.learningResults"
+                    :key="lr.id"
+                    class="list-group-item"
+                  >
+                    <div class="row g-2 align-items-start">
+                      <div class="col">
+                        <div
+                          v-if="lr.allCriteriaEligible"
+                          class="d-flex align-items-center justify-content-between mb-1"
+                        >
+                          <div class="form-check mb-0">
+                            <input
+                              :id="`lr-${lr.id}`"
+                              class="form-check-input"
+                              type="checkbox"
+                              :checked="selectedLearningResultIds.has(lr.id)"
+                              @change="toggleLearningResult(lr)"
+                            />
+                            <label class="form-check-label fw-bold" :for="`lr-${lr.id}`">
+                              <strong>RA{{ lr.number }}</strong> - {{ lr.descriptor }} (tot el RA)
+                            </label>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-success btn-sm ms-2"
+                            @click="selectAllCriteriaForLr(lr)"
+                          >
+                            Seleccionar tots els criteris
+                          </button>
+                        </div>
+                        <div v-else class="d-flex align-items-center justify-content-between mb-1">
+                          <div class="fw-bold">
+                            <strong>RA{{ lr.number }}</strong> - {{ lr.descriptor }}
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-success btn-sm ms-2"
+                            @click="selectAllCriteriaForLr(lr)"
+                          >
+                            Seleccionar tots els criteris
+                          </button>
+                        </div>
+
+                        <div
+                          class="form-check ms-3"
+                          v-for="ce in lr.evaluationCriterias"
+                          :key="ce.id"
+                        >
+                          <input
+                            :id="`ce-${ce.id}`"
+                            class="form-check-input"
+                            type="checkbox"
+                            :checked="selectedEvaluationCriteriaIds.has(ce.id)"
+                            :disabled="
+                              lr.allCriteriaEligible && !selectedLearningResultIds.has(lr.id)
+                            "
+                            @change="toggleEvaluationCriteria(ce)"
+                          />
+                          <label class="form-check-label" :for="`ce-${ce.id}`">
+                            <strong>{{ ce.code }}</strong> - {{ ce.description }}
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="col-auto">
+                        <span
+                          class="badge"
+                          :class="lr.coverage === 'complete' ? 'bg-success' : 'bg-secondary'"
+                          :title="
+                            lr.coverage === 'complete'
+                              ? 'Este RA només es treballa en la situació en empresa: es cobreix sencer'
+                              : `Este RA també es treballa en altres situacions d'aprenentatge: sols es cobreix en part`
+                          "
+                        >
+                          <i class="bi bi-check-lg"></i>
+                          {{ lr.coverage === 'complete' ? 'Solo empresa' : 'Empresa + Centro' }}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </template>
           </template>
 
           <hr />
@@ -949,9 +1308,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   <template v-for="(item, index) in entry.items" :key="item.key"
                     ><span
                       class="pfi-summary-item"
-                      role="button"
-                      :title="`Llevar ${item.label}`"
-                      @click="item.remove"
+                      :role="isViewOnly ? undefined : 'button'"
+                      :title="isViewOnly ? item.label : `Llevar ${item.label}`"
+                      @click="isViewOnly ? null : item.remove()"
                       >{{ item.label }}</span
                     ><span v-if="index < entry.items.length - 1">,&nbsp;</span></template
                   >
@@ -978,6 +1337,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                         type="number"
                         min="1"
                         class="form-control"
+                        :disabled="isViewOnly"
                       />
                       <span class="input-group-text">hores</span>
                     </div>
@@ -987,6 +1347,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     class="form-control form-control-sm mt-2"
                     rows="2"
                     placeholder="(Opcional) Ací pots especificar qualssevol observació sobre les activitats a dessenvolupar a la empresa"
+                    :disabled="isViewOnly"
                   ></textarea>
                 </div>
 
@@ -1005,11 +1366,140 @@ const handleCopyPlanToCurrentYear = async (plan) => {
         <span class="spinner-border text-primary"></span>
       </div>
 
-      <template v-if="!isEditing" #footer-buttons>
+      <!-- PAS 3: coordinació i seguiment -->
+      <div v-if="isViewOnly || currentStep === 3" class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-bold"
+            >3.1 Mecanismes de coordinació i seguiment durant el període de formació en
+            empresa</label
+          >
+          <textarea
+            v-model="form.coordinationMechanisms"
+            class="form-control"
+            rows="3"
+            placeholder="Ex: Reunions amb el tutor del centre de treball i el tutor docent"
+            :disabled="isViewOnly"
+          ></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-bold"
+            >3.2 Periodicitat de les visites: Visites a les empreses, comunicació telefònica: dates
+            i duració, comunicació per correu electrònic, videotelefonades: dates i duració.</label
+          >
+          <textarea
+            v-model="form.visitPeriodicity"
+            class="form-control"
+            rows="3"
+            :disabled="isViewOnly"
+          ></textarea>
+        </div>
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label fw-bold mb-0">3.3 Períodes de formació en empresa</label>
+            <button
+              v-if="!isViewOnly"
+              type="button"
+              class="btn btn-success btn-sm"
+              @click="addPeriod"
+            >
+              <i class="bi bi-plus-circle"></i> Afegir període
+            </button>
+          </div>
+          <div v-if="periodsHoursMismatch" class="alert alert-warning py-2 px-3 mb-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            La suma de les hores dels períodes ({{ totalPeriodsHours }}h) no coincideix amb el total
+            d'hores del pla ({{ totalModuleHours }}h).
+          </div>
+          <div v-if="periodsOutOfSchoolYear" class="alert alert-warning py-2 px-3 mb-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Hi ha períodes amb dates fora del curs escolar del pla ({{ planCourseYear }}).
+          </div>
+          <div v-if="periodsOverlap" class="alert alert-warning py-2 px-3 mb-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Hi ha períodes que se solapen entre ells.
+          </div>
+          <p v-if="form.periods.length === 0" class="text-muted small mb-0">
+            Encara no has afegit cap període.
+          </p>
+          <div
+            v-for="(period, index) in form.periods"
+            :key="index"
+            class="border rounded p-2 mb-2 bg-light"
+          >
+            <div class="fw-bold small text-muted mb-1">Període {{ index + 1 }}</div>
+            <div class="row g-2 align-items-end">
+              <div class="col-6 col-md-3">
+                <label class="form-label small mb-1">Data inici</label>
+                <input
+                  v-model="period.startDate"
+                  type="date"
+                  class="form-control form-control-sm"
+                  :min="schoolYearBounds?.min"
+                  :max="schoolYearBounds?.max"
+                  :disabled="isViewOnly"
+                />
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label small mb-1">Data fi</label>
+                <input
+                  v-model="period.endDate"
+                  type="date"
+                  class="form-control form-control-sm"
+                  :min="schoolYearBounds?.min"
+                  :max="schoolYearBounds?.max"
+                  :disabled="isViewOnly"
+                />
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label small mb-1">Hores</label>
+                <input
+                  v-model.number="period.hours"
+                  type="number"
+                  min="0"
+                  class="form-control form-control-sm"
+                  :disabled="isViewOnly"
+                />
+              </div>
+              <div v-if="!isViewOnly" class="col-6 col-md-3 text-end">
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm"
+                  title="Llevar període"
+                  @click="removePeriod(index)"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="row g-2 mt-2">
+              <div class="col-12">
+                <label class="form-label small mb-1">Empresa</label>
+                <input
+                  v-model="period.company"
+                  type="text"
+                  class="form-control form-control-sm"
+                  placeholder="Ex: Informàtica Batoi SL"
+                  :disabled="isViewOnly"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template v-if="!isViewOnly" #footer-buttons>
         <button v-if="currentStep === 1" type="button" class="btn btn-primary" @click="goToStep2">
           Següent <i class="bi bi-arrow-right"></i>
         </button>
-        <button v-else type="button" class="btn btn-outline-secondary" @click="goToStep1">
+        <template v-else-if="currentStep === 2">
+          <button type="button" class="btn btn-outline-secondary" @click="goToStep1">
+            <i class="bi bi-arrow-left"></i> Enrere
+          </button>
+          <button type="button" class="btn btn-primary" @click="goToStep3">
+            Següent <i class="bi bi-arrow-right"></i>
+          </button>
+        </template>
+        <button v-else type="button" class="btn btn-outline-secondary" @click="goBackToStep2">
           <i class="bi bi-arrow-left"></i> Enrere
         </button>
       </template>
@@ -1104,6 +1594,14 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                       class="spinner-border spinner-border-sm"
                     ></span>
                     <i v-else class="bi bi-file-earmark-pdf-fill"></i>
+                  </button>
+                  <button
+                    v-if="!isPlanEditable(plan)"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Veure pla"
+                    @click="openViewModal(plan)"
+                  >
+                    <i class="bi bi-eye"></i>
                   </button>
                   <button
                     v-if="isPlanEditable(plan)"
@@ -1205,6 +1703,14 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                       <i v-else class="bi bi-file-earmark-pdf-fill"></i>
                     </button>
                     <button
+                      v-if="!isPlanEditable(plan)"
+                      class="btn btn-sm btn-outline-secondary"
+                      title="Veure pla"
+                      @click="openViewModal(plan)"
+                    >
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button
                       v-if="isPlanEditable(plan)"
                       class="btn btn-sm btn-outline-primary"
                       title="Editar pla"
@@ -1257,5 +1763,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
 .pfi-summary-item {
   cursor: pointer;
   text-decoration: underline;
+}
+
+.step-indicator-item {
+  cursor: pointer;
 }
 </style>

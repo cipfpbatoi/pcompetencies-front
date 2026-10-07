@@ -16,38 +16,14 @@ export default {
     canView() {
       return this.isAdmin || this.isCoordinadorFct
     },
-    ownDepartmentId() {
-      return this.user.info?.department?.id || null
-    },
     pageTitle() {
-      if (this.isAdmin) return 'Estadístiques Plans Formatius Individuals (tot el centre)'
-      if (this.isCoordinadorFct) {
-        const name = this.user.info?.department?.shortName || this.user.info?.department?.name
-        return name
-          ? `Estadístiques Plans Formatius Individuals (${name})`
-          : 'Estadístiques Plans Formatius Individuals'
-      }
-      return 'Estadístiques Plans Formatius Individuals'
+      return 'Estadístiques Plans Formatius Individuals (tot el centre)'
     },
-    // Unifica la vista per departament: l'admin veu tots els departaments amb els seus cicles
-    // (ja inclosos a la resposta de /stats), el coordinador FCT veu una única targeta amb el
-    // seu propi departament i els cicles obtinguts de /department/{id}/cycles-stats
+    // El coordinador FCT també ha de veure les estadístiques de tots els departaments,
+    // no només el propi, així que admin i coordinador FCT comparteixen la mateixa resposta
+    // de /individual-training-plans/stats (amb byDepartment per a tot el centre).
     departmentCards() {
-      if (this.isAdmin) return this.stats?.byDepartment || []
-      if (this.isCoordinadorFct && this.stats) {
-        const name =
-          this.user.info?.department?.shortName ||
-          this.user.info?.department?.name ||
-          'El meu departament'
-        return [
-          {
-            departmentId: this.ownDepartmentId,
-            departmentName: name,
-            cycles: this.stats.cycles || []
-          }
-        ]
-      }
-      return []
+      return this.stats?.byDepartment || []
     }
   },
   data() {
@@ -105,15 +81,7 @@ export default {
       try {
         this.loadingStats = true
         const params = { schoolYearId: this.schoolYearId || undefined }
-        if (this.isAdmin) {
-          this.stats = (await api.getIndividualTrainingPlansStats(params)).data
-        } else if (this.isCoordinadorFct && this.ownDepartmentId) {
-          const response = await api.getIndividualTrainingPlansDepartmentCyclesStats(
-            this.ownDepartmentId,
-            params
-          )
-          this.stats = { cycles: response.data }
-        }
+        this.stats = (await api.getIndividualTrainingPlansStats(params)).data
       } catch (error) {
         this.addMessage('error', error)
       } finally {

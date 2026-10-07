@@ -163,6 +163,8 @@ export const api = {
     instance.get(`/pcc/${pccId}/individual-training-plans/available-items`, {
       params: planId ? { turn, planId } : { turn }
     }),
+  getIndividualTrainingPlan: (pccId, planId) =>
+    instance.get(`/pcc/${pccId}/individual-training-plans/${planId}`),
   createIndividualTrainingPlan: (pccId, data) =>
     instance.post(`/pcc/${pccId}/individual-training-plans`, data),
   updateIndividualTrainingPlan: (pccId, planId, data) =>
@@ -204,6 +206,9 @@ export const api = {
   // Cycles
   getCycles: () => instance.get('/cycles'),
   getCycleById: (id, turn) => instance.get(`/cycles/${id}`, { params: turn ? { turn } : {} }),
+
+  // Departments
+  getDepartments: () => instance.get('/departments'),
 
   // ImprovementSyllabus
   getImprovementStatus: () => instance.get('/improvements/status'),
@@ -254,7 +259,9 @@ export const api = {
   getModuleByCode: (code) => instance.get(`/module/${code}`),
 
   // Syllabus
-  getSyllabusesPaginated: (filter) => instance.get('/syllabus?' + filter),
+  // ld+json per a rebre hydra:totalItems i poder mostrar el total de registres
+  getSyllabusesPaginated: (filter) =>
+    instance.get('/syllabus?' + filter, { headers: { Accept: 'application/ld+json' } }),
   getSyllabusByCycleAndModule: (cycleId, moduleCode) =>
     instance.get(`/syllabus/cycle/${cycleId}/module/${moduleCode}`),
   getSyllabusById: (id) => instance.get(`/syllabus/${id}`),

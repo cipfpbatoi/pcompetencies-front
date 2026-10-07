@@ -27,7 +27,24 @@ export default {
     }
     this.RejectSyllabusModal = new Modal(document.getElementById('rejectSyllabusModal'))
   },
-  computed: {},
+  computed: {
+    totalPages() {
+      return this.totalItems > 0 ? Math.ceil(this.totalItems / this.itemsPerPage) : 1
+    },
+    // Com a molt 5 botons de pàgina, centrats en la pàgina actual quan es pot
+    visiblePages() {
+      const maxButtons = 5
+      let start = Math.max(1, this.page - Math.floor(maxButtons / 2))
+      const end = Math.min(this.totalPages, start + maxButtons - 1)
+      start = Math.max(1, end - maxButtons + 1)
+
+      const pages = []
+      for (let n = start; n <= end; n++) {
+        pages.push(n)
+      }
+      return pages
+    }
+  },
   data() {
     return {
       syllabuses: [],
@@ -41,8 +58,11 @@ export default {
       moduleFilter: '',
       statusFilter: '',
       loading: false,
-      page: 1,
+      // Es recupera de la URL (?page=N) per a que, al tornar d'una altra pàgina
+      // (p. ex. en veure una programació i tornar arrere), es quede a la pàgina on estaves
+      page: Number(this.$route.query.page) || 1,
       itemsPerPage: 25,
+      totalItems: 0,
       // Modal
       RejectSyllabusModal: null,
       modalFields: {},
@@ -58,7 +78,11 @@ export default {
       try {
         this.loading = true;
         const response = await api.getSyllabusesPaginated(this.getFilter())
-        this.syllabuses = response.data
+        this.syllabuses = response.data['hydra:member'] || response.data
+        this.totalItems =
+          typeof response.data['hydra:totalItems'] === 'number'
+            ? response.data['hydra:totalItems']
+            : this.syllabuses.length
       } catch (error) {
         this.addMessage('error', error)
       }
@@ -96,6 +120,7 @@ export default {
     },
     setPage(page) {
       this.page = page
+      this.$router.replace({ query: { ...this.$route.query, page } })
       this.getSyllabuses()
     },
     async accept(syllabus) {
@@ -345,6 +370,9 @@ export default {
           </tr>
           </tfoot>
         </table>
+        <div class="text-center text-secondary small mb-2">
+          {{ totalItems }} programacions · Pàgina {{ page }} de {{ totalPages }}
+        </div>
         <nav aria-label="Table navigation">
           <ul class="pagination justify-content-center">
             <li class="page-item">
@@ -356,13 +384,13 @@ export default {
               >Anterior</a
               >
             </li>
-            <li class="page-item" :class="{ disabled: page == n }" v-for="n in page" :key="n">
+            <li class="page-item" :class="{ disabled: page == n }" v-for="n in visiblePages" :key="n">
               <a class="page-link" @click.prevent="setPage(n)" href="#">{{ n }}</a>
             </li>
             <li class="page-item">
               <a
                 class="page-link"
-                :class="{ disabled: syllabuses.length < itemsPerPage }"
+                :class="{ disabled: page >= totalPages }"
                 @click.prevent="setPage(page + 1)"
                 href="#"
               >Següent</a

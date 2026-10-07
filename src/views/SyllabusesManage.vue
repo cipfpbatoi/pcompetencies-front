@@ -63,6 +63,7 @@ export default {
       page: Number(this.$route.query.page) || 1,
       itemsPerPage: 25,
       totalItems: 0,
+      moduleTab: 'active',
       // Modal
       RejectSyllabusModal: null,
       modalFields: {},
@@ -115,6 +116,7 @@ export default {
       if (this.moduleFilter) {
         filter += `&module.name=${this.moduleFilter}`
       }
+      filter += `&module.active=${this.moduleTab === 'inactive' ? 0 : 1}`
 
       return encodeURI(filter)
     },
@@ -122,6 +124,11 @@ export default {
       this.page = page
       this.$router.replace({ query: { ...this.$route.query, page } })
       this.getSyllabuses()
+    },
+    setModuleTab(tab) {
+      if (this.moduleTab === tab) return
+      this.moduleTab = tab
+      this.setPage(1)
     },
     async accept(syllabus) {
       if (
@@ -277,6 +284,28 @@ export default {
           </div>
         </div>
       </div>
+      <ul class="nav nav-tabs mt-3">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            :class="{ active: moduleTab === 'active' }"
+            href="#"
+            @click.prevent="setModuleTab('active')"
+          >
+            Mòduls actius
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            :class="{ active: moduleTab === 'inactive' }"
+            href="#"
+            @click.prevent="setModuleTab('inactive')"
+          >
+            Mòduls no actius
+          </a>
+        </li>
+      </ul>
       <div style="overflow: auto">
         <table class="table table-striped col-lg-12 text-center">
           <thead>

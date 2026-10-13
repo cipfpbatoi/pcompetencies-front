@@ -198,6 +198,14 @@ export const useDataStore = defineStore('data', {
       this.syllabus = {}
     },
     addMessage(type, message) {
+      // Les crides amb responseType: 'blob' (descàrregues de PDF/Excel) també aplique
+      // eixe responseType a la resposta d'error: message.response.data és un Blob,
+      // no el JSON de l'error, i cal llegir-lo de forma asíncrona abans de mostrar-lo
+      if (message?.response?.data instanceof Blob) {
+        this.addBlobErrorMessage(type, message)
+        return
+      }
+
       let text = ''
       if (message.response) {
         if (message.response.data?.title) {
@@ -212,6 +220,22 @@ export const useDataStore = defineStore('data', {
       } else {
         text = message
       }
+      this.pushMessage(type, text)
+    },
+    async addBlobErrorMessage(type, message) {
+      let text = 'Error desconegut'
+      try {
+        const raw = await message.response.data.text()
+        const data = JSON.parse(raw)
+        text = data.title
+          ? data.title + ` (${data.status})` + (data.detail || '')
+          : ` (${data.code}): ` + data.message
+      } catch {
+        // El cos de l'error no és JSON (p. ex. un 500 sense cos útil): es manté el text per defecte
+      }
+      this.pushMessage(type, text)
+    },
+    pushMessage(type, text) {
       const newMessage = { id: ++id, text }
       switch (type) {
         case 'error':
@@ -232,7 +256,7 @@ export const useDataStore = defineStore('data', {
       newMessage.time = new Date().toLocaleTimeString()
       this.messages.push(newMessage)
       if (type === 'success' || type === 'error') {
-        setTimeout(() => this.delMessage(id), DELMSG_TIMEOUT)
+        setTimeout(() => this.delMessage(newMessage.id), DELMSG_TIMEOUT)
       }
     },
     delMessage(id) {

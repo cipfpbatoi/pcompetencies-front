@@ -64,6 +64,10 @@ export default {
       itemsPerPage: 25,
       totalItems: 0,
       moduleTab: 'active',
+      // L'ordre per defecte del backend ja és updatedAt desc: ho reflectim ací perquè
+      // la columna mostre la fletxa corresponent sense haver de clicar-la primer
+      sortField: 'updatedAt',
+      sortDirection: 'desc',
       // Modal
       RejectSyllabusModal: null,
       modalFields: {},
@@ -92,6 +96,18 @@ export default {
     statusClass(status) {
       return statusClass(status)
     },
+    formatDate(dateStr) {
+      if (!dateStr) {
+        return '-'
+      }
+      return new Date(dateStr).toLocaleString('ca-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    },
     isCurrentCourseSyllabus(syllabus) {
       return syllabus.courseYear === this.currentData.currentSchoolYear?.course
     },
@@ -117,8 +133,22 @@ export default {
         filter += `&module.name=${this.moduleFilter}`
       }
       filter += `&module.active=${this.moduleTab === 'inactive' ? 0 : 1}`
+      filter += `&order[${this.sortField}]=${this.sortDirection}`
 
       return encodeURI(filter)
+    },
+    setSort(field) {
+      if (this.sortField === field) {
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.sortField = field
+        this.sortDirection = 'asc'
+      }
+      this.setPage(1)
+    },
+    sortIconClass(field) {
+      if (this.sortField !== field) return 'bi bi-arrow-down-up text-muted'
+      return this.sortDirection === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'
     },
     setPage(page) {
       this.page = page
@@ -310,12 +340,19 @@ export default {
         <table class="table table-striped col-lg-12 text-center">
           <thead>
           <th v-if="checkeable" title="Selecciona" class="text-center">Sel.</th>
-          <th>Cicle</th>
+          <th role="button" @click="setSort('cycle.shortName')">
+            Cicle <i :class="sortIconClass('cycle.shortName')"></i>
+          </th>
           <th>Codi</th>
-          <th>Mòdul</th>
+          <th role="button" @click="setSort('module.name')">
+            Mòdul <i :class="sortIconClass('module.name')"></i>
+          </th>
           <th>Torn</th>
           <th>Enviat per:</th>
           <th>Curs:</th>
+          <th role="button" @click="setSort('updatedAt')">
+            Darrera modificació <i :class="sortIconClass('updatedAt')"></i>
+          </th>
           <th>Estat</th>
           <th>Accions</th>
           </thead>
@@ -331,6 +368,7 @@ export default {
             <td v-if="syl.sentUser">{{ syl.sentUser.name }} {{ syl.sentUser.surname }}</td>
             <td v-else>No establit</td>
             <td>{{ syl.courseYear }}</td>
+            <td>{{ formatDate(syl.updatedAt) }}</td>
             <td class="align-middle">
                 <span v-if="isCurrentCourseSyllabus(syl)" :class="statusClass(syl.status)">{{
                     syl.status
@@ -382,7 +420,7 @@ export default {
           </tbody>
           <tfoot>
           <tr>
-            <td colspan="9">
+            <td colspan="10">
               <div class="text-center p-2" :class="{ 'd-none' : !this.loading }">
                 <span class="spinner-border text-primary m-auto"></span>
               </div>

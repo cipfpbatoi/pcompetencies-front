@@ -327,7 +327,12 @@ export const useDataStore = defineStore('data', {
             }
           }
         }
-        if (localStorage.pccCycleId && window.location.pathname.startsWith('/pcc')) {
+        const individualTrainingPlansMatch = /^\/pcc\/(\d+)\/individual-training-plans\/?$/.exec(
+          window.location.pathname
+        )
+        if (individualTrainingPlansMatch) {
+          await this.loadPccById(Number(individualTrainingPlansMatch[1]))
+        } else if (localStorage.pccCycleId && window.location.pathname.startsWith('/pcc')) {
           try {
             const response = await api.getPCCByCycleId(localStorage.pccCycleId)
             this.pcc = response.data
@@ -404,6 +409,38 @@ export const useDataStore = defineStore('data', {
         this.pcc = response.data
         return response.data
       } catch (error) {
+        if (error.response?.status !== 404) {
+          this.addMessage('error', error)
+        }
+        return null
+      }
+    },
+    async loadPccById(pccId) {
+      this.pcc = {}
+      this.cycle = {}
+
+      try {
+        const response = await api.getPCCById(pccId)
+        const nextPcc = response.data
+        const cycleId = nextPcc.cycle?.id || nextPcc.cycleId
+
+        if (!cycleId) {
+          throw new Error("El PCC no té cap cicle associat")
+        }
+
+        const cycleResponse = await api.getCycleById(cycleId, DEFAULT_PCC_TURN)
+        this.pcc = nextPcc
+        this.cycle = {
+          ...cycleResponse.data,
+          loadedTurn: DEFAULT_PCC_TURN,
+          modulesFilteredByDepartment: false
+        }
+        this.filterModules({ filterByDepartment: false })
+        localStorage.pccCycleId = cycleId
+        return nextPcc
+      } catch (error) {
+        this.pcc = {}
+        this.cycle = {}
         if (error.response?.status !== 404) {
           this.addMessage('error', error)
         }

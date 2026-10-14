@@ -61,6 +61,7 @@ instance.interceptors.response.use(
 // Métodos para acceder a las rutas de la API
 export const api = {
   // PCC
+  getPCCById: (pccId) => instance.get(`/pcc/${pccId}`),
   getPCCByCycleId: (cycleId) => instance.get(`/pcc/cycle/${cycleId}`),
   getPccsPaginated: (filter) => instance.get('/pcc?' + filter),
   createPCC: (data) => instance.post('/pcc', data),

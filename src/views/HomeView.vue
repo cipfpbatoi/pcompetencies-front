@@ -765,7 +765,7 @@ const getTurnLabel = (turn) => {
                   type="button"
                   class="btn btn-primary"
                   title="Gestionar plans formatius individuals"
-                  @click="router.push({ name: 'individualTrainingPlansPCC' })"
+                  @click="router.push({ name: 'individualTrainingPlansPCC', params: { pccId: pcc.id } })"
                 >
                   <i class="bi bi-mortarboard-fill"></i> Plans Formatius Individuals
                 </button>

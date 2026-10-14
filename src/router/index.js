@@ -216,9 +216,10 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/pcc/individual-training-plans',
+      path: '/pcc/:pccId/individual-training-plans',
       name: 'individualTrainingPlansPCC',
       component: IndividualTrainingPlansPCC,
+      props: (route) => ({ pccId: Number(route.params.pccId) }),
       meta: { requiresAuth: true }
     },
     {

@@ -115,6 +115,12 @@ const modules = ref([])
 const selectionErrorLines = ref([])
 const currentStep = ref(1)
 const activeModuleCode = ref('')
+const showCoordinationMechanismsHelp = ref(false)
+const showVisitPeriodicityHelp = ref(false)
+const showTrainingPeriodsHelp = ref(false)
+const showExtraordinaryAuthorizationsHelp = ref(false)
+const showObservationsHelp = ref(false)
+const showPeriodValidationErrors = ref(false)
 
 const scrollModalToTop = () => {
   const modalBody = document.querySelector('#individualTrainingPlanModal .modal-body')
@@ -176,6 +182,8 @@ const periodsHoursMismatch = computed(
   () => form.periods.length > 0 && totalPeriodsHours.value !== totalModuleHours.value
 )
 
+const periodsMissingCompany = computed(() => form.periods.some((period) => !period.company.trim()))
+
 // Períodes amb alguna data fora del curs escolar del pla (comprovació real pendent
 // per al moment d'enviar la programació; de moment sols avís)
 const periodsOutOfSchoolYear = computed(() => {
@@ -207,7 +215,10 @@ const step3Incomplete = computed(() => {
   if (form.periods.length === 0) return true
   return form.periods.some(
     (period) =>
-      !period.startDate || !period.endDate || !period.company.trim() || !(Number(period.hours) > 0)
+      !period.startDate ||
+      !period.endDate ||
+      !(Number(period.hours) > 0) ||
+      !period.company.trim()
   )
 })
 
@@ -349,7 +360,9 @@ const selectedSummaryByModule = computed(() => {
     if (!entry) return
     addItem(entry.mod.moduleCode, entry.mod.moduleName, {
       key: `lr-${id}`,
-      label: `RA${entry.lr.number}`,
+      label: String(entry.lr.number),
+      type: 'learningResult',
+      learningResultId: entry.lr.id,
       lrNumber: entry.lr.number,
       // Les entrades de RA sencer van abans que els seus criteris individuals
       order: 0,
@@ -361,8 +374,10 @@ const selectedSummaryByModule = computed(() => {
     if (!entry) return
     addItem(entry.mod.moduleCode, entry.mod.moduleName, {
       key: `ce-${id}`,
-      // El codi del criteri (p.ex. "a") es repeteix entre RA, cal prefixar-lo amb el RA al qual pertany
-      label: `RA${entry.lr.number}.${entry.ce.code}`,
+      type: 'evaluationCriteria',
+      learningResultId: entry.lr.id,
+      learningResultLabel: String(entry.lr.number),
+      code: entry.ce.code,
       lrNumber: entry.lr.number,
       order: 1,
       remove: () => toggleEvaluationCriteria(entry.ce)
@@ -370,6 +385,33 @@ const selectedSummaryByModule = computed(() => {
   })
 
   byModule.forEach((entry) => {
+    const criteriaByLearningResult = new Map()
+    entry.items
+      .filter((item) => item.type === 'evaluationCriteria')
+      .forEach((item) => {
+        if (!criteriaByLearningResult.has(item.learningResultId)) {
+          criteriaByLearningResult.set(item.learningResultId, {
+            key: `criteria-${item.learningResultId}`,
+            label: item.learningResultLabel,
+            lrNumber: item.lrNumber,
+            order: item.order,
+            criteria: []
+          })
+        }
+        criteriaByLearningResult.get(item.learningResultId).criteria.push(item)
+      })
+
+    criteriaByLearningResult.forEach((item) => {
+      item.criteria.sort((a, b) => a.code.localeCompare(b.code))
+    })
+    entry.items = [
+      // Si un RA complet té criteris seleccionats, el resum els mostra agrupats en lloc de repetir
+      // el número del RA i els seus criteris.
+      ...entry.items.filter(
+        (item) => item.type === 'learningResult' && !criteriaByLearningResult.has(item.learningResultId)
+      ),
+      ...criteriaByLearningResult.values()
+    ]
     entry.items.sort(
       (a, b) => a.lrNumber - b.lrNumber || a.order - b.order || a.label.localeCompare(b.label)
     )
@@ -570,6 +612,12 @@ const openCreateModal = async () => {
   selectionErrorLines.value = []
   currentStep.value = 1
   activeModuleCode.value = ''
+  showCoordinationMechanismsHelp.value = false
+  showVisitPeriodicityHelp.value = false
+  showTrainingPeriodsHelp.value = false
+  showExtraordinaryAuthorizationsHelp.value = false
+  showObservationsHelp.value = false
+  showPeriodValidationErrors.value = false
   clearErrors()
   planFormModalRef.value?.show()
   await loadAvailableItems()
@@ -614,6 +662,12 @@ const openEditModal = async (plan, { viewOnly = false } = {}) => {
   selectionErrorLines.value = []
   currentStep.value = 1
   activeModuleCode.value = ''
+  showCoordinationMechanismsHelp.value = false
+  showVisitPeriodicityHelp.value = false
+  showTrainingPeriodsHelp.value = false
+  showExtraordinaryAuthorizationsHelp.value = false
+  showObservationsHelp.value = false
+  showPeriodValidationErrors.value = false
   clearErrors()
   planFormModalRef.value?.show()
 
@@ -806,18 +860,25 @@ const handleSavePlan = async () => {
     return
   }
 
+  if (periodsMissingCompany.value) {
+    showPeriodValidationErrors.value = true
+    currentStep.value = 3
+    scrollModalToTop()
+    return
+  }
+
   const moduleHours = Object.fromEntries(relevantModuleHoursEntries.value)
   const moduleActivities = Object.fromEntries(
     relevantModuleActivitiesEntries.value.filter(([, activities]) => activities.trim() !== '')
   )
-  const periods = form.periods
-    .filter((period) => period.company.trim() !== '')
-    .map((period) => ({
-      startDate: period.startDate || null,
-      endDate: period.endDate || null,
-      hours: Number(period.hours) || 0,
-      company: period.company.trim()
-    }))
+  // No es descarta cap període incomplet en guardar: perdre'n un sense avisar és pitjor que
+  // conservar-lo perquè es complete després.
+  const periods = form.periods.map((period) => ({
+    startDate: period.startDate || null,
+    endDate: period.endDate || null,
+    hours: Number(period.hours) || 0,
+    company: period.company.trim() || null
+  }))
 
   const payload = {
     name: form.name.trim(),
@@ -1087,6 +1148,35 @@ const handleCopyPlanToCurrentYear = async (plan) => {
             <label class="form-check-label fw-bold" for="requiresExtraordinaryAuthorizations">
               Requereix autoritzacions extraordinàries
             </label>
+            <button
+              type="button"
+              class="btn btn-link text-primary p-0 border-0 lh-1 ms-1 align-text-bottom"
+              title="Mostra informació i exemples"
+              aria-label="Mostra informació i exemples de les autoritzacions extraordinàries"
+              :aria-expanded="showExtraordinaryAuthorizationsHelp"
+              aria-controls="extraordinaryAuthorizationsHelp"
+              @click="showExtraordinaryAuthorizationsHelp = !showExtraordinaryAuthorizationsHelp"
+            >
+              <i class="bi bi-info-circle-fill fs-5"></i>
+            </button>
+          </div>
+          <div
+            v-if="showExtraordinaryAuthorizationsHelp"
+            id="extraordinaryAuthorizationsHelp"
+            class="alert alert-info py-2 px-3 small mt-2 mb-0"
+          >
+            <p class="mb-2">
+              Marca esta opció quan la formació en empresa requerisca una autorització que excedisca
+              les condicions ordinàries.
+            </p>
+            <p class="mb-2">
+              Explica en el camp inferior quin és el motiu i l'autorització necessària.
+            </p>
+            <p class="mb-0">
+              <strong>Exemples:</strong> realitzar la formació en dies festius o caps de setmana;
+              fer l'estada en una empresa situada fora de l'entorn socioeconòmic del centre; o
+              qualsevol altra situació excepcional que requerisca autorització.
+            </p>
           </div>
           <div v-if="form.requiresExtraordinaryAuthorizations" class="mt-2">
             <label class="form-label fw-bold">Autoritzacions necessàries</label>
@@ -1103,8 +1193,32 @@ const handleCopyPlanToCurrentYear = async (plan) => {
           </div>
         </div>
         <div class="col-12">
-          <label class="form-label fw-bold">Observacions</label>
+          <div class="mb-2">
+            <label for="observations" class="form-label fw-bold mb-0 d-inline">Observacions</label>
+            <button
+              type="button"
+              class="btn btn-link text-primary p-0 border-0 lh-1 ms-1 align-text-bottom"
+              title="Mostra informació i exemples"
+              aria-label="Mostra informació i exemples de les observacions"
+              :aria-expanded="showObservationsHelp"
+              aria-controls="observationsHelp"
+              @click="showObservationsHelp = !showObservationsHelp"
+            >
+              <i class="bi bi-info-circle-fill fs-5"></i>
+            </button>
+          </div>
+          <div
+            v-if="showObservationsHelp"
+            id="observationsHelp"
+            class="alert alert-info py-2 px-3 small"
+          >
+            Indica qualsevol aspecte rellevant que vulgues fer constar sobre el pla formatiu i que
+            no haja quedat recollit en els apartats anteriors. Pots incloure aclariments,
+            condicions específiques d'organització o qualsevol altra informació complementària
+            relacionada amb la formació en empresa.
+          </div>
           <textarea
+            id="observations"
             v-model="form.observations"
             class="form-control"
             rows="2"
@@ -1318,11 +1432,23 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   <strong class="me-1">{{ entry.moduleName }} · RA:</strong>
                   <template v-for="(item, index) in entry.items" :key="item.key"
                     ><span
+                      v-if="!item.criteria"
                       class="pfi-summary-item"
                       :role="isViewOnly ? undefined : 'button'"
                       :title="isViewOnly ? item.label : `Llevar ${item.label}`"
                       @click="isViewOnly ? null : item.remove()"
                       >{{ item.label }}</span
+                      ><span v-else
+                      ><span>{{ item.label }}</span
+                      ><template v-for="(criterion, criterionIndex) in item.criteria" :key="criterion.key"
+                        ><span
+                          class="pfi-summary-item"
+                          :role="isViewOnly ? undefined : 'button'"
+                          :title="isViewOnly ? `${item.label}.${criterion.code}` : `Llevar ${item.label}.${criterion.code}`"
+                          @click="isViewOnly ? null : criterion.remove()"
+                          >{{ criterion.code }}</span
+                        ><span v-if="criterionIndex < item.criteria.length - 1">,</span></template
+                      ></span
                     ><span v-if="index < entry.items.length - 1">,&nbsp;</span></template
                   >
                 </span>
@@ -1388,11 +1514,45 @@ const handleCopyPlanToCurrentYear = async (plan) => {
           </div>
         </div>
         <div class="col-12">
-          <label class="form-label fw-bold"
-            >3.1 Mecanismes de coordinació i seguiment durant el període de formació en
-            empresa</label
+          <div class="mb-2">
+            <label for="coordinationMechanisms" class="form-label fw-bold mb-0 d-inline"
+              >3.1 Mecanismes de coordinació i seguiment durant el període de formació en
+              empresa</label
+            >
+            <button
+              type="button"
+              class="btn btn-link text-primary p-0 border-0 lh-1 ms-1 align-text-bottom"
+              title="Mostra informació i exemples"
+              aria-label="Mostra informació i exemples dels mecanismes de coordinació i seguiment"
+              :aria-expanded="showCoordinationMechanismsHelp"
+              aria-controls="coordinationMechanismsHelp"
+              @click="showCoordinationMechanismsHelp = !showCoordinationMechanismsHelp"
+            >
+              <i class="bi bi-info-circle-fill fs-5"></i>
+            </button>
+          </div>
+          <div
+            v-if="showCoordinationMechanismsHelp"
+            id="coordinationMechanismsHelp"
+            class="alert alert-info py-2 px-3 small"
           >
+            <p class="mb-2">
+              Explica com s'organitza la coordinació entre el centre i l'empresa: les persones
+              responsables, les seues funcions i els canals de comunicació acordats per compartir
+              informació o gestionar incidències.
+            </p>
+            <p class="mb-2">
+              Pots usar canals com el correu electrònic corporatiu, el telèfon o Microsoft Teams.
+            </p>
+            <p class="mb-0">
+              <strong>Exemple:</strong> «El tutor o la tutora docent serà la persona de contacte
+              del centre i es coordinarà amb el tutor o la tutora d'empresa. La comunicació
+              ordinària es farà per correu electrònic corporatiu i les incidències urgents per
+              telèfon. Quan calga una reunió, es realitzarà per Microsoft Teams.»
+            </p>
+          </div>
           <textarea
+            id="coordinationMechanisms"
             v-model="form.coordinationMechanisms"
             class="form-control"
             rows="3"
@@ -1401,11 +1561,43 @@ const handleCopyPlanToCurrentYear = async (plan) => {
           ></textarea>
         </div>
         <div class="col-12">
-          <label class="form-label fw-bold"
-            >3.2 Periodicitat de les visites: Visites a les empreses, comunicació telefònica: dates
-            i duració, comunicació per correu electrònic, videotelefonades: dates i duració.</label
+          <div class="mb-2">
+            <label for="visitPeriodicity" class="form-label fw-bold mb-0 d-inline"
+              >3.2 Periodicitat de les visites: Visites a les empreses, comunicació telefònica:
+              dates i duració, comunicació per correu electrònic, videotelefonades: dates i
+              duració.</label
+            >
+            <button
+              type="button"
+              class="btn btn-link text-primary p-0 border-0 lh-1 ms-1 align-text-bottom"
+              title="Mostra informació i exemples"
+              aria-label="Mostra informació i exemples de la periodicitat de les visites"
+              :aria-expanded="showVisitPeriodicityHelp"
+              aria-controls="visitPeriodicityHelp"
+              @click="showVisitPeriodicityHelp = !showVisitPeriodicityHelp"
+            >
+              <i class="bi bi-info-circle-fill fs-5"></i>
+            </button>
+          </div>
+          <div
+            v-if="showVisitPeriodicityHelp"
+            id="visitPeriodicityHelp"
+            class="alert alert-info py-2 px-3 small"
           >
+            <p class="mb-2">
+              Detalla quan i amb quina freqüència es faran les visites presencials i les
+              comunicacions de seguiment. Indica les dates o períodes previstos, el canal que
+              s'utilitzarà i, quan corresponga, la duració aproximada.
+            </p>
+            <p class="mb-0">
+              <strong>Exemple:</strong> «Visita inicial durant la primera setmana, una visita
+              presencial mensual a l'empresa d'una hora i una visita final a l'empresa. Telefonada
+              quinzenal amb el tutor o la tutora d'empresa i correu electrònic de seguiment cada
+              divendres. Videotelefonada per Microsoft Teams en cas que siga necessari.»
+            </p>
+          </div>
           <textarea
+            id="visitPeriodicity"
             v-model="form.visitPeriodicity"
             class="form-control"
             rows="3"
@@ -1414,7 +1606,22 @@ const handleCopyPlanToCurrentYear = async (plan) => {
         </div>
         <div class="col-12">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label fw-bold mb-0">3.3 Períodes de formació en empresa</label>
+            <div>
+              <label for="trainingPeriodStartDate" class="form-label fw-bold mb-0 d-inline"
+                >3.3 Períodes de formació en empresa</label
+              >
+              <button
+                type="button"
+                class="btn btn-link text-primary p-0 border-0 lh-1 ms-1 align-text-bottom"
+                title="Mostra informació i exemples"
+                aria-label="Mostra informació i exemples dels períodes de formació en empresa"
+                :aria-expanded="showTrainingPeriodsHelp"
+                aria-controls="trainingPeriodsHelp"
+                @click="showTrainingPeriodsHelp = !showTrainingPeriodsHelp"
+              >
+                <i class="bi bi-info-circle-fill fs-5"></i>
+              </button>
+            </div>
             <button
               v-if="!isViewOnly"
               type="button"
@@ -1423,6 +1630,24 @@ const handleCopyPlanToCurrentYear = async (plan) => {
             >
               <i class="bi bi-plus-circle"></i> Afegir període
             </button>
+          </div>
+          <div
+            v-if="showTrainingPeriodsHelp"
+            id="trainingPeriodsHelp"
+            class="alert alert-info py-2 px-3 small"
+          >
+            <p class="mb-2">
+              Pots afegir tants períodes com consideres necessaris. Al final, la suma de les hores
+              de tots els períodes ha de coincidir amb el total d'hores incloses al pla de formació.
+            </p>
+            <p class="mb-2">
+              En el camp <strong>Tipus d'empresa</strong>, indica el sector o tipus d'empresa al
+              qual s'adreça el pla, no una empresa concreta.
+            </p>
+            <p class="mb-0">
+              <strong>Exemples:</strong> perruqueries, hospitals privats, empreses de programació o
+              departaments d'informàtica d'una empresa.
+            </p>
           </div>
           <div v-if="periodsHoursMismatch" class="alert alert-warning py-2 px-3 mb-2">
             <i class="bi bi-exclamation-triangle-fill"></i>
@@ -1492,14 +1717,19 @@ const handleCopyPlanToCurrentYear = async (plan) => {
             </div>
             <div class="row g-2 mt-2">
               <div class="col-12">
-                <label class="form-label small mb-1">Empresa</label>
+                <label class="form-label small mb-1">Tipus d'empresa</label>
                 <input
                   v-model="period.company"
                   type="text"
                   class="form-control form-control-sm"
-                  placeholder="Ex: Informàtica Batoi SL"
+                  :class="{ 'is-invalid': showPeriodValidationErrors && !period.company.trim() }"
+                  placeholder="Ex: Empreses de programació, perruqueries, hospitals públics..."
+                  required
                   :disabled="isViewOnly"
                 />
+                <div v-if="showPeriodValidationErrors && !period.company.trim()" class="invalid-feedback">
+                  Cal indicar el tipus d'empresa.
+                </div>
               </div>
             </div>
           </div>
@@ -1537,10 +1767,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
       </div>
     </ModalComponent>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <p class="mb-0 text-muted">
-        Gestiona els plans formatius individuals (RA/CE dualitzables) d'este PCC.
-      </p>
+    <div class="d-flex justify-content-end mb-3">
       <ActionButton
         title="Nou pla formatiu individual"
         buttonClass="btn-success"

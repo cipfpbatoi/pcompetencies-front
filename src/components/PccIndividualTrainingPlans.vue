@@ -200,6 +200,17 @@ const periodsOverlap = computed(() => {
   )
 })
 
+// El pas 3 es pot deixar incomplet en guardar (per a poder fer el pla en varis
+// passos), però cal avisar que no es podrà enviar la programació fins completar-lo
+const step3Incomplete = computed(() => {
+  if (!form.coordinationMechanisms.trim() || !form.visitPeriodicity.trim()) return true
+  if (form.periods.length === 0) return true
+  return form.periods.some(
+    (period) =>
+      !period.startDate || !period.endDate || !period.company.trim() || !(Number(period.hours) > 0)
+  )
+})
+
 const selectedLearningResultIds = ref(new Set())
 const selectedEvaluationCriteriaIds = ref(new Set())
 
@@ -1368,6 +1379,14 @@ const handleCopyPlanToCurrentYear = async (plan) => {
 
       <!-- PAS 3: coordinació i seguiment -->
       <div v-if="isViewOnly || currentStep === 3" class="row g-3">
+        <div v-if="!isViewOnly && step3Incomplete" class="col-12">
+          <div class="alert alert-warning py-2 px-3 mb-0">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Pots guardar el pla encara que este pas estiga incomplet, però no podràs
+            <strong>enviar-lo</strong> per a la seua aprovació fins que completes els mecanismes de
+            coordinació, la periodicitat de les visites i almenys un període complet.
+          </div>
+        </div>
         <div class="col-12">
           <label class="form-label fw-bold"
             >3.1 Mecanismes de coordinació i seguiment durant el període de formació en

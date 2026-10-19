@@ -2,11 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useDataStore } from '@/stores/data'
+import { api } from '@/repositories/api.js'
 import PccIndividualTrainingPlans from '@/components/PccIndividualTrainingPlans.vue'
 
 vi.mock('@/repositories/api.js', () => ({
   api: {
-    getCurrentData: vi.fn().mockResolvedValue({ data: { currentSchoolYear: { course: '2026-2027' } } })
+    getCurrentData: vi.fn().mockResolvedValue({ data: { currentSchoolYear: { course: '2026-2027' } } }),
+    getIndividualTrainingPlanAvailableItems: vi.fn(),
+    getIndividualTrainingPlan: vi.fn()
   }
 }))
 
@@ -21,7 +24,11 @@ const mountComponent = () =>
     global: {
       stubs: {
         ModalComponent: {
-          template: '<div><slot name="header" /><slot /><slot name="footer" /></div>'
+          template: '<div><slot name="header" /><slot /><slot name="footer" /></div>',
+          methods: {
+            show() {},
+            hide() {}
+          }
         },
         ActionButton: true
       }
@@ -196,5 +203,116 @@ describe('PccIndividualTrainingPlans', () => {
 
     expect(summary).toContain('2a,b')
     expect(summary).not.toContain('2, 2a,b')
+  })
+
+  it('preloads the development received for selected learning results when editing', async () => {
+    const plan = {
+      id: 10,
+      name: 'Pla de prova',
+      turn: 'presential',
+      courseLevel: 1,
+      moduleHours: [],
+      periods: []
+    }
+    api.getIndividualTrainingPlanAvailableItems.mockResolvedValue({
+      data: [
+        {
+          moduleCode: 'M01',
+          moduleName: 'Mòdul de prova',
+          learningResults: [
+            {
+              id: 1,
+              number: 1,
+              selected: true,
+              development: 'compartido',
+              evaluationCriterias: []
+            }
+          ]
+        }
+      ]
+    })
+    api.getIndividualTrainingPlan.mockResolvedValue({ data: plan })
+
+    const wrapper = mountComponent()
+    await wrapper.vm.openEditModal(plan)
+
+    expect(wrapper.vm.learningResultDevelopments).toEqual({ 1: 'compartido' })
+  })
+
+  it('removes a learning result development when its learning result is deselected', () => {
+    const wrapper = mountComponent()
+    wrapper.vm.selectedLearningResultIds = new Set([1])
+    wrapper.vm.learningResultDevelopments = { 1: 'empresa' }
+
+    wrapper.vm.toggleLearningResult({ id: 1, evaluationCriterias: [] })
+
+    expect(wrapper.vm.learningResultDevelopments).toEqual({})
+  })
+
+  it('sends only non-inferred learning result developments', async () => {
+    const store = useDataStore()
+    store.createIndividualTrainingPlan = vi.fn().mockResolvedValue(true)
+
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [
+      {
+        moduleCode: 'M01',
+        moduleName: 'Mòdul de prova',
+        learningResults: [{ id: 1, number: 1, allCriteriaEligible: false, evaluationCriterias: [] }]
+      }
+    ]
+    wrapper.vm.selectedLearningResultIds = new Set([1])
+    wrapper.vm.learningResultDevelopments = { 1: 'compartido' }
+    wrapper.vm.form.name = 'Pla de prova'
+    wrapper.vm.form.turn = 'presential'
+    wrapper.vm.form.courseLevel = 1
+    wrapper.vm.form.moduleHours = { M01: 10 }
+    wrapper.vm.form.periods = [
+      {
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        hours: 10,
+        company: 'Empresa de programació'
+      }
+    ]
+
+    await wrapper.vm.handleSavePlan()
+
+    expect(store.createIndividualTrainingPlan).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ learningResultDevelopments: { 1: 'compartido' } })
+    )
+  })
+
+  it('updates the development label when its selector changes', async () => {
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [
+      {
+        moduleCode: 'M01',
+        moduleName: 'Mòdul de prova',
+        hasSyllabus: true,
+        learningResults: [
+          {
+            id: 1,
+            number: 1,
+            descriptor: 'RA de prova',
+            allCriteriaEligible: true,
+            coverage: 'complete',
+            evaluationCriterias: []
+          }
+        ]
+      }
+    ]
+    wrapper.vm.selectedLearningResultIds = new Set([1])
+    wrapper.vm.learningResultDevelopments = { 1: 'inferido' }
+    wrapper.vm.form.courseLevel = 1
+    wrapper.vm.activeModuleCode = 'M01'
+    useDataStore().cycle = { availableTurns: [], modules: [{ code: 'M01', courseLevel: 1 }] }
+    wrapper.vm.currentStep = 2
+    await wrapper.vm.$nextTick()
+
+    await wrapper.get('#lr-development-1').setValue('compartido')
+
+    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Empresa + Centro'))).toBe(true)
   })
 })

@@ -224,6 +224,48 @@ const step3Incomplete = computed(() => {
 
 const selectedLearningResultIds = ref(new Set())
 const selectedEvaluationCriteriaIds = ref(new Set())
+const learningResultDevelopments = ref({})
+const LEARNING_RESULT_DEVELOPMENTS = ['inferido', 'empresa', 'compartido']
+
+const normalizeLearningResultDevelopment = (development) =>
+  LEARNING_RESULT_DEVELOPMENTS.includes(development) ? development : 'inferido'
+
+const setLearningResultDevelopment = (learningResultId, development) => {
+  learningResultDevelopments.value = {
+    ...learningResultDevelopments.value,
+    [learningResultId]: normalizeLearningResultDevelopment(development)
+  }
+}
+
+const removeLearningResultDevelopment = (learningResultId) => {
+  const next = { ...learningResultDevelopments.value }
+  delete next[learningResultId]
+  learningResultDevelopments.value = next
+}
+
+const getLearningResultDevelopmentLabel = (learningResult) => {
+  const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
+  if (development === 'inferido') return 'Programación (Auto)'
+  if (development === 'empresa') return 'Solo Empresa'
+  if (development === 'compartido') return 'Empresa + Centro'
+  return learningResult.coverage === 'complete' ? 'Solo empresa' : 'Empresa + Centro'
+}
+
+const getLearningResultDevelopmentClass = (learningResult) => {
+  const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
+  if (development === 'empresa') return 'bg-success'
+  if (development === 'compartido') return 'bg-secondary'
+  return learningResult.coverage === 'complete' ? 'bg-success' : 'bg-secondary'
+}
+
+const getLearningResultDevelopmentTitle = (learningResult) => {
+  const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
+  if (development === 'empresa') return 'Este RA es desenvolupa sols en empresa'
+  if (development === 'compartido') return 'Este RA es desenvolupa en empresa i en el centre'
+  return learningResult.coverage === 'complete'
+    ? 'Este RA només es treballa en la situació en empresa: es cobreix sencer'
+    : "Este RA també es treballa en altres situacions d'aprenentatge: sols es cobreix en part"
+}
 
 const planValidation = useFormValidation(
   yup.object({
@@ -277,6 +319,11 @@ const buildFormSnapshot = () =>
     requiresExtraordinaryAuthorizations: form.requiresExtraordinaryAuthorizations,
     extraordinaryAuthorizations: form.extraordinaryAuthorizations,
     learningResultIds: [...selectedLearningResultIds.value].sort((a, b) => a - b),
+    learningResultDevelopments: Object.fromEntries(
+      [...selectedLearningResultIds.value]
+        .sort((a, b) => a - b)
+        .map((id) => [id, normalizeLearningResultDevelopment(learningResultDevelopments.value[id])])
+    ),
     evaluationCriteriaIds: [...selectedEvaluationCriteriaIds.value].sort((a, b) => a - b),
     moduleHours: relevantModuleHoursEntries.value,
     moduleActivities: relevantModuleActivitiesEntries.value,
@@ -491,6 +538,12 @@ const handleCourseLevelChange = () => {
       return entry && isModuleCourseAllowed(getModuleCourseLevel(entry.mod.moduleCode), courseLevel)
     })
   )
+  learningResultDevelopments.value = Object.fromEntries(
+    [...selectedLearningResultIds.value].map((id) => [
+      id,
+      normalizeLearningResultDevelopment(learningResultDevelopments.value[id])
+    ])
+  )
 
   if (droppedCount > 0) {
     addMessage('info', `S'han llevat ${droppedCount} seleccions que no corresponien al curs triat`)
@@ -557,12 +610,24 @@ const applyAvailableItems = (data, keepServerSelection) => {
   if (keepServerSelection) {
     selectedLearningResultIds.value = selectedLrIds
     selectedEvaluationCriteriaIds.value = selectedCeIds
+    learningResultDevelopments.value = Object.fromEntries(
+      data
+        .flatMap((mod) => mod.learningResults)
+        .filter((lr) => lr.selected)
+        .map((lr) => [lr.id, normalizeLearningResultDevelopment(lr.development)])
+    )
   } else {
     selectedLearningResultIds.value = new Set(
       [...selectedLearningResultIds.value].filter((id) => validLrIds.has(id))
     )
     selectedEvaluationCriteriaIds.value = new Set(
       [...selectedEvaluationCriteriaIds.value].filter((id) => validCeIds.has(id))
+    )
+    learningResultDevelopments.value = Object.fromEntries(
+      [...selectedLearningResultIds.value].map((id) => [
+        id,
+        normalizeLearningResultDevelopment(learningResultDevelopments.value[id])
+      ])
     )
   }
 }
@@ -609,6 +674,7 @@ const openCreateModal = async () => {
   planCourseYear.value = currentSchoolYear.value
   selectedLearningResultIds.value = new Set()
   selectedEvaluationCriteriaIds.value = new Set()
+  learningResultDevelopments.value = {}
   selectionErrorLines.value = []
   currentStep.value = 1
   activeModuleCode.value = ''
@@ -724,12 +790,17 @@ const toggleLearningResult = (learningResult) => {
   const next = new Set(selectedLearningResultIds.value)
   if (next.has(learningResult.id)) {
     next.delete(learningResult.id)
+    removeLearningResultDevelopment(learningResult.id)
     // En desmarcar el RA, es desactiven i es netegen els seus criteris
     const nextCe = new Set(selectedEvaluationCriteriaIds.value)
     learningResult.evaluationCriterias.forEach((ce) => nextCe.delete(ce.id))
     selectedEvaluationCriteriaIds.value = nextCe
   } else {
     next.add(learningResult.id)
+    setLearningResultDevelopment(
+      learningResult.id,
+      learningResultDevelopments.value[learningResult.id]
+    )
     ensureSuggestedHours(activeModuleCode.value)
   }
   selectedLearningResultIds.value = next
@@ -758,6 +829,10 @@ const selectAllCriteriaForLr = (learningResult) => {
     const nextLr = new Set(selectedLearningResultIds.value)
     nextLr.add(learningResult.id)
     selectedLearningResultIds.value = nextLr
+    setLearningResultDevelopment(
+      learningResult.id,
+      learningResultDevelopments.value[learningResult.id]
+    )
   }
 
   ensureSuggestedHours(activeModuleCode.value)
@@ -867,6 +942,11 @@ const handleSavePlan = async () => {
     return
   }
 
+  const learningResultDevelopmentsPayload = Object.fromEntries(
+    [...selectedLearningResultIds.value]
+      .filter((id) => normalizeLearningResultDevelopment(learningResultDevelopments.value[id]) !== 'inferido')
+      .map((id) => [id, normalizeLearningResultDevelopment(learningResultDevelopments.value[id])])
+  )
   const moduleHours = Object.fromEntries(relevantModuleHoursEntries.value)
   const moduleActivities = Object.fromEntries(
     relevantModuleActivitiesEntries.value.filter(([, activities]) => activities.trim() !== '')
@@ -892,6 +972,7 @@ const handleSavePlan = async () => {
       ? form.extraordinaryAuthorizations.trim() || null
       : null,
     learningResultIds: [...selectedLearningResultIds.value],
+    learningResultDevelopments: learningResultDevelopmentsPayload,
     evaluationCriteriaIds: [...selectedEvaluationCriteriaIds.value],
     moduleHours,
     moduleActivities,
@@ -1370,6 +1451,34 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                         </div>
 
                         <div
+                          v-if="selectedLearningResultIds.has(lr.id)"
+                          class="d-flex align-items-center gap-2 ms-3 mb-2 lr-development-control"
+                        >
+                          <label :for="`lr-development-${lr.id}`" class="small fw-bold mb-0">
+                            Desenvolupament al centre
+                          </label>
+                          <select
+                            :id="`lr-development-${lr.id}`"
+                            class="form-select form-select-sm"
+                            style="width: auto"
+                            :value="normalizeLearningResultDevelopment(learningResultDevelopments[lr.id])"
+                            @change="setLearningResultDevelopment(lr.id, $event.target.value)"
+                          >
+                            <option value="inferido">inferido</option>
+                            <option value="empresa">empresa</option>
+                            <option value="compartido">compartido</option>
+                          </select>
+                          <span class="small text-muted">El RA sempre es desenvolupa en empresa.</span>
+                          <span
+                            class="badge lr-development-badge"
+                            :class="getLearningResultDevelopmentClass(lr)"
+                            :title="getLearningResultDevelopmentTitle(lr)"
+                          >
+                            {{ getLearningResultDevelopmentLabel(lr) }}
+                          </span>
+                        </div>
+
+                        <div
                           class="form-check ms-3"
                           v-for="ce in lr.evaluationCriterias"
                           :key="ce.id"
@@ -1390,20 +1499,6 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                         </div>
                       </div>
 
-                      <div class="col-auto">
-                        <span
-                          class="badge"
-                          :class="lr.coverage === 'complete' ? 'bg-success' : 'bg-secondary'"
-                          :title="
-                            lr.coverage === 'complete'
-                              ? 'Este RA només es treballa en la situació en empresa: es cobreix sencer'
-                              : `Este RA també es treballa en altres situacions d'aprenentatge: sols es cobreix en part`
-                          "
-                        >
-                          <i class="bi bi-check-lg"></i>
-                          {{ lr.coverage === 'complete' ? 'Solo empresa' : 'Empresa + Centro' }}
-                        </span>
-                      </div>
                     </div>
                   </li>
                 </ul>
@@ -2009,6 +2104,24 @@ const handleCopyPlanToCurrentYear = async (plan) => {
 .pfi-summary-item {
   cursor: pointer;
   text-decoration: underline;
+}
+
+.lr-development-badge {
+  border: 2px solid rgb(255 255 255 / 80%);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 25%);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.4rem 0.6rem;
+  text-transform: uppercase;
+}
+
+.lr-development-control {
+  background: var(--bs-primary-bg-subtle);
+  border: 1px solid var(--bs-primary-border-subtle);
+  border-left: 4px solid var(--bs-primary);
+  border-radius: var(--bs-border-radius);
+  padding: 0.45rem 0.65rem;
 }
 
 .step-indicator-item {

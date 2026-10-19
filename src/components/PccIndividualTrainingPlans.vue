@@ -115,6 +115,7 @@ const modules = ref([])
 const selectionErrorLines = ref([])
 const currentStep = ref(1)
 const activeModuleCode = ref('')
+const previousTurn = ref('')
 const showCoordinationMechanismsHelp = ref(false)
 const showVisitPeriodicityHelp = ref(false)
 const showTrainingPeriodsHelp = ref(false)
@@ -245,10 +246,9 @@ const removeLearningResultDevelopment = (learningResultId) => {
 
 const getLearningResultDevelopmentLabel = (learningResult) => {
   const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
-  if (development === 'inferido') return 'Programación (Auto)'
   if (development === 'empresa') return 'Solo Empresa'
   if (development === 'compartido') return 'Empresa + Centro'
-  return learningResult.coverage === 'complete' ? 'Solo empresa' : 'Empresa + Centro'
+  return learningResult.coverage === 'complete' ? 'Solo Empresa' : 'Empresa + Centro'
 }
 
 const getLearningResultDevelopmentClass = (learningResult) => {
@@ -337,13 +337,17 @@ const markSnapshotAsSaved = () => {
 const isDirty = computed(() => buildFormSnapshot() !== savedSnapshot.value)
 
 const getModuleCourseLevel = (moduleCode) => {
-  const module = cycle.value?.modules?.find((item) => item.code === moduleCode)
+  const module =
+    cycle.value?.modules?.find((item) => item.code === moduleCode) ||
+    modules.value.find((item) => item.moduleCode === moduleCode)
   return module?.courseLevel === 2 ? 2 : 1
 }
 
 // Un pla de 1r pot incloure mòduls d'1r i de 2n; un pla de 2n només pot incloure mòduls de 2n
-const isModuleCourseAllowed = (moduleCourseLevel, planCourseLevel) =>
-  moduleCourseLevel === planCourseLevel || (planCourseLevel === 1 && moduleCourseLevel === 2)
+const isModuleCourseAllowed = (moduleCourseLevel, planCourseLevel) => {
+  if (form.turn === 'half-presential') return true
+  return moduleCourseLevel === planCourseLevel || (planCourseLevel === 1 && moduleCourseLevel === 2)
+}
 
 // Només mòduls amb algun RA seleccionable (amb programació i RA dualitzables per a este torn)
 const selectableModulesByCourse = computed(() => {
@@ -653,8 +657,52 @@ const loadAvailableItems = async ({ keepServerSelection = false } = {}) => {
   }
 }
 
-const handleTurnChange = () => {
-  loadAvailableItems({ keepServerSelection: false })
+const handleTurnChange = async () => {
+  const changingToPresentialSecondCourse =
+    previousTurn.value === 'half-presential' &&
+    form.turn === 'presential' &&
+    Number(form.courseLevel) === 2
+
+  if (changingToPresentialSecondCourse) {
+    const firstCourseModuleCodes = new Set(
+      modules.value
+        .filter((module) => getModuleCourseLevel(module.moduleCode) === 1)
+        .map((module) => module.moduleCode)
+    )
+    const learningResultIdsToRemove = [...selectedLearningResultIds.value].filter((id) => {
+      const entry = learningResultIndex.value.get(id)
+      return entry && firstCourseModuleCodes.has(entry.mod.moduleCode)
+    })
+    const evaluationCriteriaIdsToRemove = [...selectedEvaluationCriteriaIds.value].filter((id) => {
+      const entry = evaluationCriteriaIndex.value.get(id)
+      return entry && firstCourseModuleCodes.has(entry.mod.moduleCode)
+    })
+
+    if (learningResultIdsToRemove.length || evaluationCriteriaIdsToRemove.length) {
+      selectedLearningResultIds.value = new Set(
+        [...selectedLearningResultIds.value].filter((id) => !learningResultIdsToRemove.includes(id))
+      )
+      selectedEvaluationCriteriaIds.value = new Set(
+        [...selectedEvaluationCriteriaIds.value].filter((id) => !evaluationCriteriaIdsToRemove.includes(id))
+      )
+      learningResultIdsToRemove.forEach(removeLearningResultDevelopment)
+    }
+
+    firstCourseModuleCodes.forEach((moduleCode) => {
+      delete form.moduleHours[moduleCode]
+      delete form.moduleActivities[moduleCode]
+    })
+
+    if (learningResultIdsToRemove.length || evaluationCriteriaIdsToRemove.length) {
+      addMessage(
+        'info',
+        "S'han retirat elements de 1r perquè no són compatibles amb un pla presencial de 2n"
+      )
+    }
+  }
+
+  previousTurn.value = form.turn
+  await loadAvailableItems({ keepServerSelection: false })
 }
 
 const openCreateModal = async () => {
@@ -672,6 +720,7 @@ const openCreateModal = async () => {
   form.moduleActivities = {}
   form.periods = []
   planCourseYear.value = currentSchoolYear.value
+  previousTurn.value = form.turn
   selectedLearningResultIds.value = new Set()
   selectedEvaluationCriteriaIds.value = new Set()
   learningResultDevelopments.value = {}
@@ -716,6 +765,7 @@ const populateFormFromPlan = (plan) => {
     company: period.company || ''
   }))
   planCourseYear.value = plan.courseYear || currentSchoolYear.value
+  previousTurn.value = form.turn
 }
 
 const openEditModal = async (plan, { viewOnly = false } = {}) => {

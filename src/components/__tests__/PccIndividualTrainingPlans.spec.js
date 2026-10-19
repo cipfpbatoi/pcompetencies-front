@@ -311,8 +311,121 @@ describe('PccIndividualTrainingPlans', () => {
     wrapper.vm.currentStep = 2
     await wrapper.vm.$nextTick()
 
+    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Solo Empresa'))).toBe(true)
+
     await wrapper.get('#lr-development-1').setValue('compartido')
 
     expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Empresa + Centro'))).toBe(true)
+  })
+
+  it('shows modules from both courses for half-presential second-course plans', async () => {
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [
+      {
+        moduleCode: 'M01',
+        moduleName: 'Mòdul de 1r',
+        courseLevel: 1,
+        learningResults: [{ id: 1, number: 1, evaluationCriterias: [] }]
+      },
+      {
+        moduleCode: 'M02',
+        moduleName: 'Mòdul de 2n',
+        courseLevel: 2,
+        learningResults: [{ id: 2, number: 2, evaluationCriterias: [] }]
+      }
+    ]
+    wrapper.vm.form.turn = 'half-presential'
+    wrapper.vm.form.courseLevel = 2
+    wrapper.vm.currentStep = 2
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('option[value="M01"]').exists()).toBe(true)
+    expect(wrapper.find('option[value="M02"]').exists()).toBe(true)
+
+    wrapper.vm.form.turn = 'presential'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('option[value="M01"]').exists()).toBe(false)
+    expect(wrapper.find('option[value="M02"]').exists()).toBe(true)
+  })
+
+  it('removes first-course selections when changing a second-course plan to presential', async () => {
+    const store = useDataStore()
+    store.addMessage = vi.fn()
+    const availableItems = [
+      {
+        moduleCode: 'M01',
+        moduleName: 'Mòdul de 1r',
+        courseLevel: 1,
+        learningResults: [{ id: 1, number: 1, evaluationCriterias: [{ id: 11, code: 'a' }] }]
+      },
+      {
+        moduleCode: 'M02',
+        moduleName: 'Mòdul de 2n',
+        courseLevel: 2,
+        learningResults: [{ id: 2, number: 2, evaluationCriterias: [{ id: 21, code: 'a' }] }]
+      }
+    ]
+    api.getIndividualTrainingPlanAvailableItems.mockResolvedValue({ data: availableItems })
+
+    const wrapper = mountComponent()
+    wrapper.vm.form.courseLevel = 2
+    wrapper.vm.form.turn = 'half-presential'
+    await wrapper.vm.handleTurnChange()
+    wrapper.vm.selectedLearningResultIds = new Set([1, 2])
+    wrapper.vm.selectedEvaluationCriteriaIds = new Set([11, 21])
+    wrapper.vm.learningResultDevelopments = { 1: 'empresa', 2: 'compartido' }
+    wrapper.vm.form.moduleHours = { M01: 10, M02: 20 }
+    wrapper.vm.form.moduleActivities = { M01: 'Activitat 1r', M02: 'Activitat 2n' }
+
+    wrapper.vm.form.turn = 'presential'
+    await wrapper.vm.handleTurnChange()
+
+    expect(wrapper.vm.selectedLearningResultIds).toEqual(new Set([2]))
+    expect(wrapper.vm.selectedEvaluationCriteriaIds).toEqual(new Set([21]))
+    expect(wrapper.vm.learningResultDevelopments).toEqual({ 2: 'compartido' })
+    expect(wrapper.vm.form.moduleHours).toEqual({ M02: 20 })
+    expect(wrapper.vm.form.moduleActivities).toEqual({ M02: 'Activitat 2n' })
+    expect(store.addMessage).toHaveBeenCalledWith(
+      'info',
+      "S'han retirat elements de 1r perquè no són compatibles amb un pla presencial de 2n"
+    )
+  })
+
+  it('keeps selections when changing from presential to half-presential', async () => {
+    const availableItems = [
+      {
+        moduleCode: 'M01',
+        moduleName: 'Mòdul de 1r',
+        courseLevel: 1,
+        learningResults: [{ id: 1, number: 1, evaluationCriterias: [{ id: 11, code: 'a' }] }]
+      },
+      {
+        moduleCode: 'M02',
+        moduleName: 'Mòdul de 2n',
+        courseLevel: 2,
+        learningResults: [{ id: 2, number: 2, evaluationCriterias: [{ id: 21, code: 'a' }] }]
+      }
+    ]
+    api.getIndividualTrainingPlanAvailableItems.mockResolvedValue({ data: availableItems })
+
+    const wrapper = mountComponent()
+    wrapper.vm.form.courseLevel = 2
+    wrapper.vm.form.turn = 'presential'
+    await wrapper.vm.handleTurnChange()
+    wrapper.vm.selectedLearningResultIds = new Set([1, 2])
+    wrapper.vm.selectedEvaluationCriteriaIds = new Set([11, 21])
+    wrapper.vm.learningResultDevelopments = { 1: 'empresa', 2: 'compartido' }
+    wrapper.vm.form.moduleHours = { M01: 10, M02: 20 }
+    wrapper.vm.form.moduleActivities = { M01: 'Activitat 1r', M02: 'Activitat 2n' }
+
+    wrapper.vm.form.turn = 'half-presential'
+    await wrapper.vm.handleTurnChange()
+
+    expect(wrapper.vm.selectedLearningResultIds).toEqual(new Set([1, 2]))
+    expect(wrapper.vm.selectedEvaluationCriteriaIds).toEqual(new Set([11, 21]))
+    expect(wrapper.vm.learningResultDevelopments).toEqual({ 1: 'empresa', 2: 'compartido' })
+    expect(wrapper.vm.form.moduleHours).toEqual({ M01: 10, M02: 20 })
+    expect(wrapper.vm.form.moduleActivities).toEqual({ M01: 'Activitat 1r', M02: 'Activitat 2n' })
   })
 })

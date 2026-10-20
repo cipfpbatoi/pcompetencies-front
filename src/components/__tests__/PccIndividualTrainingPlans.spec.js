@@ -315,7 +315,7 @@ describe('PccIndividualTrainingPlans', () => {
 
     await wrapper.get('#lr-development-1').setValue('compartido')
 
-    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Empresa + Centro'))).toBe(true)
+    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Empresa + Centre'))).toBe(true)
   })
 
   it('shows modules from both courses for half-presential second-course plans', async () => {

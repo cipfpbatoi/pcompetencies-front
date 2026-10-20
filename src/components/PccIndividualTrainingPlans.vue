@@ -246,9 +246,9 @@ const removeLearningResultDevelopment = (learningResultId) => {
 
 const getLearningResultDevelopmentLabel = (learningResult) => {
   const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
-  if (development === 'empresa') return 'Solo Empresa'
-  if (development === 'compartido') return 'Empresa + Centro'
-  return learningResult.coverage === 'complete' ? 'Solo Empresa' : 'Empresa + Centro'
+  if (development === 'empresa') return 'Soles empresa'
+  if (development === 'compartido') return 'Empresa + Centre'
+  return learningResult.coverage === 'complete' ? 'Soles empresa' : 'Empresa + Centre'
 }
 
 const getLearningResultDevelopmentClass = (learningResult) => {
@@ -1514,11 +1514,11 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                             :value="normalizeLearningResultDevelopment(learningResultDevelopments[lr.id])"
                             @change="setLearningResultDevelopment(lr.id, $event.target.value)"
                           >
-                            <option value="inferido">inferido</option>
+                            <option value="inferido">Programació (Auto)</option>
                             <option value="empresa">empresa</option>
-                            <option value="compartido">compartido</option>
+                            <option value="compartido">Compartit</option>
                           </select>
-                          <span class="small text-muted">El RA sempre es desenvolupa en empresa.</span>
+                          <span class="small text-muted">El RA es desenvolupa en:</span>
                           <span
                             class="badge lr-development-badge"
                             :class="getLearningResultDevelopmentClass(lr)"

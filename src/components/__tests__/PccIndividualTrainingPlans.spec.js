@@ -249,6 +249,35 @@ describe('PccIndividualTrainingPlans', () => {
     expect(wrapper.vm.learningResultDevelopments).toEqual({})
   })
 
+  it('removes all selections and data for a module', () => {
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [
+      {
+        moduleCode: 'M01',
+        learningResults: [{ id: 1, evaluationCriterias: [{ id: 11 }] }]
+      },
+      {
+        moduleCode: 'M02',
+        learningResults: [{ id: 2, evaluationCriterias: [{ id: 21 }] }]
+      }
+    ]
+    wrapper.vm.activeModuleCode = 'M01'
+    wrapper.vm.selectedLearningResultIds = new Set([1, 2])
+    wrapper.vm.selectedEvaluationCriteriaIds = new Set([11, 21])
+    wrapper.vm.learningResultDevelopments = { 1: 'empresa', 2: 'compartido' }
+    wrapper.vm.form.moduleHours = { M01: 10, M02: 20 }
+    wrapper.vm.form.moduleActivities = { M01: 'Activitat 1', M02: 'Activitat 2' }
+
+    wrapper.vm.removeModuleSelection('M01')
+
+    expect(wrapper.vm.activeModuleCode).toBe('')
+    expect(wrapper.vm.selectedLearningResultIds).toEqual(new Set([2]))
+    expect(wrapper.vm.selectedEvaluationCriteriaIds).toEqual(new Set([21]))
+    expect(wrapper.vm.learningResultDevelopments).toEqual({ 2: 'compartido' })
+    expect(wrapper.vm.form.moduleHours).toEqual({ M02: 20 })
+    expect(wrapper.vm.form.moduleActivities).toEqual({ M02: 'Activitat 2' })
+  })
+
   it('sends only non-inferred learning result developments', async () => {
     const store = useDataStore()
     store.createIndividualTrainingPlan = vi.fn().mockResolvedValue(true)

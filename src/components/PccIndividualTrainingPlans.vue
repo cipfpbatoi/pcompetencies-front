@@ -867,6 +867,31 @@ const toggleEvaluationCriteria = (evaluationCriteria) => {
   selectedEvaluationCriteriaIds.value = next
 }
 
+const removeModuleSelection = (moduleCode) => {
+  const module = modules.value.find((item) => item.moduleCode === moduleCode)
+  const learningResultIds = module?.learningResults.map((learningResult) => learningResult.id) || []
+  const learningResultIdSet = new Set(learningResultIds)
+  const evaluationCriteriaIds = new Set(
+    module?.learningResults.flatMap((learningResult) =>
+      learningResult.evaluationCriterias.map((evaluationCriteria) => evaluationCriteria.id)
+    ) || []
+  )
+
+  selectedLearningResultIds.value = new Set(
+    [...selectedLearningResultIds.value].filter((id) => !learningResultIdSet.has(id))
+  )
+  selectedEvaluationCriteriaIds.value = new Set(
+    [...selectedEvaluationCriteriaIds.value].filter((id) => !evaluationCriteriaIds.has(id))
+  )
+  learningResultIds.forEach(removeLearningResultDevelopment)
+  delete form.moduleHours[moduleCode]
+  delete form.moduleActivities[moduleCode]
+
+  if (activeModuleCode.value === moduleCode) {
+    activeModuleCode.value = ''
+  }
+}
+
 const selectAllCriteriaForLr = (learningResult) => {
   const nextCe = new Set(selectedEvaluationCriteriaIds.value)
   learningResult.evaluationCriterias.forEach((ce) => nextCe.add(ce.id))
@@ -1596,6 +1621,16 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                       ></span
                     ><span v-if="index < entry.items.length - 1">,&nbsp;</span></template
                   >
+                  <button
+                    v-if="!isViewOnly"
+                    type="button"
+                    class="btn btn-sm btn-link text-white p-0 ms-2 align-baseline"
+                    title="Llevar mòdul del pla"
+                    @click="removeModuleSelection(entry.moduleCode)"
+                  >
+                    <i class="bi bi-trash"></i>
+                    <span class="visually-hidden">Llevar {{ entry.moduleName }}</span>
+                  </button>
                 </span>
               </div>
 

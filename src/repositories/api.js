@@ -189,6 +189,10 @@ export const api = {
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/approve`, {}),
   individualTrainingPlanCopy: (pccId, planId) =>
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/copy`, {}),
+  getIndividualTrainingPlanSaoExport: (pccId, planId) =>
+    instance.get(`/pcc/${pccId}/individual-training-plans/${planId}/sao-export`),
+  exportIndividualTrainingPlanToSao: (pccId, planId) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/sao-export`, {}),
   addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) =>
     instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, {
       centerProjectIds

@@ -59,6 +59,26 @@ const currentModules = computed(() => {
   return pcc.value?.modules || []
 })
 
+const isOptionalModule = (module) => String(module?.code || '').startsWith('CVOP')
+
+const TURN_LABELS = {
+  presential: 'Presencial',
+  'half-presential': 'Semi-presencial'
+}
+
+const getModuleOrganization = (module) => {
+  return pcc.value?.moduleOrganizations?.find(
+    (organization) => organization.module?.code === module.code
+  )
+}
+
+const getOptionalTurnRestriction = (module) => {
+  const optionalTurns = getModuleOrganization(module)?.optionalTurns
+
+  if (!Array.isArray(optionalTurns) || optionalTurns.length === 0) return null
+  return optionalTurns.map((turn) => TURN_LABELS[turn] || turn).join(', ')
+}
+
 const isLogseCycle = computed(() => {
   const cycleInfo = pcc.value?.cycle || cycle.value || {}
   if (cycleInfo.isLogse !== undefined && cycleInfo.isLogse !== null) {
@@ -97,18 +117,50 @@ const modulesByCourse = computed(() => {
   return grouped
 })
 
+const regularModulesByCourse = computed(() => ({
+  1: modulesByCourse.value[1].filter((module) => !isOptionalModule(module)),
+  2: modulesByCourse.value[2].filter((module) => !isOptionalModule(module))
+}))
+
+const optionalModulesByCourse = computed(() => ({
+  1: modulesByCourse.value[1].filter(isOptionalModule),
+  2: modulesByCourse.value[2].filter(isOptionalModule)
+}))
+
+const getOptionalHours = (courseLevel) => {
+  return optionalModulesByCourse.value[courseLevel][0]?.numberOfHours || 0
+}
+
+const hasOptionalHoursWarning = (courseLevel) => {
+  const optionalModules = optionalModulesByCourse.value[courseLevel]
+  if (optionalModules.length < 2) return false
+
+  const firstModule = optionalModules[0]
+  return optionalModules.slice(1).some((module) => {
+    return (
+      Number(module.numberOfHours || 0) !== Number(firstModule.numberOfHours || 0) ||
+      Number(module.weekHours || 0) !== Number(firstModule.weekHours || 0)
+    )
+  })
+}
+
 const addedModulesHoursByCourse = computed(() => {
   return {
-    1: modulesByCourse.value[1].reduce((total, module) => total + (module.numberOfHours || 0), 0),
-    2: modulesByCourse.value[2].reduce((total, module) => total + (module.numberOfHours || 0), 0)
+    1:
+      regularModulesByCourse.value[1].reduce(
+        (total, module) => total + (module.numberOfHours || 0),
+        0
+      ) + getOptionalHours(1),
+    2:
+      regularModulesByCourse.value[2].reduce(
+        (total, module) => total + (module.numberOfHours || 0),
+        0
+      ) + getOptionalHours(2)
   }
 })
 
 const addedModulesHours = computed(() => {
-  return [...modulesByCourse.value[1], ...modulesByCourse.value[2]].reduce(
-    (total, module) => total + (module.numberOfHours || 0),
-    0
-  )
+  return addedModulesHoursByCourse.value[1] + addedModulesHoursByCourse.value[2]
 })
 
 const cycleHoursFallback = computed(() => {
@@ -174,6 +226,16 @@ const availableModulesByCourse = computed(() => {
 
   return grouped
 })
+
+const availableRegularModulesByCourse = computed(() => ({
+  1: availableModulesByCourse.value[1].filter((module) => !isOptionalModule(module)),
+  2: availableModulesByCourse.value[2].filter((module) => !isOptionalModule(module))
+}))
+
+const availableOptionalModulesByCourse = computed(() => ({
+  1: availableModulesByCourse.value[1].filter(isOptionalModule),
+  2: availableModulesByCourse.value[2].filter(isOptionalModule)
+}))
 
 // Métodos
 const openAddModal = () => {
@@ -264,7 +326,7 @@ const confirmDelete = async () => {
     </div>
 
     <!-- Lista de módulos actuales dividida por curso -->
-    <div v-if="currentModules.length > 0" class="row g-3">
+    <div v-if="currentModules.length > 0" class="row g-3 text-start">
       <!-- 1º Curso -->
       <div class="col-12 col-lg-6">
         <div class="card h-100">
@@ -284,14 +346,17 @@ const confirmDelete = async () => {
               No hi ha mòduls de 1r curs
             </li>
             <li
-              v-for="module in modulesByCourse[1]"
+              v-for="module in regularModulesByCourse[1]"
               :key="module.code"
               class="list-group-item d-flex justify-content-between align-items-center"
             >
               <div class="flex-grow-1">
                 <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
-                h)
+                 h)
                 <span v-if="module.proyect" class="badge bg-info text-dark ms-2">Projecte</span>
+                <span v-if="getOptionalTurnRestriction(module)" class="badge bg-warning text-dark ms-2">
+                  Només {{ getOptionalTurnRestriction(module) }}
+                </span>
               </div>
               <button
                 @click="openDeleteModal(module)"
@@ -301,6 +366,40 @@ const confirmDelete = async () => {
               >
                 <i class="bi bi-trash"></i>
               </button>
+            </li>
+            <li v-if="optionalModulesByCourse[1].length > 0" class="list-group-item optional-modules">
+              <div class="fw-bold text-primary mb-2">
+                <i class="bi bi-bookmark-star me-1"></i>
+                Mòduls optatius
+                <span class="badge bg-secondary ms-1">{{ getOptionalHours(1) }} h</span>
+              </div>
+              <div
+                v-if="hasOptionalHoursWarning(1)"
+                class="alert alert-warning small py-2 mb-2"
+              >
+                Els mòduls optatius han de tenir les mateixes hores. Per al còmput es fan servir les
+                hores del primer mòdul afegit.
+              </div>
+              <div
+                v-for="module in optionalModulesByCourse[1]"
+                :key="module.code"
+                class="d-flex justify-content-between align-items-center py-1"
+              >
+                <div>
+                  <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }} h)
+                  <span v-if="getOptionalTurnRestriction(module)" class="badge bg-warning text-dark ms-2">
+                    Només {{ getOptionalTurnRestriction(module) }}
+                  </span>
+                </div>
+                <button
+                  @click="openDeleteModal(module)"
+                  class="btn btn-danger btn-sm ms-2"
+                  :disabled="isLoading"
+                  title="Eliminar mòdul"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </li>
           </ul>
         </div>
@@ -325,7 +424,7 @@ const confirmDelete = async () => {
               No hi ha mòduls de 2n curs
             </li>
             <li
-              v-for="module in modulesByCourse[2]"
+              v-for="module in regularModulesByCourse[2]"
               :key="module.code"
               class="list-group-item d-flex justify-content-between align-items-center"
             >
@@ -344,6 +443,9 @@ const confirmDelete = async () => {
                   <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }}
                   h)
                   <span v-if="module.proyect" class="badge bg-info text-dark ms-2">Projecte</span>
+                  <span v-if="getOptionalTurnRestriction(module)" class="badge bg-warning text-dark ms-2">
+                    Només {{ getOptionalTurnRestriction(module) }}
+                  </span>
                 </template>
               </div>
               <button
@@ -355,6 +457,40 @@ const confirmDelete = async () => {
               >
                 <i class="bi bi-trash"></i>
               </button>
+            </li>
+            <li v-if="optionalModulesByCourse[2].length > 0" class="list-group-item optional-modules">
+              <div class="fw-bold text-success mb-2">
+                <i class="bi bi-bookmark-star me-1"></i>
+                Mòduls optatius
+                <span class="badge bg-secondary ms-1">{{ getOptionalHours(2) }} h</span>
+              </div>
+              <div
+                v-if="hasOptionalHoursWarning(2)"
+                class="alert alert-warning small py-2 mb-2"
+              >
+                Els mòduls optatius han de tenir les mateixes hores. Per al còmput es fan servir les
+                hores del primer mòdul afegit.
+              </div>
+              <div
+                v-for="module in optionalModulesByCourse[2]"
+                :key="module.code"
+                class="d-flex justify-content-between align-items-center py-1"
+              >
+                <div>
+                  <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }} h)
+                  <span v-if="getOptionalTurnRestriction(module)" class="badge bg-warning text-dark ms-2">
+                    Només {{ getOptionalTurnRestriction(module) }}
+                  </span>
+                </div>
+                <button
+                  @click="openDeleteModal(module)"
+                  class="btn btn-danger btn-sm ms-2"
+                  :disabled="isLoading"
+                  title="Eliminar mòdul"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </li>
           </ul>
         </div>
@@ -420,7 +556,7 @@ const confirmDelete = async () => {
                       1r Curs
                     </h6>
                     <div
-                      v-for="module in availableModulesByCourse[1]"
+                      v-for="module in availableRegularModulesByCourse[1]"
                       :key="module.code"
                       class="form-check mb-2 p-3 border rounded d-flex align-items-center gap-2"
                       :class="{ 'bg-light': isModuleSelected(module.code) }"
@@ -444,6 +580,33 @@ const confirmDelete = async () => {
                         >
                       </label>
                     </div>
+                    <div v-if="availableOptionalModulesByCourse[1].length > 0" class="optional-modules mt-3">
+                      <div class="fw-bold text-primary mb-2">
+                        <i class="bi bi-bookmark-star me-1"></i>Mòduls optatius
+                      </div>
+                      <div
+                        v-for="module in availableOptionalModulesByCourse[1]"
+                        :key="module.code"
+                        class="form-check mb-2 p-3 border rounded d-flex align-items-center gap-2"
+                        :class="{ 'bg-light': isModuleSelected(module.code) }"
+                      >
+                        <input
+                          class="form-check-input module-checkbox"
+                          type="checkbox"
+                          :id="`module-${module.code}`"
+                          :value="module.code"
+                          :checked="isModuleSelected(module.code)"
+                          @change="toggleModuleSelection(module.code)"
+                        />
+                        <label
+                          class="form-check-label w-100 cursor-pointer module-label"
+                          :for="`module-${module.code}`"
+                          :title="`${module.code} - ${module.name}`"
+                        >
+                          <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }} h)
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- 2º Curso -->
@@ -453,7 +616,7 @@ const confirmDelete = async () => {
                       2n Curs
                     </h6>
                     <div
-                      v-for="module in availableModulesByCourse[2]"
+                      v-for="module in availableRegularModulesByCourse[2]"
                       :key="module.code"
                       class="form-check mb-2 p-3 border rounded d-flex align-items-center gap-2"
                       :class="{ 'bg-light': isModuleSelected(module.code) }"
@@ -476,6 +639,33 @@ const confirmDelete = async () => {
                           >Projecte</span
                         >
                       </label>
+                    </div>
+                    <div v-if="availableOptionalModulesByCourse[2].length > 0" class="optional-modules mt-3">
+                      <div class="fw-bold text-success mb-2">
+                        <i class="bi bi-bookmark-star me-1"></i>Mòduls optatius
+                      </div>
+                      <div
+                        v-for="module in availableOptionalModulesByCourse[2]"
+                        :key="module.code"
+                        class="form-check mb-2 p-3 border rounded d-flex align-items-center gap-2"
+                        :class="{ 'bg-light': isModuleSelected(module.code) }"
+                      >
+                        <input
+                          class="form-check-input module-checkbox"
+                          type="checkbox"
+                          :id="`module-${module.code}`"
+                          :value="module.code"
+                          :checked="isModuleSelected(module.code)"
+                          @change="toggleModuleSelection(module.code)"
+                        />
+                        <label
+                          class="form-check-label w-100 cursor-pointer module-label"
+                          :for="`module-${module.code}`"
+                          :title="`${module.code} - ${module.name}`"
+                        >
+                          <strong>{{ module.code }}</strong> - {{ module.name }} ({{ module.numberOfHours }} h)
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <div v-if="isLogseCycle" class="alert alert-info mt-3 mb-0">
@@ -611,6 +801,11 @@ const confirmDelete = async () => {
 
 .module-list .form-check {
   padding-left: 0;
+}
+
+.optional-modules {
+  border-left: 4px solid #ffc107;
+  background-color: #fffdf2;
 }
 
 .module-checkbox {

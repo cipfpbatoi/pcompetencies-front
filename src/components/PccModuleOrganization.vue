@@ -37,7 +37,8 @@ const form = ref({
   secondaryLanguage: '',
   secondaryLanguageHours: null,
   dualizable: false,
-  otherConsiderations: ''
+  otherConsiderations: '',
+  optionalTurns: []
 })
 
 const formErrors = ref({})
@@ -62,6 +63,11 @@ const requiredLanguages = [
   { value: 'es-ES', label: 'Castellà' }
 ]
 
+const TURN_OPTIONS = [
+  { value: 'presential', label: 'Presencial' },
+  { value: 'half-presential', label: 'Semi-presencial' }
+]
+
 const languageColors = {
   'en-GB': '#0d6efd',
   'ca-ES': '#198754',
@@ -71,6 +77,8 @@ const languageColors = {
 }
 
 const PERCENTAGE_DECIMALS = 1
+
+const isOptionalModule = (module) => String(module?.code || '').startsWith('CVOP')
 
 const normalizeLanguageValue = (language) => {
   const raw = language?.value || language?.code || language
@@ -175,6 +183,42 @@ const modulesByCourse = computed(() => {
   })
 
   return grouped
+})
+
+const regularModulesByCourse = computed(() => ({
+  1: modulesByCourse.value[1].filter((module) => !isOptionalModule(module)),
+  2: modulesByCourse.value[2].filter((module) => !isOptionalModule(module))
+}))
+
+const optionalModulesByCourse = computed(() => ({
+  1: modulesByCourse.value[1].filter(isOptionalModule),
+  2: modulesByCourse.value[2].filter(isOptionalModule)
+}))
+
+const availableTurns = computed(() => {
+  const turns = Array.isArray(pcc.value?.cycle?.availableTurns)
+    ? pcc.value.cycle.availableTurns
+    : []
+  return [...new Set(turns)].filter((turn) => TURN_OPTIONS.some((option) => option.value === turn))
+})
+
+const availableTurnOptions = computed(() => {
+  return TURN_OPTIONS.filter((option) => availableTurns.value.includes(option.value))
+})
+
+const isEditingOptionalModule = computed(() => {
+  return isOptionalModule(editingModule.value)
+})
+
+const showOptionalTurnRestriction = computed(() => {
+  return isEditingOptionalModule.value && availableTurns.value.length > 1
+})
+
+const selectedOptionalTurn = computed({
+  get: () => form.value.optionalTurns[0] || '',
+  set: (turn) => {
+    form.value.optionalTurns = turn ? [turn] : []
+  }
 })
 
 const allModulesHaveOrganization = computed(() => {
@@ -348,6 +392,15 @@ const getModuleOrganization = (moduleCode) => {
   return pcc.value.moduleOrganizations.find((mo) => mo.module?.code === moduleCode)
 }
 
+const getOptionalTurnRestriction = (module) => {
+  const optionalTurns = getModuleOrganization(module.code)?.optionalTurns
+  if (!Array.isArray(optionalTurns) || optionalTurns.length === 0) return null
+
+  return optionalTurns
+    .map((turn) => TURN_OPTIONS.find((option) => option.value === turn)?.label || turn)
+    .join(', ')
+}
+
 const hasOrganization = (moduleCode) => {
   return !!getModuleOrganization(moduleCode)
 }
@@ -374,7 +427,10 @@ const openEditModal = (module) => {
       secondaryLanguage: hasSecondaryLanguage ? normalizedSecondaryLanguage : '',
       secondaryLanguageHours: hasSecondaryLanguage ? secondaryLanguageHours : null,
       dualizable: !!organization.dualizable,
-      otherConsiderations: organization.otherConsiderations || ''
+      otherConsiderations: organization.otherConsiderations || '',
+      optionalTurns: Array.isArray(organization.optionalTurns)
+        ? organization.optionalTurns.filter((turn) => availableTurns.value.includes(turn)).slice(0, 1)
+        : []
     }
   } else {
     // Nueva organización
@@ -387,7 +443,8 @@ const openEditModal = (module) => {
       secondaryLanguage: '',
       secondaryLanguageHours: null,
       dualizable: false,
-      otherConsiderations: ''
+      otherConsiderations: '',
+      optionalTurns: []
     }
   }
 
@@ -407,7 +464,8 @@ const closeEditModal = () => {
     secondaryLanguage: '',
     secondaryLanguageHours: null,
     dualizable: false,
-    otherConsiderations: ''
+    otherConsiderations: '',
+    optionalTurns: []
   }
   formErrors.value = {}
 }
@@ -447,7 +505,8 @@ const saveOrganization = async () => {
       labHours: parseInt(form.value.labHours, 10),
       language: form.value.language,
       dualizable: !!form.value.dualizable,
-      otherConsiderations: form.value.otherConsiderations?.trim() || null
+      otherConsiderations: form.value.otherConsiderations?.trim() || null,
+      optionalTurns: showOptionalTurnRestriction.value ? form.value.optionalTurns : []
     }
 
     if (form.value.hasSecondaryLanguage) {
@@ -577,7 +636,7 @@ const hoursSum = computed(() => {
               <i class="bi bi-info-circle me-1"></i>
               No hi ha mòduls de 1r curs
             </li>
-            <li v-for="module in modulesByCourse[1]" :key="module.code" class="list-group-item">
+            <li v-for="module in regularModulesByCourse[1]" :key="module.code" class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center gap-2 mb-1">
@@ -593,6 +652,10 @@ const hoursSum = computed(() => {
                     ></i>
                     <strong>{{ module.name }} ({{ module.code }})</strong>
                     <span class="badge bg-secondary">{{ module.weekHours }}h</span>
+                    <span v-if="isOptionalModule(module)" class="badge bg-warning text-dark">
+                      Optativa
+                    </span>
+                    <span v-if="module.organization?.dualizable" class="badge bg-success">Dualitzable</span>
                   </div>
                   <div v-if="module.organization" class="mt-2 small">
                     <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
@@ -631,6 +694,70 @@ const hoursSum = computed(() => {
                         ? 'Modificar organització'
                         : 'Definir organització'
                     "
+                  >
+                    <i :class="hasOrganization(module.code) ? 'bi-pencil' : 'bi-plus-circle'"></i>
+                  </button>
+                  <button
+                    v-if="hasOrganization(module.code)"
+                    @click="openDeleteModal(module)"
+                    class="btn btn-sm btn-outline-danger"
+                    :disabled="isLoading"
+                    title="Eliminar organització"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li
+              v-if="optionalModulesByCourse[1].length > 0"
+              class="list-group-item optional-modules text-start"
+            >
+              <div class="fw-bold text-primary mb-2">
+                <i class="bi bi-bookmark-star me-1"></i>Mòduls optatius
+              </div>
+              <div
+                v-for="module in optionalModulesByCourse[1]"
+                :key="module.code"
+                class="optional-module-item d-flex justify-content-between align-items-start"
+              >
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i
+                      v-if="hasOrganization(module.code)"
+                      class="bi bi-check-circle-fill text-success"
+                      title="Organització definida"
+                    ></i>
+                    <i
+                      v-else
+                      class="bi bi-exclamation-circle-fill text-warning"
+                      title="Organització pendent"
+                    ></i>
+                    <strong>{{ module.name }} ({{ module.code }})</strong>
+                    <span class="badge bg-secondary">{{ module.weekHours }}h</span>
+                    <span v-if="getOptionalTurnRestriction(module)" class="badge bg-warning text-dark">
+                      Només {{ getOptionalTurnRestriction(module) }}
+                    </span>
+                    <span v-if="module.organization?.dualizable" class="badge bg-success">Dualitzable</span>
+                  </div>
+                  <div v-if="module.organization" class="mt-2 small">
+                    <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
+                    <span class="text-muted">
+                      Aula: {{ module.organization.classroomHours }}h | Lab/Taller:
+                      {{ module.organization.labHours }}h
+                    </span>
+                    <span class="badge bg-light text-dark border ms-2">
+                      Idioma: {{ getLanguageLabel(module.organization.language) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="btn-group-vertical" role="group">
+                  <button
+                    @click="openEditModal(module)"
+                    class="btn btn-sm"
+                    :class="hasOrganization(module.code) ? 'btn-outline-primary' : 'btn-primary'"
+                    :disabled="isLoading"
+                    :title="hasOrganization(module.code) ? 'Modificar organització' : 'Definir organització'"
                   >
                     <i :class="hasOrganization(module.code) ? 'bi-pencil' : 'bi-plus-circle'"></i>
                   </button>
@@ -665,7 +792,7 @@ const hoursSum = computed(() => {
               <i class="bi bi-info-circle me-1"></i>
               No hi ha mòduls de formació en centre en 2n curs
             </li>
-            <li v-for="module in modulesByCourse[2]" :key="module.code" class="list-group-item">
+            <li v-for="module in regularModulesByCourse[2]" :key="module.code" class="list-group-item">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
                   <div class="d-flex align-items-center gap-2 mb-1">
@@ -681,6 +808,10 @@ const hoursSum = computed(() => {
                     ></i>
                     <strong>{{ module.name }} ({{ module.code }})</strong>
                     <span class="badge bg-secondary">{{ module.weekHours }}h</span>
+                    <span v-if="isOptionalModule(module)" class="badge bg-warning text-dark">
+                      Optativa
+                    </span>
+                    <span v-if="module.organization?.dualizable" class="badge bg-success">Dualitzable</span>
                   </div>
                   <div v-if="module.organization" class="mt-2 small">
                     <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
@@ -734,6 +865,70 @@ const hoursSum = computed(() => {
                 </div>
               </div>
             </li>
+            <li
+              v-if="optionalModulesByCourse[2].length > 0"
+              class="list-group-item optional-modules text-start"
+            >
+              <div class="fw-bold text-success mb-2">
+                <i class="bi bi-bookmark-star me-1"></i>Mòduls optatius
+              </div>
+              <div
+                v-for="module in optionalModulesByCourse[2]"
+                :key="module.code"
+                class="optional-module-item d-flex justify-content-between align-items-start"
+              >
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <i
+                      v-if="hasOrganization(module.code)"
+                      class="bi bi-check-circle-fill text-success"
+                      title="Organització definida"
+                    ></i>
+                    <i
+                      v-else
+                      class="bi bi-exclamation-circle-fill text-warning"
+                      title="Organització pendent"
+                    ></i>
+                    <strong>{{ module.name }} ({{ module.code }})</strong>
+                    <span class="badge bg-secondary">{{ module.weekHours }}h</span>
+                    <span v-if="getOptionalTurnRestriction(module)" class="badge bg-warning text-dark">
+                      Només {{ getOptionalTurnRestriction(module) }}
+                    </span>
+                    <span v-if="module.organization?.dualizable" class="badge bg-success">Dualitzable</span>
+                  </div>
+                  <div v-if="module.organization" class="mt-2 small">
+                    <span class="badge bg-info me-1">{{ module.organization.distribution }}</span>
+                    <span class="text-muted">
+                      Aula: {{ module.organization.classroomHours }}h | Lab/Taller:
+                      {{ module.organization.labHours }}h
+                    </span>
+                    <span class="badge bg-light text-dark border ms-2">
+                      Idioma: {{ getLanguageLabel(module.organization.language) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="btn-group-vertical" role="group">
+                  <button
+                    @click="openEditModal(module)"
+                    class="btn btn-sm"
+                    :class="hasOrganization(module.code) ? 'btn-outline-primary' : 'btn-primary'"
+                    :disabled="isLoading"
+                    :title="hasOrganization(module.code) ? 'Modificar organització' : 'Definir organització'"
+                  >
+                    <i :class="hasOrganization(module.code) ? 'bi-pencil' : 'bi-plus-circle'"></i>
+                  </button>
+                  <button
+                    v-if="hasOrganization(module.code)"
+                    @click="openDeleteModal(module)"
+                    class="btn btn-sm btn-outline-danger"
+                    :disabled="isLoading"
+                    title="Eliminar organització"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </li>
           </ul>
         </div>
       </div>
@@ -749,6 +944,9 @@ const hoursSum = computed(() => {
                 <h5 class="modal-title">
                   <i class="bi bi-gear me-2"></i>
                   Organització del Mòdul: {{ editingModule.code }}
+                  <span v-if="isEditingOptionalModule" class="badge bg-warning text-dark ms-2">
+                    Optativa
+                  </span>
                 </h5>
                 <button
                   type="button"
@@ -932,6 +1130,37 @@ const hoursSum = computed(() => {
                   </div>
                 </fieldset>
 
+                <fieldset v-if="showOptionalTurnRestriction" class="optional-turns-group mb-3">
+                  <legend class="optional-turns-group__title">Oferta de l'optativa</legend>
+                  <p class="form-text mt-0">
+                    Si no s'estableix restricció, l'optativa s'ofereix en tots els torns del cicle.
+                  </p>
+                  <div class="form-check">
+                    <input
+                      id="optional-turn-all"
+                      v-model="selectedOptionalTurn"
+                      class="form-check-input"
+                      type="radio"
+                      name="optional-turn"
+                      value=""
+                    />
+                    <label class="form-check-label" for="optional-turn-all">Tots els torns</label>
+                  </div>
+                  <div v-for="turn in availableTurnOptions" :key="turn.value" class="form-check">
+                    <input
+                      :id="`optional-turn-${turn.value}`"
+                      v-model="selectedOptionalTurn"
+                      class="form-check-input"
+                      type="radio"
+                      name="optional-turn"
+                      :value="turn.value"
+                    />
+                    <label class="form-check-label" :for="`optional-turn-${turn.value}`">
+                      {{ turn.label }}
+                    </label>
+                  </div>
+                </fieldset>
+
                 <!-- Dualizable -->
                 <div class="mb-3">
                   <label class="form-label fw-bold">Dualitzable al centre</label>
@@ -1054,6 +1283,17 @@ const hoursSum = computed(() => {
   gap: 2px;
 }
 
+.optional-modules {
+  border-left: 4px solid #ffc107;
+  background-color: #fffdf2;
+}
+
+.optional-module-item + .optional-module-item {
+  border-top: 1px solid #f1e5bd;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
 .language-donut {
   width: 160px;
   height: 160px;
@@ -1100,6 +1340,22 @@ const hoursSum = computed(() => {
   font-size: 0.95rem;
   font-weight: 700;
   color: #0a58ca;
+}
+
+.optional-turns-group {
+  border: 1px solid #ffe69c;
+  border-radius: 0.5rem;
+  background: #fff8db;
+  padding: 0.75rem;
+}
+
+.optional-turns-group__title {
+  width: auto;
+  padding: 0 0.4rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #997404;
 }
 
 @media (max-width: 576px) {

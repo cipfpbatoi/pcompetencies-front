@@ -103,6 +103,18 @@ const getPlanTotalHours = (plan) =>
 
 const availableTurns = computed(() => cycle.value?.availableTurns || [])
 
+const isOptionalModule = (moduleCode) => String(moduleCode || '').startsWith('CVOP')
+
+const isModuleAvailableForTurn = (moduleCode) => {
+  if (!isOptionalModule(moduleCode)) return true
+
+  const optionalTurns = pcc.value?.moduleOrganizations?.find(
+    (organization) => organization.module?.code === moduleCode
+  )?.optionalTurns
+
+  return !Array.isArray(optionalTurns) || optionalTurns.length === 0 || optionalTurns.includes(form.turn)
+}
+
 // ==========================================
 // MODAL: CREAR/EDITAR PLA
 // ==========================================
@@ -376,6 +388,10 @@ const selectableModulesForCourse = computed(() => [
 
 const activeModule = computed(
   () => modules.value.find((mod) => mod.moduleCode === activeModuleCode.value) || null
+)
+
+const isActiveModuleUnavailable = computed(
+  () => !!activeModule.value && !isModuleAvailableForTurn(activeModule.value.moduleCode)
 )
 
 const learningResultIndex = computed(() => {
@@ -703,6 +719,15 @@ const handleTurnChange = async () => {
 
   previousTurn.value = form.turn
   await loadAvailableItems({ keepServerSelection: false })
+
+  const unavailableModuleCodes = selectedSummaryByModule.value
+    .filter((entry) => !isModuleAvailableForTurn(entry.moduleCode))
+    .map((entry) => entry.moduleCode)
+
+  unavailableModuleCodes.forEach(removeModuleSelection)
+  if (unavailableModuleCodes.length > 0) {
+    addMessage('info', "S'han retirat les seleccions d'optatives no disponibles en el torn triat")
+  }
 }
 
 const openCreateModal = async () => {
@@ -837,6 +862,8 @@ const ensureSuggestedHours = (moduleCode) => {
 }
 
 const toggleLearningResult = (learningResult) => {
+  if (isActiveModuleUnavailable.value) return
+
   const next = new Set(selectedLearningResultIds.value)
   if (next.has(learningResult.id)) {
     next.delete(learningResult.id)
@@ -857,6 +884,8 @@ const toggleLearningResult = (learningResult) => {
 }
 
 const toggleEvaluationCriteria = (evaluationCriteria) => {
+  if (isActiveModuleUnavailable.value) return
+
   const next = new Set(selectedEvaluationCriteriaIds.value)
   if (next.has(evaluationCriteria.id)) {
     next.delete(evaluationCriteria.id)
@@ -893,6 +922,8 @@ const removeModuleSelection = (moduleCode) => {
 }
 
 const selectAllCriteriaForLr = (learningResult) => {
+  if (isActiveModuleUnavailable.value) return
+
   const nextCe = new Set(selectedEvaluationCriteriaIds.value)
   learningResult.evaluationCriterias.forEach((ce) => nextCe.add(ce.id))
   selectedEvaluationCriteriaIds.value = nextCe
@@ -1456,7 +1487,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     :value="mod.moduleCode"
                   >
                     {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
-                    }}{{ mod.moduleName }} ({{ mod.moduleCode }})
+                    }}{{ mod.moduleName }} ({{ mod.moduleCode }}){{
+                      isModuleAvailableForTurn(mod.moduleCode) ? '' : ' - No disponible en este torn'
+                    }}
                   </option>
                 </optgroup>
                 <optgroup v-if="allowedModulesByCourse[2].length" label="2n Curs">
@@ -1466,7 +1499,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     :value="mod.moduleCode"
                   >
                     {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
-                    }}{{ mod.moduleName }} ({{ mod.moduleCode }})
+                    }}{{ mod.moduleName }} ({{ mod.moduleCode }}){{
+                      isModuleAvailableForTurn(mod.moduleCode) ? '' : ' - No disponible en este torn'
+                    }}
                   </option>
                 </optgroup>
               </select>
@@ -1478,6 +1513,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   <span>{{ activeModule.moduleName }} ({{ activeModule.moduleCode }})</span>
                   <span v-if="!activeModule.hasSyllabus" class="badge bg-warning text-dark">
                     Sense programació per a este torn
+                  </span>
+                  <span v-if="isActiveModuleUnavailable" class="badge bg-secondary">
+                    Optativa no disponible en este torn
                   </span>
                 </div>
                 <ul class="list-group list-group-flush">
@@ -1498,6 +1536,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                               class="form-check-input"
                               type="checkbox"
                               :checked="selectedLearningResultIds.has(lr.id)"
+                              :disabled="isActiveModuleUnavailable"
                               @change="toggleLearningResult(lr)"
                             />
                             <label class="form-check-label fw-bold" :for="`lr-${lr.id}`">
@@ -1507,6 +1546,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                           <button
                             type="button"
                             class="btn btn-success btn-sm ms-2"
+                            :disabled="isActiveModuleUnavailable"
                             @click="selectAllCriteriaForLr(lr)"
                           >
                             Seleccionar tots els criteris
@@ -1519,6 +1559,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                           <button
                             type="button"
                             class="btn btn-success btn-sm ms-2"
+                            :disabled="isActiveModuleUnavailable"
                             @click="selectAllCriteriaForLr(lr)"
                           >
                             Seleccionar tots els criteris
@@ -1537,6 +1578,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                             class="form-select form-select-sm"
                             style="width: auto"
                             :value="normalizeLearningResultDevelopment(learningResultDevelopments[lr.id])"
+                            :disabled="isActiveModuleUnavailable"
                             @change="setLearningResultDevelopment(lr.id, $event.target.value)"
                           >
                             <option value="inferido">Programació (Auto)</option>
@@ -1564,7 +1606,8 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                             type="checkbox"
                             :checked="selectedEvaluationCriteriaIds.has(ce.id)"
                             :disabled="
-                              lr.allCriteriaEligible && !selectedLearningResultIds.has(lr.id)
+                              isActiveModuleUnavailable ||
+                              (lr.allCriteriaEligible && !selectedLearningResultIds.has(lr.id))
                             "
                             @change="toggleEvaluationCriteria(ce)"
                           />

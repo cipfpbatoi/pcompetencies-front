@@ -18,6 +18,64 @@ const closeHelp = () => {
   showHelp.value = false
 }
 
+const TURN_LABELS = {
+  presential: 'Presencial',
+  'half-presential': 'Semi-presencial'
+}
+
+const isOptionalModule = (module) => String(module?.code || '').startsWith('CVOP')
+
+const availableTurns = computed(() => {
+  const turns = Array.isArray(pcc.value?.cycle?.availableTurns)
+    ? pcc.value.cycle.availableTurns
+    : []
+  return [...new Set(turns)].filter((turn) => TURN_LABELS[turn])
+})
+
+const cycleHours = computed(() => Number(pcc.value?.cycle?.hours) || 0)
+
+const getModuleOrganization = (moduleCode) => {
+  return pcc.value?.moduleOrganizations?.find((organization) => {
+    return organization.module?.code === moduleCode
+  })
+}
+
+const isOptionalModuleAvailableForTurn = (module, turn) => {
+  const optionalTurns = getModuleOrganization(module.code)?.optionalTurns
+  return !Array.isArray(optionalTurns) || optionalTurns.length === 0 || optionalTurns.includes(turn)
+}
+
+const turnHourSummaries = computed(() => {
+  if (!cycleHours.value || availableTurns.value.length < 2) return []
+
+  return availableTurns.value.map((turn) => {
+    const regularHours = (pcc.value?.modules || [])
+      .filter((module) => !isOptionalModule(module))
+      .reduce((total, module) => total + (Number(module.numberOfHours) || 0), 0)
+
+    const optionalHours = [1, 2].reduce((total, courseLevel) => {
+      const optionalModule = (pcc.value?.modules || []).find((module) => {
+        return (
+          isOptionalModule(module) &&
+          (module.courseLevel || 1) === courseLevel &&
+          isOptionalModuleAvailableForTurn(module, turn)
+        )
+      })
+      return total + (Number(optionalModule?.numberOfHours) || 0)
+    }, 0)
+
+    const hours = regularHours + optionalHours
+    return {
+      turn,
+      label: TURN_LABELS[turn],
+      hours,
+      isComplete: hours === cycleHours.value
+    }
+  })
+})
+
+const hasTurnHoursMismatch = computed(() => turnHourSummaries.value.some((summary) => !summary.isComplete))
+
 // Computed
 const isDone = computed(() => {
   if (!pcc.value?.modules || !pcc.value?.moduleOrganizations) return false
@@ -53,6 +111,33 @@ const isDone = computed(() => {
         <strong>Important:</strong> Has de definir l'organització per a tots els mòduls abans de
         continuar al següent pas.
       </div>
+
+      <section v-if="turnHourSummaries.length > 0" class="mb-4" aria-label="Hores per torn">
+        <div class="card">
+          <div class="card-header fw-bold">Hores anuals ofertes per torn</div>
+          <ul class="list-group list-group-flush">
+            <li
+              v-for="summary in turnHourSummaries"
+              :key="summary.turn"
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <span>{{ summary.label }}</span>
+              <span :class="summary.isComplete ? 'text-success' : 'text-warning-emphasis'">
+                <strong>{{ summary.hours }} / {{ cycleHours }} h</strong>
+                <i
+                  :class="summary.isComplete ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"
+                  class="ms-2"
+                ></i>
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div v-if="hasTurnHoursMismatch" class="alert alert-warning mt-3 mb-0">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Cada torn ha d'oferir les {{ cycleHours }} hores anuals del cicle. Revisa les restriccions
+          de torn dels mòduls optatius al pas 3.
+        </div>
+      </section>
 
       <!-- Componente de organización de módulos -->
       <PccModuleOrganization v-if="pcc.id" :pcc-id="pcc.id" />

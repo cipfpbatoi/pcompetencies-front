@@ -12,7 +12,6 @@ export default {
     ModalComponent
   },
   async mounted() {
-    this.getSyllabuses()
     try {
       const [respCycles, respModules, respCurrentData] = await Promise.all([
         api.getCycles(),
@@ -22,6 +21,7 @@ export default {
       this.cycles = respCycles.data
       this.modules = respModules.data
       this.currentData = respCurrentData.data
+      await this.getSyllabuses()
     } catch (error) {
       this.addMessage('error', error)
     }
@@ -63,7 +63,7 @@ export default {
       page: Number(this.$route.query.page) || 1,
       itemsPerPage: 25,
       totalItems: 0,
-      moduleTab: 'active',
+      syllabusTab: 'current',
       // L'ordre per defecte del backend ja és updatedAt desc: ho reflectim ací perquè
       // la columna mostre la fletxa corresponent sense haver de clicar-la primer
       sortField: 'updatedAt',
@@ -132,7 +132,13 @@ export default {
       if (this.moduleFilter) {
         filter += `&module.name=${this.moduleFilter}`
       }
-      filter += `&module.active=${this.moduleTab === 'inactive' ? 0 : 1}`
+      if (this.syllabusTab === 'current') {
+        filter += '&schoolYear=current&module.active=1'
+      } else if (this.syllabusTab === 'previous') {
+        filter += '&schoolYear=previous&module.active=1'
+      } else {
+        filter += '&module.active=0'
+      }
       filter += `&order[${this.sortField}]=${this.sortDirection}`
 
       return encodeURI(filter)
@@ -155,9 +161,9 @@ export default {
       this.$router.replace({ query: { ...this.$route.query, page } })
       this.getSyllabuses()
     },
-    setModuleTab(tab) {
-      if (this.moduleTab === tab) return
-      this.moduleTab = tab
+    setSyllabusTab(tab) {
+      if (this.syllabusTab === tab) return
+      this.syllabusTab = tab
       this.setPage(1)
     },
     async accept(syllabus) {
@@ -318,19 +324,29 @@ export default {
         <li class="nav-item">
           <a
             class="nav-link"
-            :class="{ active: moduleTab === 'active' }"
+            :class="{ active: syllabusTab === 'current' }"
             href="#"
-            @click.prevent="setModuleTab('active')"
+            @click.prevent="setSyllabusTab('current')"
           >
-            Mòduls actius
+            Programacions actuals
           </a>
         </li>
         <li class="nav-item">
           <a
             class="nav-link"
-            :class="{ active: moduleTab === 'inactive' }"
+            :class="{ active: syllabusTab === 'previous' }"
             href="#"
-            @click.prevent="setModuleTab('inactive')"
+            @click.prevent="setSyllabusTab('previous')"
+          >
+            Programacions no actuals
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            :class="{ active: syllabusTab === 'inactive' }"
+            href="#"
+            @click.prevent="setSyllabusTab('inactive')"
           >
             Mòduls no actius
           </a>

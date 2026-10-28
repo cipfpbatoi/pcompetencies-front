@@ -190,7 +190,9 @@ export default {
     },
     getSaoActionTitle(plan) {
       const status = this.getSaoStatus(plan)
-      if (status === 'exported') return 'La plantilla ja està sincronitzada amb SAÓ'
+      if (['exported', 'exported_with_warnings'].includes(status)) {
+        return 'La plantilla ja està sincronitzada amb SAÓ'
+      }
       if (status === 'outdated') return 'Actualitzar les plantilles en SAÓ'
       if (['failed', 'partial_failure'].includes(status)) return 'Reintentar l’exportació a SAÓ'
       return 'Exportar les plantilles a SAÓ'
@@ -574,13 +576,32 @@ export default {
                       </span>
                     </td>
                     <td>
-                      <span v-if="moduleExport.errorMessage" class="text-danger">
+                      <div v-if="moduleExport.errorMessage" class="text-danger mb-1">
                         {{ moduleExport.errorMessage }}
-                      </span>
-                      <span v-else-if="moduleExport.exportedAt" class="text-success">
+                      </div>
+                      <div v-if="moduleExport.issues?.length">
+                        <ul class="mb-1 ps-3">
+                          <li
+                            v-for="(issue, index) in moduleExport.issues"
+                            :key="`${issue.code}-${issue.action}-${index}`"
+                          >
+                            <span class="badge bg-warning text-dark me-1">
+                              {{ issue.action === 'assigned' ? 'Assignada amb avís' : 'Omesa' }}
+                            </span>
+                            {{ issue.message }}
+                          </li>
+                        </ul>
+                        <small v-if="moduleExport.exportedAt" class="text-secondary">
+                          Exportat {{ formatDateTime(moduleExport.exportedAt) }}
+                        </small>
+                      </div>
+                      <span
+                        v-else-if="!moduleExport.errorMessage && moduleExport.exportedAt"
+                        class="text-success"
+                      >
                         Exportat {{ formatDateTime(moduleExport.exportedAt) }}
                       </span>
-                      <span v-else class="text-secondary">—</span>
+                      <span v-else-if="!moduleExport.errorMessage" class="text-secondary">—</span>
                     </td>
                   </tr>
                   <tr v-if="!(saoDetailsExport.modules || []).length">
@@ -774,7 +795,10 @@ export default {
                         <i v-else class="bi bi-file-earmark-pdf-fill"></i>
                       </button>
                       <button
-                        v-if="canExportToSao(plan) && getSaoStatus(plan) !== 'exported'"
+                        v-if="
+                          canExportToSao(plan) &&
+                          !['exported', 'exported_with_warnings'].includes(getSaoStatus(plan))
+                        "
                         class="btn btn-sm btn-outline-primary"
                         :title="getSaoActionTitle(plan)"
                         :disabled="

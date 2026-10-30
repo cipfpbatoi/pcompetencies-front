@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import * as yup from 'yup'
@@ -7,6 +7,7 @@ import { useDataStore } from '../stores/data'
 import { api } from '../repositories/api.js'
 import { useFormValidation } from '../composables/useFormValidation'
 import { statusClass } from '../utils/utils.js'
+import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '../utils/sao.js'
 import ModalComponent from './ModalComp.vue'
 import ActionButton from './ActionButton.vue'
 
@@ -1154,6 +1155,110 @@ const handleDownloadPlanPdf = async (plan) => {
 }
 
 // ==========================================
+// EXPORTACIÓ A SAÓ
+// ==========================================
+const saoExports = ref({})
+const saoExportingPlanId = ref(null)
+const saoPollTimers = new Map()
+const saoDetailsModalRef = ref(null)
+const saoDetailsPlan = ref(null)
+
+const getSaoExport = (plan) => saoExports.value[plan.id] || null
+const getSaoStatus = (plan) => getSaoExport(plan)?.status || plan.saoExportStatus || null
+const saoDetailsExport = computed(() =>
+  saoDetailsPlan.value ? getSaoExport(saoDetailsPlan.value) : null
+)
+const canExportToSao = (plan) =>
+  plan.status === 'aprovada' && isPlanOfCurrentSchoolYear(plan)
+
+const getSaoActionTitle = (plan) => {
+  const status = getSaoStatus(plan)
+  if (['exported', 'exported_with_warnings'].includes(status)) {
+    return 'La plantilla ja està sincronitzada amb SAÓ'
+  }
+  if (status === 'outdated') return 'Actualitzar les plantilles en SAÓ'
+  if (['failed', 'partial_failure'].includes(status)) return 'Reintentar l’exportació a SAÓ'
+  return 'Exportar les plantilles a SAÓ'
+}
+
+const rememberSaoExport = (plan, saoExport) => {
+  saoExports.value = { ...saoExports.value, [plan.id]: saoExport }
+  plan.saoExportStatus = saoExport.status
+}
+
+const clearSaoPoll = (planId) => {
+  const timer = saoPollTimers.get(planId)
+  if (timer === undefined) return
+  window.clearInterval(timer)
+  saoPollTimers.delete(planId)
+}
+
+const clearSaoPolls = () => {
+  for (const planId of saoPollTimers.keys()) clearSaoPoll(planId)
+}
+
+const refreshSaoExport = async (plan, silent = false) => {
+  try {
+    const response = await api.getIndividualTrainingPlanSaoExport(props.pccId, plan.id)
+    rememberSaoExport(plan, response.data)
+    if (!isSaoExportActive(response.data.status)) clearSaoPoll(plan.id)
+    return response.data
+  } catch (error) {
+    clearSaoPoll(plan.id)
+    if (!silent) showActionError('No s’ha pogut consultar SAÓ', error)
+    return null
+  }
+}
+
+const startSaoPolling = (plan) => {
+  clearSaoPoll(plan.id)
+  saoPollTimers.set(plan.id, window.setInterval(() => refreshSaoExport(plan, true), 3000))
+}
+
+const handleSaoExport = async (plan) => {
+  const status = getSaoStatus(plan)
+  const action = ['failed', 'partial_failure'].includes(status)
+    ? 'reintentar l’exportació de'
+    : status
+      ? 'actualitzar'
+      : 'exportar'
+  if (
+    !confirm(
+      `Vas a ${action} en SAÓ una plantilla per cada mòdul del pla "${plan.name}". Vols continuar?`
+    )
+  ) {
+    return
+  }
+
+  saoExportingPlanId.value = plan.id
+  try {
+    const response = await api.exportIndividualTrainingPlanToSao(props.pccId, plan.id)
+    rememberSaoExport(plan, response.data)
+    if (isSaoExportActive(response.data.status)) startSaoPolling(plan)
+    addMessage(
+      'success',
+      response.status === 202
+        ? 'L’exportació a SAÓ ha quedat en cua'
+        : 'Les plantilles ja estaven sincronitzades amb SAÓ'
+    )
+  } catch (error) {
+    showActionError('No s’ha pogut iniciar l’exportació a SAÓ', error)
+  } finally {
+    saoExportingPlanId.value = null
+  }
+}
+
+const openSaoDetails = async (plan) => {
+  saoDetailsPlan.value = plan
+  const result = await refreshSaoExport(plan)
+  if (result) saoDetailsModalRef.value?.show()
+}
+
+const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : '')
+
+onBeforeUnmount(clearSaoPolls)
+
+// ==========================================
 // ESTAT DEL PLA (pendent -> enviada -> aprovada/rebutjada)
 // ==========================================
 const changingStatusPlanId = ref(null)
@@ -1990,6 +2095,87 @@ const handleCopyPlanToCurrentYear = async (plan) => {
       </div>
     </ModalComponent>
 
+    <ModalComponent
+      ref="saoDetailsModalRef"
+      modal-id="saoExportDetailsModalPcc"
+      title="Exportació a SAÓ"
+      size="lg"
+      scrollable
+      :show-save-button="false"
+      close-button-text="Tanca"
+    >
+      <template v-if="saoDetailsExport">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <strong>{{ saoDetailsPlan?.name }}</strong>
+          <span class="badge" :class="saoStatusClass(saoDetailsExport.status)">
+            {{ saoStatusLabel(saoDetailsExport.status) }}
+          </span>
+        </div>
+        <div v-if="saoDetailsExport.errorMessage" class="alert alert-warning">
+          {{ saoDetailsExport.errorMessage }}
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Mòdul</th>
+                <th>Descripció</th>
+                <th>Estat</th>
+                <th>Resultat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="moduleExport in saoDetailsExport.modules || []"
+                :key="moduleExport.moduleCode"
+              >
+                <td>{{ moduleExport.moduleCode }}</td>
+                <td>{{ moduleExport.description }}</td>
+                <td>
+                  <span class="badge" :class="saoStatusClass(moduleExport.status)">
+                    {{ saoStatusLabel(moduleExport.status) }}
+                  </span>
+                </td>
+                <td>
+                  <div v-if="moduleExport.errorMessage" class="text-danger mb-1">
+                    {{ moduleExport.errorMessage }}
+                  </div>
+                  <div v-if="moduleExport.issues?.length">
+                    <ul class="mb-1 ps-3">
+                      <li
+                        v-for="(issue, index) in moduleExport.issues"
+                        :key="`${issue.code}-${issue.action}-${index}`"
+                      >
+                        <span class="badge bg-warning text-dark me-1">
+                          {{ issue.action === 'assigned' ? 'Assignada amb avís' : 'Omesa' }}
+                        </span>
+                        {{ issue.message }}
+                      </li>
+                    </ul>
+                    <small v-if="moduleExport.exportedAt" class="text-secondary">
+                      Exportat {{ formatDateTime(moduleExport.exportedAt) }}
+                    </small>
+                  </div>
+                  <span
+                    v-else-if="!moduleExport.errorMessage && moduleExport.exportedAt"
+                    class="text-success"
+                  >
+                    Exportat {{ formatDateTime(moduleExport.exportedAt) }}
+                  </span>
+                  <span v-else-if="!moduleExport.errorMessage" class="text-secondary">—</span>
+                </td>
+              </tr>
+              <tr v-if="!(saoDetailsExport.modules || []).length">
+                <td colspan="4" class="text-center text-secondary">
+                  Encara no hi ha detall per mòduls.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+    </ModalComponent>
+
     <div class="d-flex justify-content-end mb-3">
       <ActionButton
         title="Nou pla formatiu individual"
@@ -2017,6 +2203,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
               <th>Torn</th>
               <th>Curs</th>
               <th>Estat</th>
+              <th>SAÓ</th>
               <th>Mòduls</th>
               <th class="text-center">Total hores</th>
               <th class="text-center">Accions</th>
@@ -2047,6 +2234,24 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 >
                   {{ plan.status }}
                 </span>
+              </td>
+              <td>
+                <button
+                  v-if="getSaoStatus(plan)"
+                  type="button"
+                  class="badge border-0"
+                  :class="saoStatusClass(getSaoStatus(plan))"
+                  title="Veure el detall de l’exportació"
+                  @click="openSaoDetails(plan)"
+                >
+                  <span
+                    v-if="isSaoExportActive(getSaoStatus(plan))"
+                    class="spinner-border spinner-border-sm me-1"
+                    aria-hidden="true"
+                  ></span>
+                  {{ saoStatusLabel(getSaoStatus(plan)) }}
+                </button>
+                <span v-else class="text-secondary small">No exportat</span>
               </td>
               <td>{{ getPlanModulesLabel(plan) }}</td>
               <td class="text-center">{{ getPlanTotalHours(plan) }}h</td>
@@ -2079,6 +2284,27 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     @click="openEditModal(plan)"
                   >
                     <i class="bi bi-pencil"></i>
+                  </button>
+                  <button
+                    v-if="
+                      canExportToSao(plan) &&
+                      !['exported', 'exported_with_warnings'].includes(getSaoStatus(plan))
+                    "
+                    data-testid="sao-export-button"
+                    class="btn btn-sm btn-outline-primary"
+                    :title="getSaoActionTitle(plan)"
+                    :disabled="
+                      saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
+                    "
+                    @click="handleSaoExport(plan)"
+                  >
+                    <span
+                      v-if="
+                        saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
+                      "
+                      class="spinner-border spinner-border-sm"
+                    ></span>
+                    <i v-else class="bi bi-cloud-arrow-up-fill"></i>
                   </button>
                   <button
                     v-if="plan.status === 'pendent' || canDeleteNonPendingPlan"
@@ -2124,6 +2350,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 <th>Torn</th>
                 <th>Curs</th>
                 <th>Estat</th>
+                <th>SAÓ</th>
                 <th>Mòduls</th>
                 <th class="text-center">Total hores</th>
                 <th class="text-center">Accions</th>
@@ -2154,6 +2381,19 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   >
                     {{ plan.status }}
                   </span>
+                </td>
+                <td>
+                  <button
+                    v-if="getSaoStatus(plan)"
+                    type="button"
+                    class="badge border-0"
+                    :class="saoStatusClass(getSaoStatus(plan))"
+                    title="Veure el detall de l’exportació"
+                    @click="openSaoDetails(plan)"
+                  >
+                    {{ saoStatusLabel(getSaoStatus(plan)) }}
+                  </button>
+                  <span v-else class="text-secondary small">No exportat</span>
                 </td>
                 <td>{{ getPlanModulesLabel(plan) }}</td>
                 <td class="text-center">{{ getPlanTotalHours(plan) }}h</td>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api.js'
@@ -9,7 +9,9 @@ vi.mock('@/repositories/api.js', () => ({
   api: {
     getCurrentData: vi.fn().mockResolvedValue({ data: { currentSchoolYear: { course: '2026-2027' } } }),
     getIndividualTrainingPlanAvailableItems: vi.fn(),
-    getIndividualTrainingPlan: vi.fn()
+    getIndividualTrainingPlan: vi.fn(),
+    getIndividualTrainingPlanSaoExport: vi.fn(),
+    exportIndividualTrainingPlanToSao: vi.fn()
   }
 }))
 
@@ -37,6 +39,8 @@ const mountComponent = () =>
 
 describe('PccIndividualTrainingPlans', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
+    api.getCurrentData.mockResolvedValue({ data: { currentSchoolYear: { course: '2026-2027' } } })
     setActivePinia(createPinia())
     const store = useDataStore()
     store.$patch({
@@ -44,6 +48,68 @@ describe('PccIndividualTrainingPlans', () => {
       cycle: { availableTurns: [] },
       user: { info: { roles: [] } }
     })
+  })
+
+  it('allows a tutor to export an approved current-year plan to SAÓ', async () => {
+    const store = useDataStore()
+    store.$patch({
+      pcc: {
+        individualTrainingPlans: [
+          {
+            id: 18,
+            name: 'Empresa de programació web',
+            status: 'aprovada',
+            courseYear: '2026-2027',
+            turn: 'presential',
+            courseLevel: 2,
+            moduleHours: []
+          }
+        ]
+      },
+      user: { info: { roles: ['ROLE_TEACHER'] } }
+    })
+    api.exportIndividualTrainingPlanToSao.mockResolvedValue({
+      status: 202,
+      data: { status: 'queued', modules: [] }
+    })
+    vi.stubGlobal('confirm', vi.fn(() => true))
+
+    const wrapper = mountComponent()
+    await flushPromises()
+    await wrapper.get('[data-testid="sao-export-button"]').trigger('click')
+    await flushPromises()
+
+    expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18)
+    expect(wrapper.text()).toContain('En cua')
+    wrapper.unmount()
+    vi.unstubAllGlobals()
+  })
+
+  it('does not offer another export when the tutor plan is already synchronized', async () => {
+    const store = useDataStore()
+    store.$patch({
+      pcc: {
+        individualTrainingPlans: [
+          {
+            id: 18,
+            name: 'Empresa de programació web',
+            status: 'aprovada',
+            courseYear: '2026-2027',
+            turn: 'presential',
+            courseLevel: 2,
+            moduleHours: [],
+            saoExportStatus: 'exported_with_warnings'
+          }
+        ]
+      },
+      user: { info: { roles: ['ROLE_TEACHER'] } }
+    })
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="sao-export-button"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Exportat amb avisos')
   })
 
   it('shows and hides the contextual help for the plan fields', async () => {

@@ -124,6 +124,7 @@ const isLoadingItems = ref(false)
 const editingPlanId = ref(null)
 const isViewOnly = ref(false)
 const modules = ref([])
+const planModules = ref([])
 const selectionErrorLines = ref([])
 const currentStep = ref(1)
 const activeModuleCode = ref('')
@@ -491,6 +492,13 @@ const modulesWithSelectionCodes = computed(
   () => new Set(selectedSummaryByModule.value.map((entry) => entry.moduleCode))
 )
 
+const excludedPlanModules = computed(() => {
+  const availableModuleCodes = new Set(modules.value.map((module) => module.moduleCode))
+  return planModules.value.filter(
+    (module) => form.moduleHours[module.code] !== undefined && !availableModuleCodes.has(module.code)
+  )
+})
+
 // Mode vista: en lloc del selector de mòdul, es mostren directament tots els mòduls
 // amb selecció, i de cada un només els RA/CE seleccionats (no tot el catàleg)
 const viewSummaryModules = computed(() => {
@@ -744,6 +752,7 @@ const openCreateModal = async () => {
   form.moduleHours = {}
   form.moduleActivities = {}
   form.periods = []
+  planModules.value = []
   planCourseYear.value = currentSchoolYear.value
   previousTurn.value = form.turn
   selectedLearningResultIds.value = new Set()
@@ -783,6 +792,9 @@ const populateFormFromPlan = (plan) => {
       .filter((entry) => entry.module?.code)
       .map((entry) => [entry.module.code, entry.activities || ''])
   )
+  planModules.value = (plan.moduleHours || [])
+    .filter((entry) => entry.module?.code)
+    .map((entry) => ({ code: entry.module.code, name: entry.module.name || entry.module.code }))
   form.periods = (plan.periods || []).map((period) => ({
     startDate: toDateInputValue(period.startDate),
     endDate: toDateInputValue(period.endDate),
@@ -915,6 +927,7 @@ const removeModuleSelection = (moduleCode) => {
   learningResultIds.forEach(removeLearningResultDevelopment)
   delete form.moduleHours[moduleCode]
   delete form.moduleActivities[moduleCode]
+  planModules.value = planModules.value.filter((module) => module.code !== moduleCode)
 
   if (activeModuleCode.value === moduleCode) {
     activeModuleCode.value = ''
@@ -1675,6 +1688,31 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     <span class="visually-hidden">Llevar {{ entry.moduleName }}</span>
                   </button>
                 </span>
+              </div>
+
+              <div v-if="excludedPlanModules.length" class="alert alert-warning py-2 px-3 mt-3 mb-0">
+                <p class="mb-2">
+                  Aquests mòduls ja no estan inclosos en el PCC. Elimina'ls del pla per actualitzar-lo.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <span
+                    v-for="module in excludedPlanModules"
+                    :key="module.code"
+                    class="badge bg-warning text-dark py-2 px-2"
+                  >
+                    <strong>{{ module.name }} ({{ module.code }})</strong>
+                    <button
+                      v-if="!isViewOnly"
+                      type="button"
+                      class="btn btn-sm btn-link text-dark p-0 ms-2 align-baseline"
+                      title="Llevar mòdul exclòs del pla"
+                      @click="removeModuleSelection(module.code)"
+                    >
+                      <i class="bi bi-trash"></i>
+                      <span class="visually-hidden">Llevar {{ module.name }}</span>
+                    </button>
+                  </span>
+                </div>
               </div>
 
               <template v-if="selectedSummaryByModule.length > 0">

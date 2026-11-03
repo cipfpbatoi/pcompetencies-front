@@ -574,7 +574,10 @@ export default {
                         <i class="bi bi-x-circle"></i>
                       </button>
                       <button
-                        v-if="plan.status !== 'pendent' && isPlanOfCurrentSchoolYear(plan)"
+                        v-if="
+                          !['pendent', 'rebutjada'].includes(plan.status) &&
+                          isPlanOfCurrentSchoolYear(plan)
+                        "
                         class="btn btn-sm btn-outline-warning"
                         title="Posar com a pendent"
                         :disabled="changingStatusPlanId === plan.id"

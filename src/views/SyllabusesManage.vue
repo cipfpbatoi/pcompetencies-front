@@ -182,9 +182,10 @@ export default {
           this.addMessage('success', 'Programació aprovada')
           this.RejectSyllabusModal.hide()
           this.syllabuses.find((syl) => syl.id === syllabus.id).status = 'aprovada'
-          this.loading = false
         } catch (error) {
           this.addMessage('error', error)
+        } finally {
+          this.loading = false
         }
       }
     },

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { useDataStore } from '@/stores/data'
 import SyllabusesManage from '@/views/SyllabusesManage.vue'
 import { api } from '@/repositories/api'
 
@@ -9,7 +10,8 @@ vi.mock('@/repositories/api', () => ({
     getCycles: vi.fn(),
     getModules: vi.fn(),
     getCurrentData: vi.fn(),
-    getSyllabusesPaginated: vi.fn()
+    getSyllabusesPaginated: vi.fn(),
+    syllabusApprove: vi.fn()
   }
 }))
 
@@ -74,5 +76,25 @@ describe('SyllabusesManage', () => {
     const filter = api.getSyllabusesPaginated.mock.calls[0][0]
     expect(filter).toContain('module.active=0')
     expect(filter).not.toContain('schoolYear=')
+  })
+
+  it('clears loading when syllabus approval fails', async () => {
+    const error = new Error('Approval failed')
+    api.syllabusApprove.mockRejectedValue(error)
+    vi.stubGlobal('confirm', vi.fn(() => true))
+    const store = useDataStore()
+    store.addMessage = vi.fn()
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.vm.accept({
+      id: 1,
+      module: { name: 'Mòdul de prova' },
+      cycle: { shortName: 'Cicle de prova' }
+    })
+
+    expect(wrapper.vm.loading).toBe(false)
+    expect(store.addMessage).toHaveBeenCalledWith('error', error)
+    vi.unstubAllGlobals()
   })
 })

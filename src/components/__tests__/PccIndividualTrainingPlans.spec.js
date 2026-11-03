@@ -136,6 +136,89 @@ describe('PccIndividualTrainingPlans', () => {
     expect(wrapper.text()).toContain("Cal indicar el tipus d'empresa.")
   })
 
+  it('shows a restricted optional module but disables its RA and criteria in another turn', async () => {
+    const store = useDataStore()
+    store.$patch({
+      pcc: {
+        individualTrainingPlans: [],
+        moduleOrganizations: [{ module: { code: 'CVOP01' }, optionalTurns: ['presential'] }]
+      },
+      cycle: {
+        availableTurns: ['presential', 'half-presential'],
+        modules: [{ code: 'CVOP01', courseLevel: 1 }]
+      }
+    })
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [
+      {
+        moduleCode: 'CVOP01',
+        moduleName: 'Mòdul optatiu',
+        hasSyllabus: true,
+        learningResults: [
+          {
+            id: 101,
+            number: 1,
+            descriptor: 'RA optatiu',
+            allCriteriaEligible: true,
+            evaluationCriterias: [{ id: 201, code: 'a', description: 'Criteri optatiu' }]
+          }
+        ]
+      }
+    ]
+    wrapper.vm.form.turn = 'half-presential'
+    wrapper.vm.form.courseLevel = 1
+    wrapper.vm.activeModuleCode = 'CVOP01'
+    wrapper.vm.currentStep = 2
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('Optativa no disponible en este torn')
+    expect(wrapper.get('#lr-101').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('#ce-201').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('button.btn-success.btn-sm').attributes('disabled')).toBeDefined()
+  })
+
+  it('removes optional selections that become unavailable after changing turn', async () => {
+    const store = useDataStore()
+    store.$patch({
+      pcc: {
+        individualTrainingPlans: [],
+        moduleOrganizations: [{ module: { code: 'CVOP01' }, optionalTurns: ['presential'] }]
+      },
+      cycle: {
+        availableTurns: ['presential', 'half-presential'],
+        modules: [{ code: 'CVOP01', courseLevel: 1 }]
+      }
+    })
+    const availableModule = {
+      moduleCode: 'CVOP01',
+      moduleName: 'Mòdul optatiu',
+      learningResults: [
+        {
+          id: 101,
+          number: 1,
+          allCriteriaEligible: false,
+          evaluationCriterias: [{ id: 201, code: 'a', description: 'Criteri optatiu' }]
+        }
+      ]
+    }
+    api.getIndividualTrainingPlanAvailableItems.mockResolvedValue({ data: [availableModule] })
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [availableModule]
+    wrapper.vm.selectedLearningResultIds = new Set([101])
+    wrapper.vm.selectedEvaluationCriteriaIds = new Set([201])
+    wrapper.vm.form.moduleHours = { CVOP01: 10 }
+    wrapper.vm.form.moduleActivities = { CVOP01: 'Activitat' }
+    wrapper.vm.form.turn = 'half-presential'
+    wrapper.vm.previousTurn = 'presential'
+
+    await wrapper.vm.handleTurnChange()
+
+    expect(wrapper.vm.selectedLearningResultIds).toEqual(new Set())
+    expect(wrapper.vm.selectedEvaluationCriteriaIds).toEqual(new Set())
+    expect(wrapper.vm.form.moduleHours.CVOP01).toBeUndefined()
+    expect(wrapper.vm.form.moduleActivities.CVOP01).toBeUndefined()
+  })
+
   it('groups selected criteria by learning result without spaces after commas', async () => {
     const wrapper = mountComponent()
     wrapper.vm.modules = [
@@ -276,6 +359,25 @@ describe('PccIndividualTrainingPlans', () => {
     expect(wrapper.vm.learningResultDevelopments).toEqual({ 2: 'compartido' })
     expect(wrapper.vm.form.moduleHours).toEqual({ M02: 20 })
     expect(wrapper.vm.form.moduleActivities).toEqual({ M02: 'Activitat 2' })
+  })
+
+  it('shows and removes modules excluded from available items', () => {
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [{ moduleCode: 'M01', learningResults: [] }]
+    wrapper.vm.planModules = [
+      { code: 'M01', name: 'Mòdul vigent' },
+      { code: 'M02', name: 'Mòdul exclòs' }
+    ]
+    wrapper.vm.form.moduleHours = { M01: 10, M02: 20 }
+    wrapper.vm.form.moduleActivities = { M02: 'Activitat antiga' }
+
+    expect(wrapper.vm.excludedPlanModules).toEqual([{ code: 'M02', name: 'Mòdul exclòs' }])
+
+    wrapper.vm.removeModuleSelection('M02')
+
+    expect(wrapper.vm.excludedPlanModules).toEqual([])
+    expect(wrapper.vm.form.moduleHours).toEqual({ M01: 10 })
+    expect(wrapper.vm.form.moduleActivities).toEqual({})
   })
 
   it('sends only non-inferred learning result developments', async () => {

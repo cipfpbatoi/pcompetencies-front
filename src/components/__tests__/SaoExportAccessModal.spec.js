@@ -45,6 +45,21 @@ describe('SaoExportAccessModal', () => {
     expect(wrapper.emitted('submit-otp')).toEqual([['123456']])
   })
 
+  it('keeps a partially typed code when polling reopens the modal', async () => {
+    const wrapper = mount(SaoExportAccessModal, {
+      props: {
+        planName: 'Pla de prova',
+        exportState: { status: 'exporting', progressStage: 'otp_required' }
+      },
+      global: { stubs: { ModalComponent: ModalStub } }
+    })
+
+    await wrapper.get('#saoOtp').setValue('1234')
+    wrapper.vm.show(true)
+
+    expect(wrapper.get('#saoOtp').element.value).toBe('1234')
+  })
+
   it('allows a new synchronization after a previous export has finished', async () => {
     const wrapper = mount(SaoExportAccessModal, {
       props: {

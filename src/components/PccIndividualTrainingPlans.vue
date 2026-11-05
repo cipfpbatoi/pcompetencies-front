@@ -1207,7 +1207,7 @@ const refreshSaoExport = async (plan, silent = false) => {
     rememberSaoExport(plan, response.data)
     if (isSaoExportActive(response.data.status) && response.data.progressStage === 'otp_required') {
       saoAccessPlan.value = plan
-      saoAccessModalRef.value?.show()
+      saoAccessModalRef.value?.show(true)
     } else if (!isSaoExportActive(response.data.status)) {
       clearSaoPoll(plan.id)
       if (saoAccessPlan.value?.id === plan.id) finishSaoInteraction(plan, response.data)

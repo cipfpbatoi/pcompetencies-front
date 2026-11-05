@@ -55,10 +55,12 @@ const submit = () => {
   password.value = ''
 }
 
-const show = () => {
-  username.value = ''
-  password.value = ''
-  otp.value = ''
+const show = (preserveInput = false) => {
+  if (!preserveInput) {
+    username.value = ''
+    password.value = ''
+    otp.value = ''
+  }
   modalRef.value?.show()
 }
 

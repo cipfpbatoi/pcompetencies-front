@@ -232,7 +232,7 @@ export default {
           response.data.progressStage === 'otp_required'
         ) {
           this.saoAccessPlan = plan
-          this.$refs.saoAccessModal.show()
+          this.$refs.saoAccessModal.show(true)
         } else if (!isSaoExportActive(response.data.status)) {
           this.clearSaoPoll(plan.id)
           if (this.saoAccessPlan?.id === plan.id) {

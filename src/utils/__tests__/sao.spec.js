@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '../sao.js'
+import { isSaoExportActive, saoProgressLabel, saoStatusClass, saoStatusLabel } from '../sao.js'
 
 describe('SAÓ export status helpers', () => {
   it('identifies the statuses that need polling', () => {
@@ -16,5 +16,12 @@ describe('SAÓ export status helpers', () => {
     expect(saoStatusClass('exported_with_warnings')).toBe('bg-warning text-dark')
     expect(saoStatusClass('failed')).toBe('bg-danger')
     expect(saoStatusLabel(null)).toBe('No exportat')
+  })
+
+  it('describes interactive export progress', () => {
+    expect(saoProgressLabel({ progressStage: 'otp_required' })).toContain('codi')
+    expect(
+      saoProgressLabel({ progressStage: 'module_started', progressModuleCode: '0612' })
+    ).toContain('0612')
   })
 })

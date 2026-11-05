@@ -6,6 +6,7 @@ import { api } from '@/repositories/api'
 import { statusClass } from '@/utils/utils.js'
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '@/utils/sao.js'
 import IndividualTrainingPlanViewModal from '@/components/IndividualTrainingPlanViewModal.vue'
+import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
 
 const TURN_LABELS = {
   presential: 'Presencial',
@@ -14,7 +15,8 @@ const TURN_LABELS = {
 
 export default {
   components: {
-    IndividualTrainingPlanViewModal
+    IndividualTrainingPlanViewModal,
+    SaoExportAccessModal
   },
   computed: {
     ...mapState(useDataStore, ['user']),
@@ -82,6 +84,8 @@ export default {
       saoPollTimers: {},
       saoDetailsModal: null,
       saoDetailsPlan: null,
+      saoAccessPlan: null,
+      saoAccessError: '',
       pageInitialized: false
     }
   },
@@ -213,7 +217,7 @@ export default {
     },
     startSaoPolling(plan) {
       this.clearSaoPoll(plan.id)
-      const timer = window.setInterval(() => this.refreshSaoExport(plan, true), 3000)
+      const timer = window.setInterval(() => this.refreshSaoExport(plan, true), 1500)
       this.saoPollTimers = { ...this.saoPollTimers, [plan.id]: timer }
     },
     async refreshSaoExport(plan, silent = false) {
@@ -223,8 +227,17 @@ export default {
           plan.id
         )
         this.rememberSaoExport(plan.id, response.data)
-        if (!isSaoExportActive(response.data.status)) {
+        if (
+          isSaoExportActive(response.data.status) &&
+          response.data.progressStage === 'otp_required'
+        ) {
+          this.saoAccessPlan = plan
+          this.$refs.saoAccessModal.show()
+        } else if (!isSaoExportActive(response.data.status)) {
           this.clearSaoPoll(plan.id)
+          if (this.saoAccessPlan?.id === plan.id) {
+            this.finishSaoInteraction(plan, response.data)
+          }
         }
         return response.data
       } catch (error) {
@@ -233,39 +246,55 @@ export default {
         return null
       }
     },
-    async handleSaoExport(plan) {
-      const status = this.getSaoStatus(plan)
-      const action = ['failed', 'partial_failure'].includes(status)
-        ? 'reintentar l’exportació de'
-        : status
-          ? 'actualitzar'
-          : 'exportar'
-      if (
-        !confirm(
-          `Vas a ${action} en SAÓ una plantilla per cada mòdul del pla "${plan.name}". Vols continuar?`
-        )
-      ) {
-        return
-      }
-
+    handleSaoExport(plan) {
+      this.saoAccessPlan = plan
+      this.saoAccessError = ''
+      this.$refs.saoAccessModal.show()
+    },
+    finishSaoInteraction(plan, saoExport) {
+      if (isSaoExportActive(saoExport.status)) return
+      this.$refs.saoAccessModal.hide()
+      this.saoDetailsPlan = plan
+      this.saoDetailsModal.show()
+    },
+    async submitSaoCredentials(credentials) {
+      const plan = this.saoAccessPlan
+      if (!plan) return
       this.saoExportingPlanId = plan.id
+      this.saoAccessError = ''
       try {
         const response = await api.exportIndividualTrainingPlanToSao(
           plan.curricularProject.id,
-          plan.id
+          plan.id,
+          credentials
         )
         this.rememberSaoExport(plan.id, response.data)
         if (isSaoExportActive(response.data.status)) {
           this.startSaoPolling(plan)
         }
-        this.addMessage(
-          'success',
-          response.status === 202
-            ? 'L’exportació a SAÓ ha quedat en cua'
-            : 'Les plantilles ja estaven sincronitzades amb SAÓ'
-        )
+        this.finishSaoInteraction(plan, response.data)
       } catch (error) {
-        this.showActionError('No s’ha pogut iniciar l’exportació a SAÓ', error)
+        this.saoAccessError = this.getErrorMessage(error)
+      } finally {
+        this.saoExportingPlanId = null
+      }
+    },
+    async submitSaoOtp(otp) {
+      const plan = this.saoAccessPlan
+      if (!plan) return
+
+      this.saoExportingPlanId = plan.id
+      this.saoAccessError = ''
+      try {
+        const response = await api.provideIndividualTrainingPlanSaoOtp(
+          plan.curricularProject.id,
+          plan.id,
+          otp
+        )
+        this.rememberSaoExport(plan.id, response.data)
+        this.startSaoPolling(plan)
+      } catch (error) {
+        this.saoAccessError = this.getErrorMessage(error)
       } finally {
         this.saoExportingPlanId = null
       }
@@ -533,6 +562,16 @@ export default {
         </div>
       </div>
     </div>
+
+    <SaoExportAccessModal
+      ref="saoAccessModal"
+      :plan-name="saoAccessPlan?.name || ''"
+      :export-state="saoAccessPlan ? getSaoExport(saoAccessPlan) : null"
+      :busy="saoExportingPlanId === saoAccessPlan?.id"
+      :error="saoAccessError"
+      @submit-credentials="submitSaoCredentials"
+      @submit-otp="submitSaoOtp"
+    />
 
     <div id="saoExportDetailsModal" class="modal fade" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">

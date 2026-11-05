@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api.js'
 import PccIndividualTrainingPlans from '@/components/PccIndividualTrainingPlans.vue'
+import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
 
 vi.mock('@/repositories/api.js', () => ({
   api: {
@@ -11,7 +12,8 @@ vi.mock('@/repositories/api.js', () => ({
     getIndividualTrainingPlanAvailableItems: vi.fn(),
     getIndividualTrainingPlan: vi.fn(),
     getIndividualTrainingPlanSaoExport: vi.fn(),
-    exportIndividualTrainingPlanToSao: vi.fn()
+    exportIndividualTrainingPlanToSao: vi.fn(),
+    provideIndividualTrainingPlanSaoOtp: vi.fn()
   }
 }))
 
@@ -72,17 +74,21 @@ describe('PccIndividualTrainingPlans', () => {
       status: 202,
       data: { status: 'queued', modules: [] }
     })
-    vi.stubGlobal('confirm', vi.fn(() => true))
-
     const wrapper = mountComponent()
     await flushPromises()
     await wrapper.get('[data-testid="sao-export-button"]').trigger('click')
+    wrapper.findComponent(SaoExportAccessModal).vm.$emit('submit-credentials', {
+      username: 'professor',
+      password: 'secret'
+    })
     await flushPromises()
 
-    expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18)
+    expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18, {
+      username: 'professor',
+      password: 'secret'
+    })
     expect(wrapper.text()).toContain('En cua')
     wrapper.unmount()
-    vi.unstubAllGlobals()
   })
 
   it('does not offer another export when the tutor plan is already synchronized', async () => {
@@ -508,7 +514,7 @@ describe('PccIndividualTrainingPlans', () => {
     wrapper.vm.currentStep = 2
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Solo Empresa'))).toBe(true)
+    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Soles empresa'))).toBe(true)
 
     await wrapper.get('#lr-development-1').setValue('compartido')
 

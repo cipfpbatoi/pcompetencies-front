@@ -191,8 +191,15 @@ export const api = {
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/copy`, {}),
   getIndividualTrainingPlanSaoExport: (pccId, planId) =>
     instance.get(`/pcc/${pccId}/individual-training-plans/${planId}/sao-export`),
-  exportIndividualTrainingPlanToSao: (pccId, planId) =>
-    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/sao-export`, {}),
+  exportIndividualTrainingPlanToSao: (pccId, planId, credentials) =>
+    instance.post(
+      `/pcc/${pccId}/individual-training-plans/${planId}/sao-export`,
+      credentials
+    ),
+  provideIndividualTrainingPlanSaoOtp: (pccId, planId, otp) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/sao-export/otp`, {
+      otp
+    }),
   addModuleCenterProjects: (pccId, moduleCode, centerProjectIds) =>
     instance.post(`/curricular-projects/${pccId}/modules/${moduleCode}/center-projects`, {
       centerProjectIds

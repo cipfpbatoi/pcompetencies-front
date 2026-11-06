@@ -6,7 +6,8 @@ import SaoExportAccessModal from '../SaoExportAccessModal.vue'
 const ModalStub = {
   props: ['saveDisabled'],
   emits: ['save'],
-  template: '<div><slot /><button data-testid="save" :disabled="saveDisabled" @click="$emit(\'save\')">Desa</button></div>',
+  template:
+    '<div><slot /><button data-testid="save" :disabled="saveDisabled" @click="$emit(\'save\')">Desa</button></div>',
   methods: {
     show() {},
     hide() {}
@@ -22,11 +23,12 @@ describe('SaoExportAccessModal', () => {
 
     await wrapper.get('#saoUsername').setValue('professor')
     await wrapper.get('#saoPassword').setValue('secret')
+    expect(wrapper.find('#saoForcedExport').exists()).toBe(false)
     await wrapper.get('[data-testid="save"]').trigger('click')
 
-    expect(wrapper.emitted('submit-credentials')).toEqual([[
-      { username: 'professor', password: 'secret' }
-    ]])
+    expect(wrapper.emitted('submit-credentials')).toEqual([
+      [{ username: 'professor', password: 'secret', force: false }]
+    ])
     expect(wrapper.get('#saoPassword').element.value).toBe('')
   })
 
@@ -72,5 +74,25 @@ describe('SaoExportAccessModal', () => {
     expect(wrapper.find('#saoUsername').exists()).toBe(true)
     expect(wrapper.find('#saoPassword').exists()).toBe(true)
     expect(wrapper.find('#saoOtp').exists()).toBe(false)
+  })
+
+  it('allows choosing a forced synchronization only when reexporting', async () => {
+    const wrapper = mount(SaoExportAccessModal, {
+      props: {
+        planName: 'Pla de prova',
+        allowForce: true
+      },
+      global: { stubs: { ModalComponent: ModalStub } }
+    })
+
+    await wrapper.get('#saoForcedExport').setValue(true)
+    expect(wrapper.get('#saoForcedExport').element.checked).toBe(true)
+    await wrapper.get('#saoUsername').setValue('professor')
+    await wrapper.get('#saoPassword').setValue('secret')
+    await wrapper.get('[data-testid="save"]').trigger('click')
+
+    expect(wrapper.emitted('submit-credentials')).toEqual([
+      [{ username: 'professor', password: 'secret', force: true }]
+    ])
   })
 })

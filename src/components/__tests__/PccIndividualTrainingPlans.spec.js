@@ -8,7 +8,9 @@ import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
 
 vi.mock('@/repositories/api.js', () => ({
   api: {
-    getCurrentData: vi.fn().mockResolvedValue({ data: { currentSchoolYear: { course: '2026-2027' } } }),
+    getCurrentData: vi
+      .fn()
+      .mockResolvedValue({ data: { currentSchoolYear: { course: '2026-2027' } } }),
     getIndividualTrainingPlanAvailableItems: vi.fn(),
     getIndividualTrainingPlan: vi.fn(),
     getIndividualTrainingPlanSaoExport: vi.fn(),
@@ -77,21 +79,25 @@ describe('PccIndividualTrainingPlans', () => {
     const wrapper = mountComponent()
     await flushPromises()
     await wrapper.get('[data-testid="sao-export-button"]').trigger('click')
-    wrapper.findComponent(SaoExportAccessModal).vm.$emit('submit-credentials', {
+    const accessModal = wrapper.findComponent(SaoExportAccessModal)
+    expect(accessModal.props('allowForce')).toBe(false)
+    accessModal.vm.$emit('submit-credentials', {
       username: 'professor',
-      password: 'secret'
+      password: 'secret',
+      force: false
     })
     await flushPromises()
 
     expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18, {
       username: 'professor',
-      password: 'secret'
+      password: 'secret',
+      force: false
     })
     expect(wrapper.text()).toContain('En cua')
     wrapper.unmount()
   })
 
-  it('does not offer another export when the tutor plan is already synchronized', async () => {
+  it('allows the tutor to choose a forced reexport when the plan is already synchronized', async () => {
     const store = useDataStore()
     store.$patch({
       pcc: {
@@ -111,11 +117,29 @@ describe('PccIndividualTrainingPlans', () => {
       user: { info: { roles: ['ROLE_TEACHER'] } }
     })
 
+    api.exportIndividualTrainingPlanToSao.mockResolvedValue({
+      status: 202,
+      data: { status: 'queued', modules: [] }
+    })
     const wrapper = mountComponent()
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="sao-export-button"]').exists()).toBe(false)
-    expect(wrapper.text()).toContain('Exportat amb avisos')
+    await wrapper.get('[data-testid="sao-export-button"]').trigger('click')
+    const accessModal = wrapper.findComponent(SaoExportAccessModal)
+    expect(accessModal.props('allowForce')).toBe(true)
+    accessModal.vm.$emit('submit-credentials', {
+      username: 'professor',
+      password: 'secret',
+      force: true
+    })
+    await flushPromises()
+
+    expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18, {
+      username: 'professor',
+      password: 'secret',
+      force: true
+    })
+    expect(wrapper.text()).toContain('En cua')
   })
 
   it('shows and hides the contextual help for the plan fields', async () => {
@@ -132,7 +156,9 @@ describe('PccIndividualTrainingPlans', () => {
 
     await authorizationsButton.trigger('click')
 
-    expect(wrapper.get('#extraordinaryAuthorizationsHelp').text()).toContain('dies festius o caps de setmana')
+    expect(wrapper.get('#extraordinaryAuthorizationsHelp').text()).toContain(
+      'dies festius o caps de setmana'
+    )
     expect(authorizationsButton.attributes('aria-expanded')).toBe('true')
 
     await observationsButton.trigger('click')
@@ -165,12 +191,14 @@ describe('PccIndividualTrainingPlans', () => {
 
     await periodicityButton.trigger('click')
 
-    expect(wrapper.get('#visitPeriodicityHelp').text()).toContain('Visita inicial durant la primera setmana')
+    expect(wrapper.get('#visitPeriodicityHelp').text()).toContain(
+      'Visita inicial durant la primera setmana'
+    )
     expect(periodicityButton.attributes('aria-expanded')).toBe('true')
 
     await periodsButton.trigger('click')
 
-    expect(wrapper.get('#trainingPeriodsHelp').text()).toContain("perruqueries, hospitals privats")
+    expect(wrapper.get('#trainingPeriodsHelp').text()).toContain('perruqueries, hospitals privats')
     expect(periodsButton.attributes('aria-expanded')).toBe('true')
 
     await coordinationButton.trigger('click')
@@ -196,14 +224,18 @@ describe('PccIndividualTrainingPlans', () => {
     wrapper.vm.form.turn = 'presential'
     wrapper.vm.form.courseLevel = 1
     wrapper.vm.form.moduleHours = { M01: 10 }
-    wrapper.vm.form.periods = [{ startDate: '2026-01-01', endDate: '2026-01-31', hours: 10, company: '' }]
+    wrapper.vm.form.periods = [
+      { startDate: '2026-01-01', endDate: '2026-01-31', hours: 10, company: '' }
+    ]
 
     await wrapper.vm.handleSavePlan()
     await wrapper.vm.$nextTick()
 
     expect(store.createIndividualTrainingPlan).not.toHaveBeenCalled()
     expect(
-      wrapper.get('input[placeholder="Ex: Empreses de programació, perruqueries, hospitals públics..."]').classes()
+      wrapper
+        .get('input[placeholder="Ex: Empreses de programació, perruqueries, hospitals públics..."]')
+        .classes()
     ).toContain('is-invalid')
     expect(wrapper.text()).toContain("Cal indicar el tipus d'empresa.")
   })
@@ -412,11 +444,15 @@ describe('PccIndividualTrainingPlans', () => {
     wrapper.vm.currentStep = 2
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Soles empresa'))).toBe(true)
+    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Soles empresa'))).toBe(
+      true
+    )
 
     await wrapper.get('#lr-development-1').setValue('compartido')
 
-    expect(wrapper.findAll('.badge').some((badge) => badge.text().includes('Empresa + Centre'))).toBe(true)
+    expect(
+      wrapper.findAll('.badge').some((badge) => badge.text().includes('Empresa + Centre'))
+    ).toBe(true)
   })
 
   it('shows modules from both courses for half-presential second-course plans', async () => {

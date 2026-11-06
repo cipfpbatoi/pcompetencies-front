@@ -70,6 +70,7 @@ export default {
       itemsPerPage: 25,
       totalItems: 0,
       changingStatusPlanId: null,
+      deletingPlanId: null,
       downloadingPlanId: null,
       rejectPlanModal: null,
       rejectPlanTarget: null,
@@ -421,10 +422,32 @@ export default {
     viewPlan(plan) {
       this.$refs.viewPlanModalRef?.show(plan)
     },
+    editPlan(plan) {
+      this.$router.push({
+        name: 'individualTrainingPlansPCC',
+        params: { pccId: plan.curricularProject.id },
+        query: { editPlanId: plan.id }
+      })
+    },
     mergePlanStatus(planId, patch) {
       const index = this.plans.findIndex((item) => item.id === planId)
       if (index > -1) {
         this.plans.splice(index, 1, { ...this.plans[index], ...patch })
+      }
+    },
+    async handleDeletePlan(plan) {
+      if (!confirm(`Segur que vols eliminar el pla formatiu individual "${plan.name}"?`)) return
+
+      this.deletingPlanId = plan.id
+      try {
+        await api.deleteIndividualTrainingPlan(plan.curricularProject.id, plan.id)
+        this.plans = this.plans.filter((item) => item.id !== plan.id)
+        this.totalItems = Math.max(0, this.totalItems - 1)
+        this.addMessage('success', 'Pla formatiu individual eliminat')
+      } catch (error) {
+        this.addMessage('error', error)
+      } finally {
+        this.deletingPlanId = null
       }
     },
     async handleApprovePlan(plan) {
@@ -822,6 +845,14 @@ export default {
                         <i class="bi bi-eye-fill"></i>
                       </button>
                       <button
+                        v-if="['enviada', 'rebutjada'].includes(plan.status)"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Editar pla"
+                        @click="editPlan(plan)"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button
                         class="btn btn-sm btn-outline-danger"
                         title="Veure PDF (Annex I)"
                         :disabled="downloadingPlanId === plan.id"
@@ -865,15 +896,24 @@ export default {
                         <i class="bi bi-check2-circle"></i>
                       </button>
                       <button
-                        v-if="
-                          ['enviada', 'rebutjada'].includes(plan.status) &&
-                          isPlanOfCurrentSchoolYear(plan)
-                        "
+                        v-if="plan.status === 'enviada' && isPlanOfCurrentSchoolYear(plan)"
                         class="btn btn-sm btn-outline-danger"
                         title="Rebutjar"
                         @click="openRejectPlanModal(plan)"
                       >
                         <i class="bi bi-x-circle"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        title="Eliminar pla"
+                        :disabled="deletingPlanId === plan.id"
+                        @click="handleDeletePlan(plan)"
+                      >
+                        <span
+                          v-if="deletingPlanId === plan.id"
+                          class="spinner-border spinner-border-sm"
+                        ></span>
+                        <i v-else class="bi bi-trash"></i>
                       </button>
                       <button
                         v-if="

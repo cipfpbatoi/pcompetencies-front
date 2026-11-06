@@ -93,4 +93,42 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     expect(details.text()).toContain('AF05H')
     expect(wrapper.find('.bi-cloud-arrow-up-fill').exists()).toBe(false)
   })
+
+  it('shows edit and delete but not reject for a rejected plan', async () => {
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
+      data: {
+        'hydra:member': [
+          {
+            id: 19,
+            name: 'Pla rebutjat',
+            status: 'rebutjada',
+            courseYear: '2026/2027',
+            courseLevel: 2,
+            turn: 'presential',
+            totalHours: 100,
+            curricularProject: {
+              id: 4,
+              cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
+            }
+          }
+        ],
+        'hydra:totalItems': 1
+      }
+    })
+    const store = useDataStore()
+    store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
+
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: {
+        stubs: {
+          IndividualTrainingPlanViewModal: true
+        }
+      }
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(false)
+    expect(wrapper.find('[title="Editar pla"]').exists()).toBe(true)
+    expect(wrapper.find('[title="Eliminar pla"]').exists()).toBe(true)
+  })
 })

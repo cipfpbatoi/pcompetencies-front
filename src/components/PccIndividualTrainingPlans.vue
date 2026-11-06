@@ -35,23 +35,26 @@ const {
 // ==========================================
 const plans = computed(() => pcc.value?.individualTrainingPlans || [])
 
-// Si s'arriba des de la pantalla de gestió amb ?openPlanId=X (pla pendent), s'obri
-// directament el pla, però sols en mode vista: eixa pantalla és de revisió
-// (aprovar/rebutjar), no d'edició del contingut del pla
+// Des de la pantalla de gestió es pot obrir un pla concret, en consulta o edició.
 const route = useRoute()
 const router = useRouter()
 
 onMounted(() => {
-  const openPlanId = route.query.openPlanId ? Number(route.query.openPlanId) : null
-  if (!openPlanId) return
+  const planId = route.query.editPlanId || route.query.openPlanId
+  if (!planId) return
 
-  const plan = plans.value.find((item) => item.id === openPlanId)
+  const plan = plans.value.find((item) => item.id === Number(planId))
   if (plan) {
-    openViewModal(plan)
+    if (route.query.editPlanId) {
+      openEditModal(plan)
+    } else {
+      openViewModal(plan)
+    }
   }
 
   const restQuery = { ...route.query }
   delete restQuery.openPlanId
+  delete restQuery.editPlanId
   router.replace({ query: restQuery })
 })
 
@@ -82,8 +85,8 @@ const canDeleteNonPendingPlan = computed(
     !!user.value?.info?.roles?.includes('ROLE_COORDINADOR_FCT')
 )
 
-// Un pla enviat o aprovat ja no es pot editar (nomes pendent o rebutjat)
-const isPlanEditable = (plan) => plan.status !== 'enviada' && plan.status !== 'aprovada'
+// Els plans aprovats no es poden editar; els enviats i rebutjats sí, des de gestió.
+const isPlanEditable = (plan) => ['pendent', 'enviada', 'rebutjada'].includes(plan.status)
 
 const TURN_LABELS = {
   presential: 'Presencial',

@@ -896,14 +896,6 @@ export default {
                         <i class="bi bi-check2-circle"></i>
                       </button>
                       <button
-                        v-if="plan.status === 'enviada' && isPlanOfCurrentSchoolYear(plan)"
-                        class="btn btn-sm btn-outline-danger"
-                        title="Rebutjar"
-                        @click="openRejectPlanModal(plan)"
-                      >
-                        <i class="bi bi-x-circle"></i>
-                      </button>
-                      <button
                         class="btn btn-sm btn-outline-danger"
                         title="Eliminar pla"
                         :disabled="deletingPlanId === plan.id"

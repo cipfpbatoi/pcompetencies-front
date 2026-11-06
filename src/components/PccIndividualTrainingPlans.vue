@@ -117,7 +117,9 @@ const isModuleAvailableForTurn = (moduleCode) => {
     (organization) => organization.module?.code === moduleCode
   )?.optionalTurns
 
-  return !Array.isArray(optionalTurns) || optionalTurns.length === 0 || optionalTurns.includes(form.turn)
+  return (
+    !Array.isArray(optionalTurns) || optionalTurns.length === 0 || optionalTurns.includes(form.turn)
+  )
 }
 
 // ==========================================
@@ -234,10 +236,7 @@ const step3Incomplete = computed(() => {
   if (form.periods.length === 0) return true
   return form.periods.some(
     (period) =>
-      !period.startDate ||
-      !period.endDate ||
-      !(Number(period.hours) > 0) ||
-      !period.company.trim()
+      !period.startDate || !period.endDate || !(Number(period.hours) > 0) || !period.company.trim()
   )
 })
 
@@ -263,21 +262,27 @@ const removeLearningResultDevelopment = (learningResultId) => {
 }
 
 const getLearningResultDevelopmentLabel = (learningResult) => {
-  const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
+  const development = normalizeLearningResultDevelopment(
+    learningResultDevelopments.value[learningResult.id]
+  )
   if (development === 'empresa') return 'Soles empresa'
   if (development === 'compartido') return 'Empresa + Centre'
   return learningResult.coverage === 'complete' ? 'Soles empresa' : 'Empresa + Centre'
 }
 
 const getLearningResultDevelopmentClass = (learningResult) => {
-  const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
+  const development = normalizeLearningResultDevelopment(
+    learningResultDevelopments.value[learningResult.id]
+  )
   if (development === 'empresa') return 'bg-success'
   if (development === 'compartido') return 'bg-secondary'
   return learningResult.coverage === 'complete' ? 'bg-success' : 'bg-secondary'
 }
 
 const getLearningResultDevelopmentTitle = (learningResult) => {
-  const development = normalizeLearningResultDevelopment(learningResultDevelopments.value[learningResult.id])
+  const development = normalizeLearningResultDevelopment(
+    learningResultDevelopments.value[learningResult.id]
+  )
   if (development === 'empresa') return 'Este RA es desenvolupa sols en empresa'
   if (development === 'compartido') return 'Este RA es desenvolupa en empresa i en el centre'
   return learningResult.coverage === 'complete'
@@ -481,7 +486,8 @@ const selectedSummaryByModule = computed(() => {
       // Si un RA complet té criteris seleccionats, el resum els mostra agrupats en lloc de repetir
       // el número del RA i els seus criteris.
       ...entry.items.filter(
-        (item) => item.type === 'learningResult' && !criteriaByLearningResult.has(item.learningResultId)
+        (item) =>
+          item.type === 'learningResult' && !criteriaByLearningResult.has(item.learningResultId)
       ),
       ...criteriaByLearningResult.values()
     ]
@@ -712,7 +718,9 @@ const handleTurnChange = async () => {
         [...selectedLearningResultIds.value].filter((id) => !learningResultIdsToRemove.includes(id))
       )
       selectedEvaluationCriteriaIds.value = new Set(
-        [...selectedEvaluationCriteriaIds.value].filter((id) => !evaluationCriteriaIdsToRemove.includes(id))
+        [...selectedEvaluationCriteriaIds.value].filter(
+          (id) => !evaluationCriteriaIdsToRemove.includes(id)
+        )
       )
       learningResultIdsToRemove.forEach(removeLearningResultDevelopment)
     }
@@ -1068,7 +1076,10 @@ const handleSavePlan = async () => {
 
   const learningResultDevelopmentsPayload = Object.fromEntries(
     [...selectedLearningResultIds.value]
-      .filter((id) => normalizeLearningResultDevelopment(learningResultDevelopments.value[id]) !== 'inferido')
+      .filter(
+        (id) =>
+          normalizeLearningResultDevelopment(learningResultDevelopments.value[id]) !== 'inferido'
+      )
       .map((id) => [id, normalizeLearningResultDevelopment(learningResultDevelopments.value[id])])
   )
   const moduleHours = Object.fromEntries(relevantModuleHoursEntries.value)
@@ -1188,13 +1199,12 @@ const getSaoStatus = (plan) => getSaoExport(plan)?.status || plan.saoExportStatu
 const saoDetailsExport = computed(() =>
   saoDetailsPlan.value ? getSaoExport(saoDetailsPlan.value) : null
 )
-const canExportToSao = (plan) =>
-  plan.status === 'aprovada' && isPlanOfCurrentSchoolYear(plan)
+const canExportToSao = (plan) => plan.status === 'aprovada' && isPlanOfCurrentSchoolYear(plan)
 
 const getSaoActionTitle = (plan) => {
   const status = getSaoStatus(plan)
   if (['exported', 'exported_with_warnings'].includes(status)) {
-    return 'La plantilla ja està sincronitzada amb SAÓ'
+    return 'Tornar a exportar les plantilles a SAÓ'
   }
   if (status === 'outdated') return 'Actualitzar les plantilles en SAÓ'
   if (['failed', 'partial_failure'].includes(status)) return 'Reintentar l’exportació a SAÓ'
@@ -1238,7 +1248,10 @@ const refreshSaoExport = async (plan, silent = false) => {
 
 const startSaoPolling = (plan) => {
   clearSaoPoll(plan.id)
-  saoPollTimers.set(plan.id, window.setInterval(() => refreshSaoExport(plan, true), 1500))
+  saoPollTimers.set(
+    plan.id,
+    window.setInterval(() => refreshSaoExport(plan, true), 1500)
+  )
 }
 
 const finishSaoInteraction = (plan, saoExport) => {
@@ -1261,11 +1274,7 @@ const submitSaoCredentials = async (credentials) => {
   saoExportingPlanId.value = plan.id
   saoAccessError.value = ''
   try {
-    const response = await api.exportIndividualTrainingPlanToSao(
-      props.pccId,
-      plan.id,
-      credentials
-    )
+    const response = await api.exportIndividualTrainingPlanToSao(props.pccId, plan.id, credentials)
     rememberSaoExport(plan, response.data)
     if (isSaoExportActive(response.data.status)) startSaoPolling(plan)
     finishSaoInteraction(plan, response.data)
@@ -1550,9 +1559,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
             class="alert alert-info py-2 px-3 small"
           >
             Indica qualsevol aspecte rellevant que vulgues fer constar sobre el pla formatiu i que
-            no haja quedat recollit en els apartats anteriors. Pots incloure aclariments,
-            condicions específiques d'organització o qualsevol altra informació complementària
-            relacionada amb la formació en empresa.
+            no haja quedat recollit en els apartats anteriors. Pots incloure aclariments, condicions
+            específiques d'organització o qualsevol altra informació complementària relacionada amb
+            la formació en empresa.
           </div>
           <textarea
             id="observations"
@@ -1638,7 +1647,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   >
                     {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
                     }}{{ mod.moduleName }} ({{ mod.moduleCode }}){{
-                      isModuleAvailableForTurn(mod.moduleCode) ? '' : ' - No disponible en este torn'
+                      isModuleAvailableForTurn(mod.moduleCode)
+                        ? ''
+                        : ' - No disponible en este torn'
                     }}
                   </option>
                 </optgroup>
@@ -1650,7 +1661,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   >
                     {{ modulesWithSelectionCodes.has(mod.moduleCode) ? '✓ ' : ''
                     }}{{ mod.moduleName }} ({{ mod.moduleCode }}){{
-                      isModuleAvailableForTurn(mod.moduleCode) ? '' : ' - No disponible en este torn'
+                      isModuleAvailableForTurn(mod.moduleCode)
+                        ? ''
+                        : ' - No disponible en este torn'
                     }}
                   </option>
                 </optgroup>
@@ -1727,7 +1740,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                             :id="`lr-development-${lr.id}`"
                             class="form-select form-select-sm"
                             style="width: auto"
-                            :value="normalizeLearningResultDevelopment(learningResultDevelopments[lr.id])"
+                            :value="
+                              normalizeLearningResultDevelopment(learningResultDevelopments[lr.id])
+                            "
                             :disabled="isActiveModuleUnavailable"
                             @change="setLearningResultDevelopment(lr.id, $event.target.value)"
                           >
@@ -1766,7 +1781,6 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                           </label>
                         </div>
                       </div>
-
                     </div>
                   </li>
                 </ul>
@@ -1801,13 +1815,19 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                       :title="isViewOnly ? item.label : `Llevar ${item.label}`"
                       @click="isViewOnly ? null : item.remove()"
                       >{{ item.label }}</span
-                      ><span v-else
+                    ><span v-else
                       ><span>{{ item.label }}</span
-                      ><template v-for="(criterion, criterionIndex) in item.criteria" :key="criterion.key"
+                      ><template
+                        v-for="(criterion, criterionIndex) in item.criteria"
+                        :key="criterion.key"
                         ><span
                           class="pfi-summary-item"
                           :role="isViewOnly ? undefined : 'button'"
-                          :title="isViewOnly ? `${item.label}.${criterion.code}` : `Llevar ${item.label}.${criterion.code}`"
+                          :title="
+                            isViewOnly
+                              ? `${item.label}.${criterion.code}`
+                              : `Llevar ${item.label}.${criterion.code}`
+                          "
                           @click="isViewOnly ? null : criterion.remove()"
                           >{{ criterion.code }}</span
                         ><span v-if="criterionIndex < item.criteria.length - 1">,</span></template
@@ -1943,10 +1963,10 @@ const handleCopyPlanToCurrentYear = async (plan) => {
               Pots usar canals com el correu electrònic corporatiu, el telèfon o Microsoft Teams.
             </p>
             <p class="mb-0">
-              <strong>Exemple:</strong> «El tutor o la tutora docent serà la persona de contacte
-              del centre i es coordinarà amb el tutor o la tutora d'empresa. La comunicació
-              ordinària es farà per correu electrònic corporatiu i les incidències urgents per
-              telèfon. Quan calga una reunió, es realitzarà per Microsoft Teams.»
+              <strong>Exemple:</strong> «El tutor o la tutora docent serà la persona de contacte del
+              centre i es coordinarà amb el tutor o la tutora d'empresa. La comunicació ordinària es
+              farà per correu electrònic corporatiu i les incidències urgents per telèfon. Quan
+              calga una reunió, es realitzarà per Microsoft Teams.»
             </p>
           </div>
           <textarea
@@ -2125,7 +2145,10 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   required
                   :disabled="isViewOnly"
                 />
-                <div v-if="showPeriodValidationErrors && !period.company.trim()" class="invalid-feedback">
+                <div
+                  v-if="showPeriodValidationErrors && !period.company.trim()"
+                  class="invalid-feedback"
+                >
                   Cal indicar el tipus d'empresa.
                 </div>
               </div>
@@ -2169,6 +2192,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
       ref="saoAccessModalRef"
       :plan-name="saoAccessPlan?.name || ''"
       :export-state="saoAccessPlan ? getSaoExport(saoAccessPlan) : null"
+      :allow-force="saoAccessPlan ? Boolean(getSaoStatus(saoAccessPlan)) : false"
       :busy="saoExportingPlanId === saoAccessPlan?.id"
       :error="saoAccessError"
       @submit-credentials="submitSaoCredentials"
@@ -2366,10 +2390,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     <i class="bi bi-pencil"></i>
                   </button>
                   <button
-                    v-if="
-                      canExportToSao(plan) &&
-                      !['exported', 'exported_with_warnings'].includes(getSaoStatus(plan))
-                    "
+                    v-if="canExportToSao(plan)"
                     data-testid="sao-export-button"
                     class="btn btn-sm btn-outline-primary"
                     :title="getSaoActionTitle(plan)"
@@ -2379,9 +2400,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     @click="handleSaoExport(plan)"
                   >
                     <span
-                      v-if="
-                        saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
-                      "
+                      v-if="saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))"
                       class="spinner-border spinner-border-sm"
                     ></span>
                     <i v-else class="bi bi-cloud-arrow-up-fill"></i>

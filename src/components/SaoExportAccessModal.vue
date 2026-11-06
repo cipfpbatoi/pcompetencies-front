@@ -12,6 +12,10 @@ const props = defineProps({
     type: Object,
     default: null
   },
+  allowForce: {
+    type: Boolean,
+    default: false
+  },
   busy: {
     type: Boolean,
     default: false
@@ -27,11 +31,14 @@ const modalRef = ref(null)
 const username = ref('')
 const password = ref('')
 const otp = ref('')
+const force = ref(false)
 
 const isStarted = computed(() => isSaoExportActive(props.exportState?.status))
 const isOtpRequired = computed(() => props.exportState?.progressStage === 'otp_required')
 const progressLabel = computed(() => saoProgressLabel(props.exportState))
-const saveButtonText = computed(() => (isOtpRequired.value ? 'Verifica el codi' : 'Inicia la sincronització'))
+const saveButtonText = computed(() =>
+  isOtpRequired.value ? 'Verifica el codi' : 'Inicia la sincronització'
+)
 const saveDisabled = computed(() => {
   if (props.busy) return true
   if (isOtpRequired.value) return !/^\d{6}$/.test(otp.value.trim())
@@ -49,10 +56,12 @@ const submit = () => {
 
   emit('submit-credentials', {
     username: username.value.trim(),
-    password: password.value
+    password: password.value,
+    force: props.allowForce && force.value
   })
   username.value = ''
   password.value = ''
+  force.value = false
 }
 
 const show = (preserveInput = false) => {
@@ -60,6 +69,7 @@ const show = (preserveInput = false) => {
     username.value = ''
     password.value = ''
     otp.value = ''
+    force.value = false
   }
   modalRef.value?.show()
 }
@@ -96,6 +106,35 @@ defineExpose({ show, hide })
       <div class="alert alert-info small">
         Les credencials s’utilitzen únicament durant aquesta sincronització i s’eliminen en acabar.
       </div>
+      <fieldset v-if="allowForce" class="mb-3">
+        <legend class="form-label fw-bold mb-2">Tipus de reexportació</legend>
+        <div class="form-check">
+          <input
+            id="saoNormalExport"
+            v-model="force"
+            class="form-check-input"
+            type="radio"
+            :value="false"
+            :disabled="busy"
+          />
+          <label class="form-check-label" for="saoNormalExport">
+            Normal: sincronitza només si el pla ha canviat
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            id="saoForcedExport"
+            v-model="force"
+            class="form-check-input"
+            type="radio"
+            :value="true"
+            :disabled="busy"
+          />
+          <label class="form-check-label" for="saoForcedExport">
+            Forçada: revisa tots els mòduls i recrea les plantilles eliminades en SAÓ
+          </label>
+        </div>
+      </fieldset>
       <div class="mb-3">
         <label for="saoUsername" class="form-label fw-bold">Usuari d’ITACA/SAÓ</label>
         <input
@@ -124,7 +163,8 @@ defineExpose({ show, hide })
 
     <template v-else-if="isOtpRequired">
       <div class="alert alert-warning">
-        ITACA demana verificació en dos passos. Introdueix el codi temporal mentre el navegador continua obert.
+        ITACA demana verificació en dos passos. Introdueix el codi temporal mentre el navegador
+        continua obert.
       </div>
       <label for="saoOtp" class="form-label fw-bold">Codi temporal de sis dígits</label>
       <input

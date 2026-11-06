@@ -118,7 +118,7 @@ defineExpose({ show, hide })
             :disabled="busy"
           />
           <label class="form-check-label" for="saoNormalExport">
-            Normal: sincronitza només si el pla ha canviat
+            Normal: sincronitza només si la plantilla es nova, el pla ha canviat o hi han mòduls amb errors (Recomanat)
           </label>
         </div>
         <div class="form-check">

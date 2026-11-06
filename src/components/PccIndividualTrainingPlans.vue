@@ -101,6 +101,13 @@ const getPlanModulesLabel = (plan) =>
     .map((entry) => `${entry.module?.code} - ${entry.module?.name} (${entry.hours}h)`)
     .join(', ')
 
+const getModuleExportLabel = (plan, moduleExport) => {
+  const moduleName =
+    moduleExport.moduleName ||
+    plan.moduleHours?.find((entry) => entry.module?.code === moduleExport.moduleCode)?.module?.name
+  return moduleName ? `${moduleExport.moduleCode} - ${moduleName}` : moduleExport.moduleCode
+}
+
 // El pla ja porta totalHours calculat al backend; si no hi és (resposta antiga/incompleta),
 // es calcula a partir de moduleHours[] com a reforç
 const getPlanTotalHours = (plan) =>
@@ -526,9 +533,9 @@ const viewSummaryModules = computed(() => {
         )
         .map((lr) => ({
           ...lr,
-          evaluationCriterias: selectedLearningResultIds.value.has(lr.id)
-            ? lr.evaluationCriterias
-            : lr.evaluationCriterias.filter((ce) => selectedEvaluationCriteriaIds.value.has(ce.id))
+          evaluationCriterias: lr.evaluationCriterias.filter((ce) =>
+            selectedEvaluationCriteriaIds.value.has(ce.id)
+          )
         }))
     }))
 })
@@ -1596,32 +1603,23 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 <li v-for="lr in mod.learningResults" :key="lr.id" class="list-group-item">
                   <div class="row g-2 align-items-start">
                     <div class="col">
-                      <div class="fw-bold mb-1">
-                        <strong>RA{{ lr.number }}</strong> - {{ lr.descriptor }}
-                        <span
-                          v-if="selectedLearningResultIds.has(lr.id)"
-                          class="badge bg-primary ms-1"
-                          >Tot el RA</span
-                        >
-                      </div>
+                        <div class="fw-bold mb-1">
+                          <strong>RA{{ lr.number }}</strong> - {{ lr.descriptor }}
+                        </div>
                       <ul v-if="lr.evaluationCriterias.length" class="mb-0 ps-4">
                         <li v-for="ce in lr.evaluationCriterias" :key="ce.id">
                           <strong>{{ ce.code }}</strong> - {{ ce.description }}
                         </li>
                       </ul>
                     </div>
-                    <div class="col-auto">
+                    <div v-if="selectedLearningResultIds.has(lr.id)" class="col-auto">
                       <span
                         class="badge"
-                        :class="lr.coverage === 'complete' ? 'bg-success' : 'bg-secondary'"
-                        :title="
-                          lr.coverage === 'complete'
-                            ? 'Este RA només es treballa en la situació en empresa: es cobreix sencer'
-                            : `Este RA també es treballa en altres situacions d'aprenentatge: sols es cobreix en part`
-                        "
+                        :class="getLearningResultDevelopmentClass(lr)"
+                        :title="getLearningResultDevelopmentTitle(lr)"
                       >
                         <i class="bi bi-check-lg"></i>
-                        {{ lr.coverage === 'complete' ? 'Solo empresa' : 'Empresa + Centro' }}
+                        {{ getLearningResultDevelopmentLabel(lr) }}
                       </span>
                     </div>
                   </div>
@@ -2233,7 +2231,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                 v-for="moduleExport in saoDetailsExport.modules || []"
                 :key="moduleExport.moduleCode"
               >
-                <td>{{ moduleExport.moduleCode }}</td>
+                <td>{{ getModuleExportLabel(saoDetailsPlan, moduleExport) }}</td>
                 <td>{{ moduleExport.description }}</td>
                 <td>
                   <span class="badge" :class="saoStatusClass(moduleExport.status)">

@@ -667,4 +667,70 @@ describe('PccIndividualTrainingPlans', () => {
     expect(wrapper.vm.form.moduleHours).toEqual({ M01: 10, M02: 20 })
     expect(wrapper.vm.form.moduleActivities).toEqual({ M01: 'Activitat 1r', M02: 'Activitat 2n' })
   })
+
+  it('shows only selected items and saved development when viewing a plan', async () => {
+    const wrapper = mountComponent()
+    wrapper.vm.modules = [
+      {
+        moduleCode: 'M01',
+        moduleName: 'Mòdul de prova',
+        learningResults: [
+          {
+            id: 1,
+            number: 1,
+            descriptor: 'RA seleccionat complet',
+            coverage: 'complete',
+            allCriteriaEligible: false,
+            evaluationCriterias: [
+              { id: 11, code: 'a', description: 'Criteri seleccionat' },
+              { id: 12, code: 'b', description: 'Criteri no seleccionat' }
+            ]
+          },
+          {
+            id: 2,
+            number: 2,
+            descriptor: 'RA amb criteri seleccionat',
+            coverage: 'partial',
+            allCriteriaEligible: false,
+            evaluationCriterias: [
+              { id: 21, code: 'a', description: 'Altre criteri seleccionat' },
+              { id: 22, code: 'b', description: 'Altre criteri no seleccionat' }
+            ]
+          },
+          {
+            id: 3,
+            number: 3,
+            descriptor: 'RA no seleccionat',
+            coverage: 'complete',
+            allCriteriaEligible: false,
+            evaluationCriterias: []
+          }
+        ]
+      }
+    ]
+    wrapper.vm.selectedLearningResultIds = new Set([1])
+    wrapper.vm.selectedEvaluationCriteriaIds = new Set([11, 21])
+    wrapper.vm.learningResultDevelopments = { 1: 'empresa' }
+    wrapper.vm.isViewOnly = true
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('RA seleccionat complet')
+    expect(wrapper.text()).toContain('Criteri seleccionat')
+    expect(wrapper.text()).toContain('RA amb criteri seleccionat')
+    expect(wrapper.text()).toContain('Altre criteri seleccionat')
+    expect(wrapper.text()).toContain('Soles empresa')
+    expect(wrapper.text()).not.toContain('Tot el RA')
+    expect(wrapper.text()).not.toContain('Criteri no seleccionat')
+    expect(wrapper.text()).not.toContain('Altre criteri no seleccionat')
+    expect(wrapper.text()).not.toContain('RA no seleccionat')
+
+    wrapper.vm.isViewOnly = false
+    wrapper.vm.currentStep = 2
+    wrapper.vm.form.courseLevel = 1
+    wrapper.vm.activeModuleCode = 'M01'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.get('#ce-12').exists()).toBe(true)
+    expect(wrapper.get('#ce-22').exists()).toBe(true)
+  })
 })

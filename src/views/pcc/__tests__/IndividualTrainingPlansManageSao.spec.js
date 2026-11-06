@@ -86,6 +86,7 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
 
     const details = wrapper.get('#saoExportDetailsModal')
     expect(details.text()).toContain('Exportat amb avisos')
+    expect(details.text()).toContain('0614 - Desplegament d’aplicacions web')
     expect(details.text()).toContain('PCOMP-2026-2027-18-0614 - Empresa programacio web')
     expect(details.text()).toContain('Assignada amb avís')
     expect(details.text()).toContain('AF03I')
@@ -94,7 +95,7 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     expect(wrapper.find('.bi-cloud-arrow-up-fill').exists()).toBe(false)
   })
 
-  it('shows edit and delete but not reject for rejected or sent plans', async () => {
+  it('shows edit for pending or rejected plans, but not for sent plans', async () => {
     apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
       data: {
         'hydra:member': [
@@ -132,6 +133,12 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     expect(wrapper.find('[title="Eliminar pla"]').exists()).toBe(true)
 
     wrapper.vm.plans[0].status = 'enviada'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(false)
+    expect(wrapper.find('[title="Editar pla"]').exists()).toBe(false)
+
+    wrapper.vm.plans[0].status = 'pendent'
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(false)

@@ -184,6 +184,12 @@ export default {
     getModulesLabel(plan) {
       return (plan.modules || []).map((module) => `${module.name} (${module.code})`).join(', ')
     },
+    getModuleExportLabel(plan, moduleExport) {
+      const moduleName =
+        moduleExport.moduleName ||
+        plan.modules?.find((module) => module.code === moduleExport.moduleCode)?.name
+      return moduleName ? `${moduleExport.moduleCode} - ${moduleName}` : moduleExport.moduleCode
+    },
     getSaoExport(plan) {
       return this.saoExports[plan.id] || null
     },
@@ -630,7 +636,7 @@ export default {
                 </thead>
                 <tbody>
                   <tr v-for="moduleExport in saoDetailsExport.modules || []" :key="moduleExport.moduleCode">
-                    <td>{{ moduleExport.moduleCode }}</td>
+                    <td>{{ getModuleExportLabel(saoDetailsPlan, moduleExport) }}</td>
                     <td>{{ moduleExport.description }}</td>
                     <td>
                       <span class="badge" :class="saoStatusClass(moduleExport.status)">
@@ -845,7 +851,7 @@ export default {
                         <i class="bi bi-eye-fill"></i>
                       </button>
                       <button
-                        v-if="['enviada', 'rebutjada'].includes(plan.status)"
+                        v-if="['pendent', 'rebutjada'].includes(plan.status)"
                         class="btn btn-sm btn-outline-primary"
                         title="Editar pla"
                         @click="editPlan(plan)"

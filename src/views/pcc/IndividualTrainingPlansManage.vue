@@ -596,6 +596,7 @@ export default {
       ref="saoAccessModal"
       :plan-name="saoAccessPlan?.name || ''"
       :export-state="saoAccessPlan ? getSaoExport(saoAccessPlan) : null"
+      :allow-force="saoAccessPlan ? Boolean(getSaoStatus(saoAccessPlan)) : false"
       :busy="saoExportingPlanId === saoAccessPlan?.id"
       :error="saoAccessError"
       @submit-credentials="submitSaoCredentials"

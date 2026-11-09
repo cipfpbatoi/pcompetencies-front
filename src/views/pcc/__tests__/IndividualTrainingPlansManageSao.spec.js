@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 
 import { useDataStore } from '@/stores/data'
 import IndividualTrainingPlansManage from '@/views/pcc/IndividualTrainingPlansManage.vue'
+import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
 
 const apiMocks = vi.hoisted(() => ({
   getCycles: vi.fn(),
@@ -60,6 +61,9 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     })
     await flushPromises()
 
+    const accessModal = wrapper.findComponent(SaoExportAccessModal)
+    expect(accessModal.props('allowForce')).toBe(false)
+
     wrapper.vm.rememberSaoExport(18, {
       status: 'exported_with_warnings',
       modules: [{
@@ -81,9 +85,11 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
         ]
       }]
     })
+    wrapper.vm.saoAccessPlan = plan
     wrapper.vm.saoDetailsPlan = plan
     await wrapper.vm.$nextTick()
 
+    expect(accessModal.props('allowForce')).toBe(true)
     const details = wrapper.get('#saoExportDetailsModal')
     expect(details.text()).toContain('Exportat amb avisos')
     expect(details.text()).toContain('0614 - Desplegament d’aplicacions web')

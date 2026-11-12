@@ -149,4 +149,38 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     expect(wrapper.vm.plans[0].status).toBe('enviada')
     expect(wrapper.find('[title="Editar pla"]').exists()).toBe(false)
   })
+
+  it('shows the reject action for plans sent for approval in the current school year', async () => {
+    const plan = {
+      id: 20,
+      name: 'Pla enviat',
+      status: 'enviada',
+      courseYear: '2026/2027',
+      courseLevel: 2,
+      turn: 'presential',
+      totalHours: 100,
+      modules: [],
+      curricularProject: {
+        id: 4,
+        cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
+      }
+    }
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
+      data: { 'hydra:member': [plan], 'hydra:totalItems': 1 }
+    })
+    const store = useDataStore()
+    store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
+
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: {
+        stubs: {
+          IndividualTrainingPlanViewModal: true
+        }
+      }
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[title="Aprovar"]').exists()).toBe(true)
+    expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(true)
+  })
 })

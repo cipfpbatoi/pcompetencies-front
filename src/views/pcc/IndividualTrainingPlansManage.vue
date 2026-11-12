@@ -144,6 +144,7 @@ export default {
     },
     ...mapActions(useDataStore, [
       'addMessage',
+      'sendIndividualTrainingPlan',
       'approveIndividualTrainingPlan',
       'rejectIndividualTrainingPlan',
       'setPendingIndividualTrainingPlan'
@@ -180,9 +181,6 @@ export default {
     },
     getTurnLabel(turn) {
       return TURN_LABELS[turn] || turn
-    },
-    getModulesLabel(plan) {
-      return (plan.modules || []).map((module) => `${module.name} (${module.code})`).join(', ')
     },
     getModuleExportLabel(plan, moduleExport) {
       const moduleName =
@@ -465,6 +463,22 @@ export default {
         if (result) {
           this.mergePlanStatus(plan.id, { status: result.status, rejectedMessage: null })
         }
+      } finally {
+        this.changingStatusPlanId = null
+      }
+    },
+    async handleSendPlan(plan) {
+      if (!confirm(`Vas a enviar el pla formatiu individual "${plan.name}" per a la seua aprovació.`))
+        return
+
+      this.changingStatusPlanId = plan.id
+      try {
+        const result = await this.sendIndividualTrainingPlan(plan.curricularProject.id, plan.id)
+        if (result) {
+          this.mergePlanStatus(plan.id, { status: result.status, rejectedMessage: null })
+        }
+      } catch (error) {
+        this.showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error)
       } finally {
         this.changingStatusPlanId = null
       }
@@ -812,7 +826,12 @@ export default {
                   </td>
                   <td>{{ plan.curricularProject?.cycle?.department?.shortName }}</td>
                   <td>{{ plan.curricularProject?.cycle?.shortName }}</td>
-                  <td>{{ getModulesLabel(plan) }}</td>
+                  <td>
+                    <template v-for="(module, index) in plan.modules || []" :key="module.code">
+                      <span :title="module.name">{{ module.code }}</span>
+                      <span v-if="index < plan.modules.length - 1">, </span>
+                    </template>
+                  </td>
                   <td class="text-center">{{ plan.totalHours }}h</td>
                   <td>
                     <span class="badge bg-info text-dark">{{ getTurnLabel(plan.turn) }}</span>
@@ -858,6 +877,22 @@ export default {
                         @click="editPlan(plan)"
                       >
                         <i class="bi bi-pencil"></i>
+                      </button>
+                      <button
+                        v-if="
+                          ['pendent', 'rebutjada'].includes(plan.status) &&
+                          isPlanOfCurrentSchoolYear(plan)
+                        "
+                        class="btn btn-sm btn-outline-info"
+                        title="Enviar per a aprovació"
+                        :disabled="changingStatusPlanId === plan.id"
+                        @click="handleSendPlan(plan)"
+                      >
+                        <span
+                          v-if="changingStatusPlanId === plan.id"
+                          class="spinner-border spinner-border-sm"
+                        ></span>
+                        <i v-else class="bi bi-send-fill"></i>
                       </button>
                       <button
                         class="btn btn-sm btn-outline-danger"

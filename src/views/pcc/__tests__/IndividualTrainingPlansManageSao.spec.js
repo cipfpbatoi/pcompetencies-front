@@ -11,7 +11,8 @@ const apiMocks = vi.hoisted(() => ({
   getSchoolYears: vi.fn(),
   getCurrentData: vi.fn(),
   getDepartments: vi.fn(),
-  getIndividualTrainingPlansCenter: vi.fn()
+  getIndividualTrainingPlansCenter: vi.fn(),
+  individualTrainingPlanSend: vi.fn()
 }))
 
 vi.mock('@/repositories/api', () => ({ api: apiMocks }))
@@ -101,27 +102,28 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     expect(wrapper.find('.bi-cloud-arrow-up-fill').exists()).toBe(false)
   })
 
-  it('shows edit for pending or rejected plans, but not for sent plans', async () => {
+  it('shows module codes with their names as tooltips and sends pending plans', async () => {
+    const plan = {
+      id: 19,
+      name: 'Pla pendent',
+      status: 'pendent',
+      courseYear: '2026/2027',
+      courseLevel: 2,
+      turn: 'presential',
+      totalHours: 100,
+      modules: [{ code: '0614', name: 'Desplegament d’aplicacions web' }],
+      curricularProject: {
+        id: 4,
+        cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
+      }
+    }
     apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
       data: {
-        'hydra:member': [
-          {
-            id: 19,
-            name: 'Pla rebutjat',
-            status: 'rebutjada',
-            courseYear: '2026/2027',
-            courseLevel: 2,
-            turn: 'presential',
-            totalHours: 100,
-            curricularProject: {
-              id: 4,
-              cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
-            }
-          }
-        ],
+        'hydra:member': [plan],
         'hydra:totalItems': 1
       }
     })
+    apiMocks.individualTrainingPlanSend.mockResolvedValue({ data: { ...plan, status: 'enviada' } })
     const store = useDataStore()
     store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
 
@@ -134,20 +136,17 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     })
     await flushPromises()
 
-    expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(false)
+    expect(wrapper.get('[title="Desplegament d’aplicacions web"]').text()).toBe('0614')
     expect(wrapper.find('[title="Editar pla"]').exists()).toBe(true)
+    expect(wrapper.find('[title="Enviar per a aprovació"]').exists()).toBe(true)
     expect(wrapper.find('[title="Eliminar pla"]').exists()).toBe(true)
 
-    wrapper.vm.plans[0].status = 'enviada'
-    await wrapper.vm.$nextTick()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    await wrapper.get('[title="Enviar per a aprovació"]').trigger('click')
+    await flushPromises()
 
-    expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(false)
+    expect(apiMocks.individualTrainingPlanSend).toHaveBeenCalledWith(4, 19)
+    expect(wrapper.vm.plans[0].status).toBe('enviada')
     expect(wrapper.find('[title="Editar pla"]').exists()).toBe(false)
-
-    wrapper.vm.plans[0].status = 'pendent'
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(false)
-    expect(wrapper.find('[title="Editar pla"]').exists()).toBe(true)
   })
 })

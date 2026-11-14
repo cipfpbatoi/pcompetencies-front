@@ -148,7 +148,7 @@ describe('PccIntermodularGuide', () => {
     const wrapper = mountComponent()
     await flushPromises()
 
-    expect(store.fetchCycle).toHaveBeenCalledWith(77)
+    expect(store.fetchCycle).toHaveBeenCalledWith(77, 'presential')
     expect(wrapper.text()).toContain('8.2 Distribució RA de mòduls de projecte per curs')
   })
 

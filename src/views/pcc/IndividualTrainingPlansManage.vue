@@ -3,7 +3,7 @@ import { mapState, mapActions } from 'pinia'
 import { Modal } from 'bootstrap'
 import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api'
-import { statusClass } from '@/utils/utils.js'
+import { getErrorReasons, statusClass } from '@/utils/utils.js'
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '@/utils/sao.js'
 import IndividualTrainingPlanViewModal from '@/components/IndividualTrainingPlanViewModal.vue'
 import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
@@ -80,6 +80,9 @@ export default {
       actionErrorModal: null,
       actionErrorTitle: '',
       actionErrorMessage: '',
+      actionErrorReasons: [],
+      // Pla que es pot rebutjar directament des del modal d'error (aprovació fallida)
+      actionErrorPlan: null,
       saoExports: {},
       saoExportingPlanId: null,
       saoPollTimers: {},
@@ -174,10 +177,19 @@ export default {
         'Error desconegut'
       )
     },
-    showActionError(title, error) {
+    showActionError(title, error, rejectablePlan = null) {
       this.actionErrorTitle = title
       this.actionErrorMessage = this.getErrorMessage(error)
+      this.actionErrorReasons = getErrorReasons(error)
+      this.actionErrorPlan = this.actionErrorReasons.length ? rejectablePlan : null
       this.actionErrorModal.show()
+    },
+    rejectPlanWithActionErrors() {
+      const plan = this.actionErrorPlan
+      if (!plan) return
+      const reason = this.actionErrorReasons.map((item) => `- ${item}`).join('\n')
+      this.actionErrorModal.hide()
+      this.openRejectPlanModal(plan, reason)
     },
     getTurnLabel(turn) {
       return TURN_LABELS[turn] || turn
@@ -463,6 +475,8 @@ export default {
         if (result) {
           this.mergePlanStatus(plan.id, { status: result.status, rejectedMessage: null })
         }
+      } catch (error) {
+        this.showActionError(`No s'ha pogut aprovar el pla "${plan.name}"`, error, plan)
       } finally {
         this.changingStatusPlanId = null
       }
@@ -499,9 +513,9 @@ export default {
         this.changingStatusPlanId = null
       }
     },
-    openRejectPlanModal(plan) {
+    openRejectPlanModal(plan, reason = '') {
       this.rejectPlanTarget = plan
-      this.rejectPlanReason = ''
+      this.rejectPlanReason = reason
       this.rejectPlanError = ''
       this.rejectPlanModal.show()
     },
@@ -597,9 +611,25 @@ export default {
           <div class="modal-body">
             <div class="alert alert-danger mb-0 error-message-text">
               {{ actionErrorMessage }}
+              <ul
+                v-if="actionErrorReasons.length"
+                class="mb-0 mt-2"
+                data-testid="action-error-reasons"
+              >
+                <li v-for="(reason, index) in actionErrorReasons" :key="index">{{ reason }}</li>
+              </ul>
             </div>
           </div>
           <div class="modal-footer">
+            <button
+              v-if="actionErrorPlan"
+              type="button"
+              class="btn btn-danger"
+              data-testid="reject-with-errors-button"
+              @click="rejectPlanWithActionErrors"
+            >
+              Rebutjar amb estos motius
+            </button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tanca</button>
           </div>
         </div>

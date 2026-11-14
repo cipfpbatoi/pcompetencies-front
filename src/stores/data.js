@@ -594,15 +594,11 @@ export const useDataStore = defineStore('data', {
       }
     },
     async approveIndividualTrainingPlan(pccId, planId) {
-      try {
-        const response = await api.individualTrainingPlanApprove(pccId, planId)
-        this.replaceIndividualTrainingPlan(response.data)
-        this.addMessage('success', 'Pla formatiu individual aprovat')
-        return response.data
-      } catch (error) {
-        this.addMessage('error', error)
-        return null
-      }
+      // Sense try/catch ni toast d'error: la pantalla mostra tots els motius en un modal ben visible
+      const response = await api.individualTrainingPlanApprove(pccId, planId)
+      this.replaceIndividualTrainingPlan(response.data)
+      this.addMessage('success', 'Pla formatiu individual aprovat')
+      return response.data
     },
     async rejectIndividualTrainingPlan(pccId, planId, data) {
       try {

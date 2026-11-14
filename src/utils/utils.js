@@ -72,4 +72,16 @@ function statusClass(status) {
   }
 }
 
-export { makeCheckeableArray, getObjectsIds, validateFormErrors, statusClass }
+// Llista plana dels motius d'un error de validació del backend ({ reasons: { clau: text | [text] } })
+const getErrorReasons = (error) => {
+  const flatten = (value) => {
+    if (!value) return []
+    if (typeof value === 'string') return [value]
+    if (Array.isArray(value)) return value.flatMap(flatten)
+    if (typeof value === 'object') return Object.values(value).flatMap(flatten)
+    return [String(value)]
+  }
+  return flatten(error?.response?.data?.reasons)
+}
+
+export { makeCheckeableArray, getObjectsIds, validateFormErrors, statusClass, getErrorReasons }

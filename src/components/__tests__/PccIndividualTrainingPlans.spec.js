@@ -668,6 +668,36 @@ describe('PccIndividualTrainingPlans', () => {
     expect(wrapper.vm.form.moduleActivities).toEqual({ M01: 'Activitat 1r', M02: 'Activitat 2n' })
   })
 
+  it('lists every validation reason when sending a plan is rejected', async () => {
+    const store = useDataStore()
+    store.sendIndividualTrainingPlan = vi.fn().mockRejectedValue({
+      response: {
+        status: 406,
+        data: {
+          error: true,
+          detail: 'El pla formatiu individual no és correcte',
+          reasons: {
+            evaluationCriteriaLimit: ['El mòdul 0612 supera el 65%'],
+            visitPeriodicity: 'Cal indicar la periodicitat de les visites'
+          }
+        }
+      }
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const wrapper = mountComponent()
+
+    await wrapper.vm.handleSendPlan({ id: 18, name: 'Pla de prova' })
+    await flushPromises()
+
+    expect(store.sendIndividualTrainingPlan).toHaveBeenCalledWith(1, 18)
+    const reasons = wrapper.get('[data-testid="action-error-reasons"]').findAll('li')
+    expect(reasons.map((reason) => reason.text())).toEqual([
+      'El mòdul 0612 supera el 65%',
+      'Cal indicar la periodicitat de les visites'
+    ])
+    expect(wrapper.text()).toContain('El pla formatiu individual no és correcte')
+  })
+
   it('only allows editing pending or rejected plans', () => {
     const wrapper = mountComponent()
 

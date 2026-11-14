@@ -6,7 +6,7 @@ import * as yup from 'yup'
 import { useDataStore } from '../stores/data'
 import { api } from '../repositories/api.js'
 import { useFormValidation } from '../composables/useFormValidation'
-import { statusClass } from '../utils/utils.js'
+import { getErrorReasons, statusClass } from '../utils/utils.js'
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '../utils/sao.js'
 import ModalComponent from './ModalComp.vue'
 import ActionButton from './ActionButton.vue'
@@ -1341,10 +1341,12 @@ const getErrorMessage = (error) => {
 const actionErrorModalRef = ref(null)
 const actionErrorTitle = ref('')
 const actionErrorMessage = ref('')
+const actionErrorReasons = ref([])
 
 const showActionError = (title, error) => {
   actionErrorTitle.value = title
   actionErrorMessage.value = getErrorMessage(error)
+  actionErrorReasons.value = getErrorReasons(error)
   actionErrorModalRef.value?.show()
 }
 
@@ -2183,6 +2185,9 @@ const handleCopyPlanToCurrentYear = async (plan) => {
     >
       <div class="alert alert-danger mb-0 error-message-text">
         {{ actionErrorMessage }}
+        <ul v-if="actionErrorReasons.length" class="mb-0 mt-2" data-testid="action-error-reasons">
+          <li v-for="(reason, index) in actionErrorReasons" :key="index">{{ reason }}</li>
+        </ul>
       </div>
     </ModalComponent>
 

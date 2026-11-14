@@ -12,12 +12,13 @@ const apiMocks = vi.hoisted(() => ({
   getCurrentData: vi.fn(),
   getDepartments: vi.fn(),
   getIndividualTrainingPlansCenter: vi.fn(),
-  individualTrainingPlanSend: vi.fn()
+  individualTrainingPlanSend: vi.fn(),
+  individualTrainingPlanApprove: vi.fn()
 }))
 
 vi.mock('@/repositories/api', () => ({ api: apiMocks }))
 vi.mock('bootstrap', () => ({
-  Modal: vi.fn(() => ({ show: vi.fn() }))
+  Modal: vi.fn(() => ({ show: vi.fn(), hide: vi.fn() }))
 }))
 
 describe('IndividualTrainingPlansManage SAÓ warnings', () => {
@@ -182,5 +183,77 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
 
     expect(wrapper.find('[title="Aprovar"]').exists()).toBe(true)
     expect(wrapper.find('[title="Rebutjar"]').exists()).toBe(true)
+  })
+})
+
+describe('IndividualTrainingPlansManage approval', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setActivePinia(createPinia())
+    apiMocks.getCycles.mockResolvedValue({ data: [] })
+    apiMocks.getSchoolYears.mockResolvedValue({ data: [] })
+    apiMocks.getCurrentData.mockResolvedValue({
+      data: { currentSchoolYear: { course: '2026/2027' } }
+    })
+    apiMocks.getDepartments.mockResolvedValue({ data: [] })
+  })
+
+  it('lists every validation reason and keeps the plan sent when approving is rejected', async () => {
+    const plan = {
+      id: 21,
+      name: 'Pla enviat',
+      status: 'enviada',
+      courseYear: '2026/2027',
+      courseLevel: 2,
+      turn: 'presential',
+      totalHours: 100,
+      modules: [{ code: '0612', name: 'Desenvolupament web en entorn client' }],
+      curricularProject: {
+        id: 5,
+        cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
+      }
+    }
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
+      data: { 'hydra:member': [plan], 'hydra:totalItems': 1 }
+    })
+    apiMocks.individualTrainingPlanApprove.mockRejectedValue({
+      response: {
+        status: 406,
+        data: {
+          error: true,
+          detail: 'El pla formatiu individual no és correcte',
+          reasons: {
+            evaluationCriteriaLimit: ['El mòdul 0612 supera el 65%'],
+            periods: ['Els periodes 1 i 2 se solapen en dates']
+          }
+        }
+      }
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const store = useDataStore()
+    store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
+
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: { stubs: { IndividualTrainingPlanViewModal: true } }
+    })
+    await flushPromises()
+
+    await wrapper.vm.handleApprovePlan(wrapper.vm.plans[0])
+    await flushPromises()
+
+    expect(apiMocks.individualTrainingPlanApprove).toHaveBeenCalledWith(5, 21)
+    const reasons = wrapper.get('[data-testid="action-error-reasons"]').findAll('li')
+    expect(reasons.map((reason) => reason.text())).toEqual([
+      'El mòdul 0612 supera el 65%',
+      'Els periodes 1 i 2 se solapen en dates'
+    ])
+    expect(wrapper.vm.plans[0].status).toBe('enviada')
+
+    await wrapper.get('[data-testid="reject-with-errors-button"]').trigger('click')
+
+    expect(wrapper.vm.rejectPlanTarget.id).toBe(21)
+    expect(wrapper.vm.rejectPlanReason).toBe(
+      '- El mòdul 0612 supera el 65%\n- Els periodes 1 i 2 se solapen en dates'
+    )
   })
 })

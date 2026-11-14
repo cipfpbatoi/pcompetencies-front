@@ -668,6 +668,15 @@ describe('PccIndividualTrainingPlans', () => {
     expect(wrapper.vm.form.moduleActivities).toEqual({ M01: 'Activitat 1r', M02: 'Activitat 2n' })
   })
 
+  it('only allows editing pending or rejected plans', () => {
+    const wrapper = mountComponent()
+
+    expect(wrapper.vm.isPlanEditable({ status: 'pendent' })).toBe(true)
+    expect(wrapper.vm.isPlanEditable({ status: 'rebutjada' })).toBe(true)
+    expect(wrapper.vm.isPlanEditable({ status: 'enviada' })).toBe(false)
+    expect(wrapper.vm.isPlanEditable({ status: 'aprovada' })).toBe(false)
+  })
+
   it('shows only selected items and saved development when viewing a plan', async () => {
     const wrapper = mountComponent()
     wrapper.vm.modules = [

@@ -164,6 +164,8 @@ export const api = {
     instance.get(`/pcc/${pccId}/individual-training-plans/available-items`, {
       params: planId ? { turn, planId } : { turn }
     }),
+  // Llistat lleuger dels plans d'un PCC (sense el detall de RA/CA)
+  getPccIndividualTrainingPlans: (pccId) => instance.get(`/pcc/${pccId}/individual-training-plans`),
   getIndividualTrainingPlan: (pccId, planId) =>
     instance.get(`/pcc/${pccId}/individual-training-plans/${planId}`),
   createIndividualTrainingPlan: (pccId, data) =>

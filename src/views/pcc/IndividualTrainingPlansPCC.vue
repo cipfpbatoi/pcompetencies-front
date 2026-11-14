@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '@/stores/data'
+import { api } from '@/repositories/api'
 import PccIndividualTrainingPlans from '@/components/PccIndividualTrainingPlans.vue'
 
 const props = defineProps({
@@ -27,8 +28,18 @@ const hasPcc = computed(() => !!pcc.value?.id)
 const loadPcc = async () => {
   isLoadingPcc.value = true
   loadError.value = false
-  const loadedPcc = await store.loadPccById(props.pccId)
-  loadError.value = !loadedPcc
+  // Els plans ja no venen dins del PCC: es demanen en paral·lel a l'endpoint lleuger
+  const [loadedPcc, plansResponse] = await Promise.all([
+    store.loadPccById(props.pccId),
+    api.getPccIndividualTrainingPlans(props.pccId).catch((error) => {
+      store.addMessage('error', error)
+      return null
+    })
+  ])
+  if (loadedPcc && plansResponse) {
+    pcc.value.individualTrainingPlans = plansResponse.data
+  }
+  loadError.value = !loadedPcc || !plansResponse
   isLoadingPcc.value = false
 }
 

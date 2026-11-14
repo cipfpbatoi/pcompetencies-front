@@ -20,7 +20,10 @@ export default {
         params: {
           cycleId: response.data.syllabus.cycle?.id || '0',
           moduleCode: response.data.syllabus.module?.code || '0'
-        }
+        },
+        query: response.data.syllabus.module?.codeItaca != null
+          ? { itacaCode: response.data.syllabus.module.codeItaca }
+          : {}
       })
     } catch (error) {
       this.addMessage('error', error)

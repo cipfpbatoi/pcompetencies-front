@@ -32,6 +32,16 @@ describe('SaoExportAccessModal', () => {
     expect(wrapper.get('#saoPassword').element.value).toBe('')
   })
 
+  it('warns that ITACA coordinator access is required', () => {
+    const wrapper = mount(SaoExportAccessModal, {
+      props: { planName: 'Pla de prova' },
+      global: { stubs: { ModalComponent: ModalStub } }
+    })
+
+    expect(wrapper.text()).toContain('has de tindre el rol de coordinador/a en ITACA')
+    expect(wrapper.text()).toContain('contacta amb el Departament de FCT o amb la caporalia')
+  })
+
   it('asks for a six digit code only when ITACA requires it', async () => {
     const wrapper = mount(SaoExportAccessModal, {
       props: {

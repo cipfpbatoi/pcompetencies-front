@@ -501,20 +501,27 @@ const restoreStateFromRoute = async () => {
       await handleCycleChange()
 
       const requestedModuleCode = routeModuleCode || module.value.code
+      const itacaCode = route.query.itacaCode
 
       if (requestedModuleCode) {
-        const moduleExists = cycle.value.modules?.some(
+        let selectedModule = cycle.value.modules?.find(
           (cycleModule) => String(cycleModule.code) === String(requestedModuleCode)
         )
 
-        if (!moduleExists) {
+        if (!selectedModule && itacaCode != null) {
+          selectedModule = cycle.value.modules?.find(
+            (cycleModule) => String(cycleModule.codeItaca) === String(itacaCode)
+          )
+        }
+
+        if (!selectedModule) {
           moduleSelect.value = ''
           moduleAutoSelectWarning.value =
             "No s'ha pogut seleccionar el mòdul automàticament. Busca'l a través del selector de mòduls."
           return
         }
 
-        moduleSelect.value = requestedModuleCode
+        moduleSelect.value = selectedModule.code
         await loadSyllabuses(cycleSelect.value, moduleSelect.value)
       }
     } finally {

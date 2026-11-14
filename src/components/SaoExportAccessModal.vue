@@ -106,6 +106,11 @@ defineExpose({ show, hide })
       <div class="alert alert-info small">
         Les credencials s’utilitzen únicament durant aquesta sincronització i s’eliminen en acabar.
       </div>
+      <div class="alert alert-warning small" role="alert">
+        <strong>Advertència:</strong> perquè la sincronització funcione, has de tindre el rol de
+        coordinador/a en ITACA. Si no el tens, contacta amb el Departament de FCT o amb la
+        caporalia perquè sincronitzen la plantilla.
+      </div>
       <fieldset v-if="allowForce" class="mb-3">
         <legend class="form-label fw-bold mb-2">Tipus de reexportació</legend>
         <div class="form-check">

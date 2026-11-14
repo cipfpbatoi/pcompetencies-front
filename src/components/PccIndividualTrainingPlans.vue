@@ -85,8 +85,8 @@ const canDeleteNonPendingPlan = computed(
     !!user.value?.info?.roles?.includes('ROLE_COORDINADOR_FCT')
 )
 
-// Els plans aprovats no es poden editar; els enviats i rebutjats sí, des de gestió.
-const isPlanEditable = (plan) => ['pendent', 'enviada', 'rebutjada'].includes(plan.status)
+// Només els plans pendents o rebutjats es poden editar.
+const isPlanEditable = (plan) => ['pendent', 'rebutjada'].includes(plan.status)
 
 const TURN_LABELS = {
   presential: 'Presencial',

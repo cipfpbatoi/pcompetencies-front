@@ -183,12 +183,14 @@ export const api = {
     }),
   individualTrainingPlanPending: (pccId, planId) =>
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/pending`, {}),
-  individualTrainingPlanSend: (pccId, planId) =>
-    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/send`, {}),
+  // data: { force, justification } per a enviar encara que se supere el límit de criteris
+  individualTrainingPlanSend: (pccId, planId, data = {}) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/send`, data),
   individualTrainingPlanReject: (pccId, planId, data) =>
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/reject`, data),
-  individualTrainingPlanApprove: (pccId, planId) =>
-    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/approve`, {}),
+  // data: { force } per a aprovar encara que se supere el límit de criteris
+  individualTrainingPlanApprove: (pccId, planId, data = {}) =>
+    instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/approve`, data),
   individualTrainingPlanCopy: (pccId, planId) =>
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/copy`, {}),
   getIndividualTrainingPlanSaoExport: (pccId, planId) =>

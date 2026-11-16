@@ -3,7 +3,7 @@ import { mapState, mapActions } from 'pinia'
 import { Modal } from 'bootstrap'
 import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api'
-import { getErrorReasons, statusClass } from '@/utils/utils.js'
+import { FORCE_JUSTIFICATION_MIN_LENGTH, getErrorReasons, isForceableError, statusClass } from '@/utils/utils.js'
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '@/utils/sao.js'
 import IndividualTrainingPlanViewModal from '@/components/IndividualTrainingPlanViewModal.vue'
 import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
@@ -83,6 +83,11 @@ export default {
       actionErrorReasons: [],
       // Pla que es pot rebutjar directament des del modal d'error (aprovació fallida)
       actionErrorPlan: null,
+      // { plan, action: 'send' | 'approve' } quan l'únic problema és el límit de criteris
+      actionErrorForce: null,
+      forceJustification: '',
+      forceError: '',
+      isForcing: false,
       saoExports: {},
       saoExportingPlanId: null,
       saoPollTimers: {},
@@ -177,12 +182,51 @@ export default {
         'Error desconegut'
       )
     },
-    showActionError(title, error, rejectablePlan = null) {
+    showActionError(title, error, rejectablePlan = null, force = null) {
       this.actionErrorTitle = title
       this.actionErrorMessage = this.getErrorMessage(error)
       this.actionErrorReasons = getErrorReasons(error)
       this.actionErrorPlan = this.actionErrorReasons.length ? rejectablePlan : null
+      this.actionErrorForce = isForceableError(error) ? force : null
+      this.forceError = ''
       this.actionErrorModal.show()
+    },
+    async forceActionOnPlan() {
+      if (!this.actionErrorForce) return
+      const { plan, action } = this.actionErrorForce
+      const pccId = plan.curricularProject.id
+      const justification = this.forceJustification.trim()
+      if (action === 'send' && justification.length < FORCE_JUSTIFICATION_MIN_LENGTH) {
+        this.forceError = `Cal justificar per què se supera el límit (mínim ${FORCE_JUSTIFICATION_MIN_LENGTH} caràcters)`
+        return
+      }
+
+      this.isForcing = true
+      try {
+        const result =
+          action === 'send'
+            ? await this.sendIndividualTrainingPlan(pccId, plan.id, { force: true, justification })
+            : await this.approveIndividualTrainingPlan(pccId, plan.id, { force: true })
+        if (result) {
+          this.mergePlanStatus(plan.id, {
+            status: result.status,
+            rejectedMessage: null,
+            evaluationCriteriaLimitJustification: result.evaluationCriteriaLimitJustification
+          })
+        }
+        this.actionErrorForce = null
+        this.actionErrorModal.hide()
+      } catch (error) {
+        const verb = action === 'send' ? 'enviar' : 'aprovar'
+        this.showActionError(
+          `No s'ha pogut ${verb} el pla "${plan.name}"`,
+          error,
+          action === 'approve' ? plan : null,
+          { plan, action }
+        )
+      } finally {
+        this.isForcing = false
+      }
     },
     rejectPlanWithActionErrors() {
       const plan = this.actionErrorPlan
@@ -467,8 +511,6 @@ export default {
       }
     },
     async handleApprovePlan(plan) {
-      if (!confirm(`Vas a aprovar el pla formatiu individual "${plan.name}".`)) return
-
       this.changingStatusPlanId = plan.id
       try {
         const result = await this.approveIndividualTrainingPlan(plan.curricularProject.id, plan.id)
@@ -476,23 +518,31 @@ export default {
           this.mergePlanStatus(plan.id, { status: result.status, rejectedMessage: null })
         }
       } catch (error) {
-        this.showActionError(`No s'ha pogut aprovar el pla "${plan.name}"`, error, plan)
+        this.showActionError(`No s'ha pogut aprovar el pla "${plan.name}"`, error, plan, {
+          plan,
+          action: 'approve'
+        })
       } finally {
         this.changingStatusPlanId = null
       }
     },
     async handleSendPlan(plan) {
-      if (!confirm(`Vas a enviar el pla formatiu individual "${plan.name}" per a la seua aprovació.`))
-        return
-
       this.changingStatusPlanId = plan.id
+      this.forceJustification = plan.evaluationCriteriaLimitJustification || ''
       try {
         const result = await this.sendIndividualTrainingPlan(plan.curricularProject.id, plan.id)
         if (result) {
-          this.mergePlanStatus(plan.id, { status: result.status, rejectedMessage: null })
+          this.mergePlanStatus(plan.id, {
+            status: result.status,
+            rejectedMessage: null,
+            evaluationCriteriaLimitJustification: result.evaluationCriteriaLimitJustification
+          })
         }
       } catch (error) {
-        this.showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error)
+        this.showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error, null, {
+          plan,
+          action: 'send'
+        })
       } finally {
         this.changingStatusPlanId = null
       }
@@ -619,8 +669,46 @@ export default {
                 <li v-for="(reason, index) in actionErrorReasons" :key="index">{{ reason }}</li>
               </ul>
             </div>
+            <div v-if="actionErrorForce?.action === 'send'" class="mt-3">
+              <label for="forceJustification" class="form-label fw-bold">
+                Si cal superar el límit, justifica per què i envia el pla igualment
+              </label>
+              <textarea
+                id="forceJustification"
+                v-model="forceJustification"
+                class="form-control"
+                rows="3"
+                data-testid="force-justification"
+              ></textarea>
+              <p v-if="forceError" class="text-danger small mb-0" data-testid="force-error">
+                {{ forceError }}
+              </p>
+            </div>
+            <div
+              v-else-if="actionErrorForce?.action === 'approve'"
+              class="mt-3"
+              data-testid="force-approve-justification"
+            >
+              <p class="fw-bold mb-1">Justificació de qui ha enviat el pla</p>
+              <p class="mb-0 error-message-text">
+                {{
+                  actionErrorForce.plan.evaluationCriteriaLimitJustification ||
+                  'No hi ha cap justificació guardada.'
+                }}
+              </p>
+            </div>
           </div>
           <div class="modal-footer">
+            <button
+              v-if="actionErrorForce"
+              type="button"
+              class="btn btn-warning"
+              data-testid="force-action-button"
+              :disabled="isForcing"
+              @click="forceActionOnPlan"
+            >
+              {{ actionErrorForce.action === 'send' ? 'Enviar igualment' : 'Aprovar igualment' }}
+            </button>
             <button
               v-if="actionErrorPlan"
               type="button"
@@ -852,6 +940,12 @@ export default {
                         plan.extraordinaryAuthorizations ||
                         'Requereix autoritzacions extraordinàries'
                       "
+                    ></i>
+                    <i
+                      v-if="plan.evaluationCriteriaLimitJustification"
+                      class="bi bi-unlock-fill text-danger ms-1"
+                      data-testid="forced-limit-icon"
+                      :title="`Supera el límit de criteris d'avaluació. Justificació: ${plan.evaluationCriteriaLimitJustification}`"
                     ></i>
                   </td>
                   <td>{{ plan.curricularProject?.cycle?.department?.shortName }}</td>

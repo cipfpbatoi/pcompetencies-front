@@ -6,7 +6,12 @@ import * as yup from 'yup'
 import { useDataStore } from '../stores/data'
 import { api } from '../repositories/api.js'
 import { useFormValidation } from '../composables/useFormValidation'
-import { getErrorReasons, statusClass } from '../utils/utils.js'
+import {
+  FORCE_JUSTIFICATION_MIN_LENGTH,
+  getErrorReasons,
+  isForceableError,
+  statusClass
+} from '../utils/utils.js'
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '../utils/sao.js'
 import ModalComponent from './ModalComp.vue'
 import ActionButton from './ActionButton.vue'
@@ -1343,22 +1348,50 @@ const actionErrorTitle = ref('')
 const actionErrorMessage = ref('')
 const actionErrorReasons = ref([])
 
-const showActionError = (title, error) => {
+// Pla que es pot enviar igualment, justificant per què supera el límit de criteris
+const forceSendPlan = ref(null)
+const forceSendJustification = ref('')
+const forceSendError = ref('')
+const isForcingSend = ref(false)
+
+const showActionError = (title, error, forceablePlan = null) => {
   actionErrorTitle.value = title
   actionErrorMessage.value = getErrorMessage(error)
   actionErrorReasons.value = getErrorReasons(error)
+  forceSendPlan.value = isForceableError(error) ? forceablePlan : null
+  forceSendError.value = ''
   actionErrorModalRef.value?.show()
 }
 
-const handleSendPlan = async (plan) => {
-  if (!confirm(`Vas a enviar el pla formatiu individual "${plan.name}" per a la seua aprovació.`))
+const handleForceSendPlan = async () => {
+  const plan = forceSendPlan.value
+  if (!plan) return
+  const justification = forceSendJustification.value.trim()
+  if (justification.length < FORCE_JUSTIFICATION_MIN_LENGTH) {
+    forceSendError.value = `Cal justificar per què se supera el límit (mínim ${FORCE_JUSTIFICATION_MIN_LENGTH} caràcters)`
     return
+  }
 
+  isForcingSend.value = true
+  try {
+    await sendIndividualTrainingPlan(props.pccId, plan.id, { force: true, justification })
+    forceSendPlan.value = null
+    forceSendJustification.value = ''
+    actionErrorModalRef.value?.hide()
+  } catch (error) {
+    showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error, plan)
+  } finally {
+    isForcingSend.value = false
+  }
+}
+
+const handleSendPlan = async (plan) => {
   changingStatusPlanId.value = plan.id
+  forceSendJustification.value = plan.evaluationCriteriaLimitJustification || ''
   try {
     await sendIndividualTrainingPlan(props.pccId, plan.id)
   } catch (error) {
-    showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error)
+    showActionError(`No s'ha pogut enviar el pla "${plan.name}"`, error, plan)
   } finally {
     changingStatusPlanId.value = null
   }
@@ -2189,6 +2222,30 @@ const handleCopyPlanToCurrentYear = async (plan) => {
           <li v-for="(reason, index) in actionErrorReasons" :key="index">{{ reason }}</li>
         </ul>
       </div>
+      <div v-if="forceSendPlan" class="mt-3" data-testid="force-send-form">
+        <label for="forceSendJustification" class="form-label fw-bold">
+          Si cal superar el límit, justifica per què i envia el pla igualment
+        </label>
+        <textarea
+          id="forceSendJustification"
+          v-model="forceSendJustification"
+          class="form-control"
+          rows="3"
+          data-testid="force-send-justification"
+        ></textarea>
+        <p v-if="forceSendError" class="text-danger small mb-0" data-testid="force-send-error">
+          {{ forceSendError }}
+        </p>
+        <button
+          type="button"
+          class="btn btn-warning mt-2"
+          data-testid="force-send-button"
+          :disabled="isForcingSend"
+          @click="handleForceSendPlan"
+        >
+          Enviar igualment
+        </button>
+      </div>
     </ModalComponent>
 
     <SaoExportAccessModal
@@ -2326,6 +2383,12 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   :title="
                     plan.extraordinaryAuthorizations || 'Requereix autoritzacions extraordinàries'
                   "
+                ></i>
+                <i
+                  v-if="plan.evaluationCriteriaLimitJustification"
+                  class="bi bi-unlock-fill text-danger ms-1"
+                  data-testid="forced-limit-icon"
+                  :title="`Supera el límit de criteris d'avaluació. Justificació: ${plan.evaluationCriteriaLimitJustification}`"
                 ></i>
               </td>
               <td>{{ plan.courseYear }}</td>
@@ -2468,6 +2531,12 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     :title="
                       plan.extraordinaryAuthorizations || 'Requereix autoritzacions extraordinàries'
                     "
+                  ></i>
+                  <i
+                    v-if="plan.evaluationCriteriaLimitJustification"
+                    class="bi bi-unlock-fill text-danger ms-1"
+                    data-testid="forced-limit-icon"
+                    :title="`Supera el límit de criteris d'avaluació. Justificació: ${plan.evaluationCriteriaLimitJustification}`"
                   ></i>
                 </td>
                 <td>{{ plan.courseYear }}</td>

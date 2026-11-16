@@ -142,11 +142,12 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     expect(wrapper.find('[title="Enviar per a aprovació"]').exists()).toBe(true)
     expect(wrapper.find('[title="Eliminar pla"]').exists()).toBe(true)
 
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const confirmSpy = vi.spyOn(window, 'confirm')
     await wrapper.get('[title="Enviar per a aprovació"]').trigger('click')
     await flushPromises()
 
-    expect(apiMocks.individualTrainingPlanSend).toHaveBeenCalledWith(4, 19)
+    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(apiMocks.individualTrainingPlanSend).toHaveBeenCalledWith(4, 19, {})
     expect(wrapper.vm.plans[0].status).toBe('enviada')
     expect(wrapper.find('[title="Editar pla"]').exists()).toBe(false)
   })
@@ -229,7 +230,7 @@ describe('IndividualTrainingPlansManage approval', () => {
         }
       }
     })
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const confirmSpy = vi.spyOn(window, 'confirm')
     const store = useDataStore()
     store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
 
@@ -241,13 +242,16 @@ describe('IndividualTrainingPlansManage approval', () => {
     await wrapper.vm.handleApprovePlan(wrapper.vm.plans[0])
     await flushPromises()
 
-    expect(apiMocks.individualTrainingPlanApprove).toHaveBeenCalledWith(5, 21)
+    expect(confirmSpy).not.toHaveBeenCalled()
+
+    expect(apiMocks.individualTrainingPlanApprove).toHaveBeenCalledWith(5, 21, {})
     const reasons = wrapper.get('[data-testid="action-error-reasons"]').findAll('li')
     expect(reasons.map((reason) => reason.text())).toEqual([
       'El mòdul 0612 supera el 65%',
       'Els periodes 1 i 2 se solapen en dates'
     ])
     expect(wrapper.vm.plans[0].status).toBe('enviada')
+    expect(wrapper.find('[data-testid="force-action-button"]').exists()).toBe(false)
 
     await wrapper.get('[data-testid="reject-with-errors-button"]').trigger('click')
 
@@ -255,5 +259,127 @@ describe('IndividualTrainingPlansManage approval', () => {
     expect(wrapper.vm.rejectPlanReason).toBe(
       '- El mòdul 0612 supera el 65%\n- Els periodes 1 i 2 se solapen en dates'
     )
+  })
+
+  it('approves a plan over the criteria limit when the coordinator forces it', async () => {
+    const plan = {
+      id: 22,
+      name: 'Pla forçat',
+      status: 'enviada',
+      courseYear: '2026-2027',
+      evaluationCriteriaLimitJustification: "L'empresa cobreix quasi tot el mòdul",
+      modules: [{ code: '0612', name: 'Desenvolupament web en entorn client' }],
+      curricularProject: {
+        id: 5,
+        cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
+      }
+    }
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
+      data: { 'hydra:member': [plan], 'hydra:totalItems': 1 }
+    })
+    apiMocks.individualTrainingPlanApprove
+      .mockReset()
+      .mockRejectedValueOnce({
+        response: {
+          status: 406,
+          data: {
+            error: true,
+            detail: 'El pla formatiu individual no és correcte',
+            reasons: { evaluationCriteriaLimit: ['El mòdul 0612 supera el 75%'] },
+            forceable: true
+          }
+        }
+      })
+      .mockResolvedValueOnce({ data: { ...plan, status: 'aprovada' } })
+    const confirmSpy = vi.spyOn(window, 'confirm')
+    const store = useDataStore()
+    store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
+
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: { stubs: { IndividualTrainingPlanViewModal: true } }
+    })
+    await flushPromises()
+
+    await wrapper.vm.handleApprovePlan(wrapper.vm.plans[0])
+    await flushPromises()
+
+    expect(confirmSpy).not.toHaveBeenCalled()
+
+    expect(wrapper.get('[data-testid="force-approve-justification"]').text()).toContain(
+      "L'empresa cobreix quasi tot el mòdul"
+    )
+
+    await wrapper.get('[data-testid="force-action-button"]').trigger('click')
+    await flushPromises()
+
+    expect(apiMocks.individualTrainingPlanApprove).toHaveBeenLastCalledWith(5, 22, { force: true })
+    expect(wrapper.vm.plans[0].status).toBe('aprovada')
+    expect(wrapper.find('[data-testid="force-action-button"]').exists()).toBe(false)
+  })
+
+  it('sends a plan over the criteria limit when it is forced with a justification', async () => {
+    const plan = {
+      id: 23,
+      name: 'Pla per forçar',
+      status: 'pendent',
+      courseYear: '2026/2027',
+      modules: [{ code: '0612', name: 'Desenvolupament web en entorn client' }],
+      curricularProject: {
+        id: 5,
+        cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
+      }
+    }
+    const justification = "L'empresa cobreix quasi tot el mòdul"
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
+      data: { 'hydra:member': [plan], 'hydra:totalItems': 1 }
+    })
+    apiMocks.individualTrainingPlanSend
+      .mockReset()
+      .mockRejectedValueOnce({
+        response: {
+          status: 406,
+          data: {
+            error: true,
+            detail: 'El pla formatiu individual no és correcte',
+            reasons: { evaluationCriteriaLimit: ['El mòdul 0612 supera el 75%'] },
+            forceable: true
+          }
+        }
+      })
+      .mockResolvedValueOnce({
+        data: { ...plan, status: 'enviada', evaluationCriteriaLimitJustification: justification }
+      })
+    const store = useDataStore()
+    store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
+
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: { stubs: { IndividualTrainingPlanViewModal: true } }
+    })
+    await flushPromises()
+
+    await wrapper.vm.handleSendPlan(wrapper.vm.plans[0])
+    await flushPromises()
+
+    // Enviar no mostra la justificació guardada ni el botó de rebutjar
+    expect(wrapper.find('[data-testid="force-approve-justification"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="reject-with-errors-button"]').exists()).toBe(false)
+
+    await wrapper.get('[data-testid="force-action-button"]').trigger('click')
+    await flushPromises()
+
+    expect(apiMocks.individualTrainingPlanSend).toHaveBeenCalledTimes(1)
+    expect(wrapper.get('[data-testid="force-error"]').text()).toContain('mínim 8 caràcters')
+
+    await wrapper.get('[data-testid="force-justification"]').setValue(justification)
+    await wrapper.get('[data-testid="force-action-button"]').trigger('click')
+    await flushPromises()
+
+    expect(apiMocks.individualTrainingPlanSend).toHaveBeenLastCalledWith(5, 23, {
+      force: true,
+      justification
+    })
+    expect(wrapper.vm.plans[0].status).toBe('enviada')
+    expect(wrapper.vm.plans[0].evaluationCriteriaLimitJustification).toBe(justification)
+    expect(wrapper.find('[data-testid="forced-limit-icon"]').exists()).toBe(true)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getErrorReasons } from '@/utils/utils.js'
+import { getErrorReasons, isForceableError } from '@/utils/utils.js'
 
 describe('getErrorReasons', () => {
   it('flattens the keyed validation reasons into a single list', () => {
@@ -26,5 +26,14 @@ describe('getErrorReasons', () => {
   it('returns an empty list when the error carries no reasons', () => {
     expect(getErrorReasons(new Error('Network Error'))).toEqual([])
     expect(getErrorReasons({ response: { data: { detail: 'Error' } } })).toEqual([])
+  })
+})
+
+describe('isForceableError', () => {
+  it('is true only when the backend marks the error as forceable', () => {
+    expect(isForceableError({ response: { data: { forceable: true } } })).toBe(true)
+    expect(isForceableError({ response: { data: { forceable: false } } })).toBe(false)
+    expect(isForceableError({ response: { data: { detail: 'Error' } } })).toBe(false)
+    expect(isForceableError(new Error('Network Error'))).toBe(false)
   })
 })

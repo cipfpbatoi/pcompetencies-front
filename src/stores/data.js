@@ -582,9 +582,9 @@ export const useDataStore = defineStore('data', {
         this.pcc.individualTrainingPlans.push(plan)
       }
     },
-    async sendIndividualTrainingPlan(pccId, planId) {
+    async sendIndividualTrainingPlan(pccId, planId, data = {}) {
       try {
-        const response = await api.individualTrainingPlanSend(pccId, planId)
+        const response = await api.individualTrainingPlanSend(pccId, planId, data)
         this.replaceIndividualTrainingPlan(response.data)
         this.addMessage('success', 'Pla formatiu individual enviat')
         return response.data
@@ -593,9 +593,9 @@ export const useDataStore = defineStore('data', {
         throw error
       }
     },
-    async approveIndividualTrainingPlan(pccId, planId) {
+    async approveIndividualTrainingPlan(pccId, planId, data = {}) {
       // Sense try/catch ni toast d'error: la pantalla mostra tots els motius en un modal ben visible
-      const response = await api.individualTrainingPlanApprove(pccId, planId)
+      const response = await api.individualTrainingPlanApprove(pccId, planId, data)
       this.replaceIndividualTrainingPlan(response.data)
       this.addMessage('success', 'Pla formatiu individual aprovat')
       return response.data

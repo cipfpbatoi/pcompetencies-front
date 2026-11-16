@@ -683,11 +683,13 @@ describe('PccIndividualTrainingPlans', () => {
         }
       }
     })
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const confirmSpy = vi.spyOn(window, 'confirm')
     const wrapper = mountComponent()
 
     await wrapper.vm.handleSendPlan({ id: 18, name: 'Pla de prova' })
     await flushPromises()
+
+    expect(confirmSpy).not.toHaveBeenCalled()
 
     expect(store.sendIndividualTrainingPlan).toHaveBeenCalledWith(1, 18)
     const reasons = wrapper.get('[data-testid="action-error-reasons"]').findAll('li')
@@ -696,6 +698,51 @@ describe('PccIndividualTrainingPlans', () => {
       'Cal indicar la periodicitat de les visites'
     ])
     expect(wrapper.text()).toContain('El pla formatiu individual no és correcte')
+    expect(wrapper.find('[data-testid="force-send-form"]').exists()).toBe(false)
+  })
+
+  it('sends a plan over the criteria limit when it is forced with a justification', async () => {
+    const store = useDataStore()
+    store.sendIndividualTrainingPlan = vi
+      .fn()
+      .mockRejectedValueOnce({
+        response: {
+          status: 406,
+          data: {
+            error: true,
+            detail: 'El pla formatiu individual no és correcte',
+            reasons: { evaluationCriteriaLimit: ['El mòdul 0612 supera el 75%'] },
+            forceable: true
+          }
+        }
+      })
+      .mockResolvedValueOnce({ id: 18, status: 'enviada' })
+    const confirmSpy = vi.spyOn(window, 'confirm')
+    const wrapper = mountComponent()
+
+    await wrapper.vm.handleSendPlan({ id: 18, name: 'Pla de prova' })
+    await flushPromises()
+
+    expect(confirmSpy).not.toHaveBeenCalled()
+
+    await wrapper.get('[data-testid="force-send-justification"]').setValue('curta')
+    await wrapper.get('[data-testid="force-send-button"]').trigger('click')
+    await flushPromises()
+
+    expect(store.sendIndividualTrainingPlan).toHaveBeenCalledTimes(1)
+    expect(wrapper.get('[data-testid="force-send-error"]').text()).toContain('mínim 8 caràcters')
+
+    await wrapper
+      .get('[data-testid="force-send-justification"]')
+      .setValue("  L'empresa cobreix quasi tot el mòdul  ")
+    await wrapper.get('[data-testid="force-send-button"]').trigger('click')
+    await flushPromises()
+
+    expect(store.sendIndividualTrainingPlan).toHaveBeenLastCalledWith(1, 18, {
+      force: true,
+      justification: "L'empresa cobreix quasi tot el mòdul"
+    })
+    expect(wrapper.find('[data-testid="force-send-form"]').exists()).toBe(false)
   })
 
   it('only allows editing pending or rejected plans', () => {

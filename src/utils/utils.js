@@ -84,4 +84,18 @@ const getErrorReasons = (error) => {
   return flatten(error?.response?.data?.reasons)
 }
 
-export { makeCheckeableArray, getObjectsIds, validateFormErrors, statusClass, getErrorReasons }
+// L'únic problema és el límit de criteris dualitzats: la petició es pot repetir amb "force"
+const isForceableError = (error) => error?.response?.data?.forceable === true
+
+// Mínim de caràcters de la justificació d'un enviament forçat (el mateix que valida el backend)
+const FORCE_JUSTIFICATION_MIN_LENGTH = 8
+
+export {
+  makeCheckeableArray,
+  getObjectsIds,
+  validateFormErrors,
+  statusClass,
+  getErrorReasons,
+  isForceableError,
+  FORCE_JUSTIFICATION_MIN_LENGTH
+}

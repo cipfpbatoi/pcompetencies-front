@@ -7,7 +7,7 @@ const SAO_STATUS_LABELS = {
   exported: 'Exportat',
   exported_with_warnings: 'Exportat amb avisos',
   outdated: 'Pendent d’actualitzar',
-  partial_failure: 'Error parcial',
+  partial_failure: 'Exp amb Alertes',
   failed: 'Error',
   obsolete: 'Obsoleta'
 }

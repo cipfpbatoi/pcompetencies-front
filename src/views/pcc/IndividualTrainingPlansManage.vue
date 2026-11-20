@@ -47,6 +47,12 @@ export default {
     },
     saoDetailsExport() {
       return this.saoDetailsPlan ? this.getSaoExport(this.saoDetailsPlan) : null
+    },
+    saoCurrentModules() {
+      return (this.saoDetailsExport?.modules || []).filter((module) => module.status !== 'obsolete')
+    },
+    saoObsoleteModules() {
+      return (this.saoDetailsExport?.modules || []).filter((module) => module.status === 'obsolete')
     }
   },
   data() {
@@ -125,7 +131,7 @@ export default {
       try {
         const [cyclesResponse, schoolYearsResponse, currentDataResponse, departmentsResponse] =
           await Promise.all([
-            api.getCycles(),
+            api.getCycles({ allDepartments: true }),
             api.getSchoolYears(),
             api.getCurrentData(),
             api.getDepartments()
@@ -649,11 +655,15 @@ export default {
     <div id="planActionErrorModal" class="modal fade" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header bg-danger text-white">
+          <div
+            class="modal-header"
+            :class="actionErrorForce ? 'bg-warning text-dark' : 'bg-danger text-white'"
+          >
             <h5 class="modal-title">{{ actionErrorTitle }}</h5>
             <button
               type="button"
-              class="btn-close btn-close-white"
+              class="btn-close"
+              :class="{ 'btn-close-white': !actionErrorForce }"
               data-bs-dismiss="modal"
               aria-label="Tanca"
             ></button>
@@ -768,7 +778,7 @@ export default {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="moduleExport in saoDetailsExport.modules || []" :key="moduleExport.moduleCode">
+                  <tr v-for="moduleExport in saoCurrentModules" :key="moduleExport.moduleCode">
                     <td>{{ getModuleExportLabel(saoDetailsPlan, moduleExport) }}</td>
                     <td>{{ moduleExport.description }}</td>
                     <td>
@@ -805,13 +815,25 @@ export default {
                       <span v-else-if="!moduleExport.errorMessage" class="text-secondary">—</span>
                     </td>
                   </tr>
-                  <tr v-if="!(saoDetailsExport.modules || []).length">
+                  <tr v-if="!saoCurrentModules.length">
                     <td colspan="4" class="text-center text-secondary">
                       Encara no hi ha detall per mòduls.
                     </td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div v-if="saoObsoleteModules.length" class="alert alert-warning mt-3 mb-0" role="alert">
+              <strong>Mòduls d’exportacions anteriors</strong>
+              <p class="mb-2">
+                Estos mòduls ja no formen part del pla actual. Cal revisar les plantilles que queden en SAÓ.
+              </p>
+              <ul class="mb-0">
+                <li v-for="moduleExport in saoObsoleteModules" :key="moduleExport.moduleCode">
+                  {{ getModuleExportLabel(saoDetailsPlan, moduleExport) }}
+                  <span v-if="moduleExport.description"> — {{ moduleExport.description }}</span>
+                </li>
+              </ul>
             </div>
           </div>
           <div class="modal-footer">
@@ -826,6 +848,20 @@ export default {
     <div class="p-lg-4 p-1 overflow-auto">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <h2 class="fw-bold m-0">{{ pageTitle }}</h2>
+        <button
+          v-if="canView"
+          type="button"
+          class="btn btn-outline-primary"
+          :disabled="loadingPlans"
+          @click="loadPlans"
+        >
+          <span
+            v-if="loadingPlans"
+            class="spinner-border spinner-border-sm me-2"
+            aria-hidden="true"
+          ></span>
+          {{ loadingPlans ? 'Actualitzant…' : 'Actualitzar dades' }}
+        </button>
       </div>
 
       <div v-if="!canView" class="alert alert-warning mt-3">

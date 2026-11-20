@@ -220,7 +220,7 @@ export const api = {
   getSchoolYears: () => instance.get('/school-years'),
 
   // Cycles
-  getCycles: () => instance.get('/cycles'),
+  getCycles: (params) => instance.get('/cycles', { params }),
   getCycleById: (id, turn) => instance.get(`/cycles/${id}`, { params: turn ? { turn } : {} }),
 
   // Departments

@@ -33,6 +33,32 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     apiMocks.getDepartments.mockResolvedValue({ data: [] })
   })
 
+  it('requests all department cycles for the FCT coordinator', async () => {
+    apiMocks.getCycles.mockResolvedValue({
+      data: [
+        { id: 1, completeName: 'Cicle Informàtica' },
+        { id: 2, completeName: 'Cicle Sanitat' }
+      ]
+    })
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({ data: [] })
+    useDataStore().$patch({
+      user: { info: { roles: ['ROLE_COORDINADOR_FCT'], department: { id: 1 } } }
+    })
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: { stubs: { IndividualTrainingPlanViewModal: true } }
+    })
+    await flushPromises()
+
+    expect(apiMocks.getCycles).toHaveBeenCalledWith({ allDepartments: true })
+    const cycleOptions = wrapper.findAll('select')[1].findAll('option')
+    expect(cycleOptions.map((option) => option.text())).toEqual([
+      '--- Tots els cicles ---',
+      'Cicle Informàtica',
+      'Cicle Sanitat'
+    ])
+    wrapper.unmount()
+  })
+
   it('shows structured warnings and hides re-export for a finalized plan', async () => {
     const plan = {
       id: 18,

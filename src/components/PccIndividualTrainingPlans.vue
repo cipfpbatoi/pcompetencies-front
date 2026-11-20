@@ -1211,6 +1211,12 @@ const getSaoStatus = (plan) => getSaoExport(plan)?.status || plan.saoExportStatu
 const saoDetailsExport = computed(() =>
   saoDetailsPlan.value ? getSaoExport(saoDetailsPlan.value) : null
 )
+const saoCurrentModules = computed(() =>
+  (saoDetailsExport.value?.modules || []).filter((module) => module.status !== 'obsolete')
+)
+const saoObsoleteModules = computed(() =>
+  (saoDetailsExport.value?.modules || []).filter((module) => module.status === 'obsolete')
+)
 const canExportToSao = (plan) => plan.status === 'aprovada' && isPlanOfCurrentSchoolYear(plan)
 
 const getSaoActionTitle = (plan) => {
@@ -2212,7 +2218,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
       ref="actionErrorModalRef"
       modal-id="planActionErrorModal"
       :title="actionErrorTitle"
-      header-class="bg-danger text-white"
+      :header-class="forceSendPlan ? 'bg-warning text-dark' : 'bg-danger text-white'"
       :show-save-button="false"
       close-button-text="Tanca"
     >
@@ -2290,7 +2296,7 @@ const handleCopyPlanToCurrentYear = async (plan) => {
             </thead>
             <tbody>
               <tr
-                v-for="moduleExport in saoDetailsExport.modules || []"
+                v-for="moduleExport in saoCurrentModules"
                 :key="moduleExport.moduleCode"
               >
                 <td>{{ getModuleExportLabel(saoDetailsPlan, moduleExport) }}</td>
@@ -2329,13 +2335,25 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                   <span v-else-if="!moduleExport.errorMessage" class="text-secondary">—</span>
                 </td>
               </tr>
-              <tr v-if="!(saoDetailsExport.modules || []).length">
+              <tr v-if="!saoCurrentModules.length">
                 <td colspan="4" class="text-center text-secondary">
                   Encara no hi ha detall per mòduls.
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+        <div v-if="saoObsoleteModules.length" class="alert alert-warning mt-3 mb-0" role="alert">
+          <strong>Mòduls d’exportacions anteriors</strong>
+          <p class="mb-2">
+            Estos mòduls ja no formen part del pla actual. Cal revisar les plantilles que queden en SAÓ.
+          </p>
+          <ul class="mb-0">
+            <li v-for="moduleExport in saoObsoleteModules" :key="moduleExport.moduleCode">
+              {{ getModuleExportLabel(saoDetailsPlan, moduleExport) }}
+              <span v-if="moduleExport.description"> — {{ moduleExport.description }}</span>
+            </li>
+          </ul>
         </div>
       </template>
     </ModalComponent>

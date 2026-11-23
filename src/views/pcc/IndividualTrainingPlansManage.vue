@@ -3,7 +3,12 @@ import { mapState, mapActions } from 'pinia'
 import { Modal } from 'bootstrap'
 import { useDataStore } from '@/stores/data'
 import { api } from '@/repositories/api'
-import { FORCE_JUSTIFICATION_MIN_LENGTH, getErrorReasons, isForceableError, statusClass } from '@/utils/utils.js'
+import {
+  FORCE_JUSTIFICATION_MIN_LENGTH,
+  getErrorReasons,
+  isForceableError,
+  statusClass
+} from '@/utils/utils.js'
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '@/utils/sao.js'
 import IndividualTrainingPlanViewModal from '@/components/IndividualTrainingPlanViewModal.vue'
 import SaoExportAccessModal from '@/components/SaoExportAccessModal.vue'
@@ -100,6 +105,7 @@ export default {
       saoDetailsModal: null,
       saoDetailsPlan: null,
       saoAccessPlan: null,
+      saoAccessModule: null,
       saoAccessError: '',
       pageInitialized: false
     }
@@ -261,11 +267,12 @@ export default {
     },
     getSaoActionTitle(plan) {
       const status = this.getSaoStatus(plan)
-      if (['exported', 'exported_with_warnings'].includes(status)) {
+      if (status === 'exported') {
         return 'La plantilla ja està sincronitzada amb SAÓ'
       }
       if (status === 'outdated') return 'Actualitzar les plantilles en SAÓ'
-      if (['failed', 'partial_failure'].includes(status)) return 'Reintentar l’exportació a SAÓ'
+      if (['failed', 'partial_failure', 'exported_with_warnings'].includes(status))
+        return 'Reintentar l’exportació a SAÓ'
       return 'Exportar les plantilles a SAÓ'
     },
     rememberSaoExport(planId, saoExport) {
@@ -315,6 +322,14 @@ export default {
     },
     handleSaoExport(plan) {
       this.saoAccessPlan = plan
+      this.saoAccessModule = null
+      this.saoAccessError = ''
+      this.$refs.saoAccessModal.show()
+    },
+    handleSaoModuleExport(plan, moduleExport) {
+      this.saoDetailsModal.hide()
+      this.saoAccessPlan = plan
+      this.saoAccessModule = moduleExport
       this.saoAccessError = ''
       this.$refs.saoAccessModal.show()
     },
@@ -333,7 +348,9 @@ export default {
         const response = await api.exportIndividualTrainingPlanToSao(
           plan.curricularProject.id,
           plan.id,
-          credentials
+          this.saoAccessModule
+            ? { ...credentials, force: true, moduleCodes: [this.saoAccessModule.moduleCode] }
+            : credentials
         )
         this.rememberSaoExport(plan.id, response.data)
         if (isSaoExportActive(response.data.status)) {
@@ -737,8 +754,11 @@ export default {
     <SaoExportAccessModal
       ref="saoAccessModal"
       :plan-name="saoAccessPlan?.name || ''"
+      :module-label="saoAccessModule ? getModuleExportLabel(saoAccessPlan, saoAccessModule) : ''"
       :export-state="saoAccessPlan ? getSaoExport(saoAccessPlan) : null"
-      :allow-force="saoAccessPlan ? Boolean(getSaoStatus(saoAccessPlan)) : false"
+      :allow-force="
+        saoAccessPlan ? !saoAccessModule && Boolean(getSaoStatus(saoAccessPlan)) : false
+      "
       :busy="saoExportingPlanId === saoAccessPlan?.id"
       :error="saoAccessError"
       @submit-credentials="submitSaoCredentials"
@@ -775,6 +795,7 @@ export default {
                     <th>Descripció</th>
                     <th>Estat</th>
                     <th>Resultat</th>
+                    <th>Accions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -814,19 +835,39 @@ export default {
                       </span>
                       <span v-else-if="!moduleExport.errorMessage" class="text-secondary">—</span>
                     </td>
+                    <td>
+                      <button
+                        v-if="canExportToSao(saoDetailsPlan)"
+                        type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        :disabled="
+                          saoExportingPlanId === saoDetailsPlan.id ||
+                          isSaoExportActive(getSaoStatus(saoDetailsPlan))
+                        "
+                        :title="`Reexportar el mòdul ${moduleExport.moduleCode}`"
+                        @click="handleSaoModuleExport(saoDetailsPlan, moduleExport)"
+                      >
+                        Reexportar este mòdul
+                      </button>
+                    </td>
                   </tr>
                   <tr v-if="!saoCurrentModules.length">
-                    <td colspan="4" class="text-center text-secondary">
+                    <td colspan="5" class="text-center text-secondary">
                       Encara no hi ha detall per mòduls.
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div v-if="saoObsoleteModules.length" class="alert alert-warning mt-3 mb-0" role="alert">
+            <div
+              v-if="saoObsoleteModules.length"
+              class="alert alert-warning mt-3 mb-0"
+              role="alert"
+            >
               <strong>Mòduls d’exportacions anteriors</strong>
               <p class="mb-2">
-                Estos mòduls ja no formen part del pla actual. Cal revisar les plantilles que queden en SAÓ.
+                Estos mòduls ja no formen part del pla actual. Cal revisar les plantilles que queden
+                en SAÓ.
               </p>
               <ul class="mb-0">
                 <li v-for="moduleExport in saoObsoleteModules" :key="moduleExport.moduleCode">
@@ -1067,22 +1108,17 @@ export default {
                         <i v-else class="bi bi-file-earmark-pdf-fill"></i>
                       </button>
                       <button
-                        v-if="
-                          canExportToSao(plan) &&
-                          !['exported', 'exported_with_warnings'].includes(getSaoStatus(plan))
-                        "
+                        v-if="canExportToSao(plan) && getSaoStatus(plan) !== 'exported'"
                         class="btn btn-sm btn-outline-primary"
                         :title="getSaoActionTitle(plan)"
                         :disabled="
-                          saoExportingPlanId === plan.id ||
-                          isSaoExportActive(getSaoStatus(plan))
+                          saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
                         "
                         @click="handleSaoExport(plan)"
                       >
                         <span
                           v-if="
-                            saoExportingPlanId === plan.id ||
-                            isSaoExportActive(getSaoStatus(plan))
+                            saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
                           "
                           class="spinner-border spinner-border-sm"
                         ></span>

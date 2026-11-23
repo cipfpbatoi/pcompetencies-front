@@ -8,6 +8,10 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  moduleLabel: {
+    type: String,
+    default: ''
+  },
   exportState: {
     type: Object,
     default: null
@@ -97,6 +101,10 @@ defineExpose({ show, hide })
     <p class="mb-3">
       Pla: <strong>{{ planName }}</strong>
     </p>
+    <p v-if="moduleLabel" class="mb-3">
+      Mòdul: <strong>{{ moduleLabel }}</strong
+      >. Es reexportarà únicament este mòdul.
+    </p>
 
     <div v-if="error" class="alert alert-danger" role="alert">
       {{ error }}
@@ -108,8 +116,8 @@ defineExpose({ show, hide })
       </div>
       <div class="alert alert-warning small" role="alert">
         <strong>Advertència:</strong> perquè la sincronització funcione, has de tindre el rol de
-        coordinador/a en ITACA. Si no el tens, contacta amb el Departament de FCT o amb la
-        caporalia perquè sincronitzen la plantilla.
+        coordinador/a en ITACA. Si no el tens, contacta amb el Departament de FCT o amb la caporalia
+        perquè sincronitzen la plantilla.
       </div>
       <fieldset v-if="allowForce" class="mb-3">
         <legend class="form-label fw-bold mb-2">Tipus de reexportació</legend>
@@ -123,7 +131,8 @@ defineExpose({ show, hide })
             :disabled="busy"
           />
           <label class="form-check-label" for="saoNormalExport">
-            Normal: sincronitza només si la plantilla es nova, el pla ha canviat o hi han mòduls amb errors (Recomanat)
+            Normal: sincronitza només si la plantilla és nova, el pla ha canviat o hi ha mòduls amb
+            errors o avisos (Recomanat)
           </label>
         </div>
         <div class="form-check">

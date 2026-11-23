@@ -13,7 +13,8 @@ const apiMocks = vi.hoisted(() => ({
   getDepartments: vi.fn(),
   getIndividualTrainingPlansCenter: vi.fn(),
   individualTrainingPlanSend: vi.fn(),
-  individualTrainingPlanApprove: vi.fn()
+  individualTrainingPlanApprove: vi.fn(),
+  exportIndividualTrainingPlanToSao: vi.fn()
 }))
 
 vi.mock('@/repositories/api', () => ({ api: apiMocks }))
@@ -59,75 +60,106 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
     wrapper.unmount()
   })
 
-  it('shows structured warnings and hides re-export for a finalized plan', async () => {
-    const plan = {
-      id: 18,
-      name: 'Empresa programacio web',
-      status: 'aprovada',
-      saoExportStatus: 'exported_with_warnings',
-      courseYear: '2026/2027',
-      courseLevel: 2,
-      turn: 'presential',
-      totalHours: 100,
-      modules: [{ code: '0614', name: 'Desplegament d’aplicacions web' }],
-      curricularProject: {
-        cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
-      }
-    }
-    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
-      data: { 'hydra:member': [plan], 'hydra:totalItems': 1 }
-    })
-    const store = useDataStore()
-    store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
-
-    const wrapper = mount(IndividualTrainingPlansManage, {
-      global: {
-        stubs: {
-          IndividualTrainingPlanViewModal: true
+  it.each(['exported_with_warnings', 'exported'])(
+    'allows module re-export for a plan with status %s',
+    async (status) => {
+      const plan = {
+        id: 18,
+        name: 'Empresa programacio web',
+        status: 'aprovada',
+        saoExportStatus: status,
+        courseYear: '2026/2027',
+        courseLevel: 2,
+        turn: 'presential',
+        totalHours: 100,
+        modules: [{ code: '0614', name: 'Desplegament d’aplicacions web' }],
+        curricularProject: {
+          id: 4,
+          cycle: { shortName: 'DAW', department: { shortName: 'INFO' } }
         }
       }
-    })
-    await flushPromises()
+      apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({
+        data: { 'hydra:member': [plan], 'hydra:totalItems': 1 }
+      })
+      const store = useDataStore()
+      store.$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
 
-    const accessModal = wrapper.findComponent(SaoExportAccessModal)
-    expect(accessModal.props('allowForce')).toBe(false)
+      const wrapper = mount(IndividualTrainingPlansManage, {
+        global: {
+          stubs: {
+            IndividualTrainingPlanViewModal: true
+          }
+        }
+      })
+      await flushPromises()
 
-    wrapper.vm.rememberSaoExport(18, {
-      status: 'exported_with_warnings',
-      modules: [{
-        moduleCode: '0614',
-        description: 'PCOMP-2026-2027-18-0614 - Empresa programacio web',
-        status: 'exported_with_warnings',
-        exportedAt: '2026-10-29T10:00:00+01:00',
-        issues: [
+      const accessModal = wrapper.findComponent(SaoExportAccessModal)
+      expect(accessModal.props('allowForce')).toBe(false)
+
+      wrapper.vm.rememberSaoExport(18, {
+        status,
+        modules: [
           {
-            code: 'AF03I',
-            action: 'assigned',
-            message: 'AF03I: s’ha assignat pel codi exacte, però la descripció no coincideix.'
-          },
-          {
-            code: 'AF05H',
-            action: 'omitted',
-            message: 'AF05H: no s’ha trobat cap equivalència en SAÓ i s’ha omés.'
+            moduleCode: '0614',
+            description: 'PCOMP-2026-2027-18-0614 - Empresa programacio web',
+            status: 'exported_with_warnings',
+            exportedAt: '2026-10-29T10:00:00+01:00',
+            issues: [
+              {
+                code: 'AF03I',
+                action: 'assigned',
+                message: 'AF03I: s’ha assignat pel codi exacte, però la descripció no coincideix.'
+              },
+              {
+                code: 'AF05H',
+                action: 'omitted',
+                message: 'AF05H: no s’ha trobat cap equivalència en SAÓ i s’ha omés.'
+              }
+            ]
           }
         ]
-      }]
-    })
-    wrapper.vm.saoAccessPlan = plan
-    wrapper.vm.saoDetailsPlan = plan
-    await wrapper.vm.$nextTick()
+      })
+      wrapper.vm.saoAccessPlan = plan
+      wrapper.vm.saoDetailsPlan = plan
+      await wrapper.vm.$nextTick()
 
-    expect(accessModal.props('allowForce')).toBe(true)
-    const details = wrapper.get('#saoExportDetailsModal')
-    expect(details.text()).toContain('Exportat amb avisos')
-    expect(details.text()).toContain('0614 - Desplegament d’aplicacions web')
-    expect(details.text()).toContain('PCOMP-2026-2027-18-0614 - Empresa programacio web')
-    expect(details.text()).toContain('Assignada amb avís')
-    expect(details.text()).toContain('AF03I')
-    expect(details.text()).toContain('Omesa')
-    expect(details.text()).toContain('AF05H')
-    expect(wrapper.find('.bi-cloud-arrow-up-fill').exists()).toBe(false)
-  })
+      expect(accessModal.props('allowForce')).toBe(true)
+      const details = wrapper.get('#saoExportDetailsModal')
+      expect(details.text()).toContain('Exportat amb avisos')
+      expect(details.text()).toContain('0614 - Desplegament d’aplicacions web')
+      expect(details.text()).toContain('PCOMP-2026-2027-18-0614 - Empresa programacio web')
+      expect(details.text()).toContain('Assignada amb avís')
+      expect(details.text()).toContain('AF03I')
+      expect(details.text()).toContain('Omesa')
+      expect(details.text()).toContain('AF05H')
+      expect(wrapper.find('.bi-cloud-arrow-up-fill').exists()).toBe(
+        status === 'exported_with_warnings'
+      )
+      if (status === 'exported_with_warnings') {
+        await wrapper.get('[title="Reintentar l’exportació a SAÓ"]').trigger('click')
+        expect(wrapper.vm.saoAccessPlan.id).toBe(18)
+        expect(wrapper.vm.saoAccessModule).toBe(null)
+      }
+
+      await details.get('[title="Reexportar el mòdul 0614"]').trigger('click')
+      expect(accessModal.props('moduleLabel')).toBe('0614 - Desplegament d’aplicacions web')
+      expect(accessModal.props('allowForce')).toBe(false)
+      apiMocks.exportIndividualTrainingPlanToSao.mockResolvedValue({ data: { status: 'exported' } })
+      accessModal.vm.$emit('submit-credentials', {
+        username: 'professor',
+        password: 'secret',
+        force: false
+      })
+      await flushPromises()
+      expect(apiMocks.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(4, 18, {
+        username: 'professor',
+        password: 'secret',
+        force: true,
+        moduleCodes: ['0614']
+      })
+      wrapper.unmount()
+    }
+  )
 
   it('shows module codes with their names as tooltips and sends pending plans', async () => {
     const plan = {

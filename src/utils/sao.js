@@ -42,6 +42,8 @@ const SAO_PROGRESS_LABELS = {
   otp_submitted: 'Codi entregat. Verificant-lo…',
   authenticated: 'Sessió iniciada. Accedint a SAÓ…',
   templates_opened: 'Plantilles de SAÓ carregades.',
+  plan_started: 'Sincronitzant un pla del lot…',
+  plan_completed: 'Pla sincronitzat. Continuant amb el lot…',
   module_started: 'Sincronitzant un mòdul…',
   module_completed: 'Mòdul sincronitzat.',
   module_failed: 'Mòdul finalitzat amb incidències.',

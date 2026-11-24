@@ -105,4 +105,33 @@ describe('SaoExportAccessModal', () => {
       [{ username: 'professor', password: 'secret', force: true }]
     ])
   })
+
+  it.each(['failed', 'partial_failure'])(
+    'submits credentials after OTP expires with status %s even when its old stage remains',
+    async (status) => {
+      const wrapper = mount(SaoExportAccessModal, {
+        props: { exportState: { status: 'exporting', progressStage: 'otp_required' } },
+        global: { stubs: { ModalComponent: ModalStub } }
+      })
+      await wrapper.get('#saoOtp').setValue('123456')
+      await wrapper.setProps({ exportState: { status, progressStage: 'otp_required' } })
+
+      expect(wrapper.find('#saoOtp').exists()).toBe(false)
+      await wrapper.get('#saoUsername').setValue('professor')
+      await wrapper.get('#saoPassword').setValue('secret')
+      await wrapper.get('[data-testid="save"]').trigger('click')
+
+      expect(wrapper.emitted('submit-otp')).toBeUndefined()
+      expect(wrapper.emitted('submit-credentials')).toEqual([
+        [{ username: 'professor', password: 'secret', force: false }]
+      ])
+
+      await wrapper.setProps({
+        exportState: { status: 'exporting', progressStage: 'otp_required' }
+      })
+      expect(wrapper.get('#saoOtp').element.value).toBe('')
+      expect(wrapper.get('[data-testid="save"]').element.disabled).toBe(true)
+      wrapper.unmount()
+    }
+  )
 })

@@ -200,6 +200,8 @@ export const api = {
       `/pcc/${pccId}/individual-training-plans/${planId}/sao-export`,
       credentials
     ),
+  exportIndividualTrainingPlansToSao: (data) =>
+    instance.post('/individual-training-plans/sao-export-batch', data),
   provideIndividualTrainingPlanSaoOtp: (pccId, planId, otp) =>
     instance.post(`/pcc/${pccId}/individual-training-plans/${planId}/sao-export/otp`, {
       otp

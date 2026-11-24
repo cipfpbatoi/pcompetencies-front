@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import * as yup from 'yup'
@@ -15,7 +15,6 @@ import {
 import { isSaoExportActive, saoStatusClass, saoStatusLabel } from '../utils/sao.js'
 import ModalComponent from './ModalComp.vue'
 import ActionButton from './ActionButton.vue'
-import SaoExportAccessModal from './SaoExportAccessModal.vue'
 
 const props = defineProps({
   pccId: {
@@ -1195,16 +1194,11 @@ const handleDownloadPlanPdf = async (plan) => {
 }
 
 // ==========================================
-// EXPORTACIÓ A SAÓ
+// CONSULTA DE L’EXPORTACIÓ A SAÓ
 // ==========================================
 const saoExports = ref({})
-const saoExportingPlanId = ref(null)
-const saoPollTimers = new Map()
 const saoDetailsModalRef = ref(null)
 const saoDetailsPlan = ref(null)
-const saoAccessModalRef = ref(null)
-const saoAccessPlan = ref(null)
-const saoAccessError = ref('')
 
 const getSaoExport = (plan) => saoExports.value[plan.id] || null
 const getSaoStatus = (plan) => getSaoExport(plan)?.status || plan.saoExportStatus || null
@@ -1217,106 +1211,20 @@ const saoCurrentModules = computed(() =>
 const saoObsoleteModules = computed(() =>
   (saoDetailsExport.value?.modules || []).filter((module) => module.status === 'obsolete')
 )
-const canExportToSao = (plan) => plan.status === 'aprovada' && isPlanOfCurrentSchoolYear(plan)
-
-const getSaoActionTitle = (plan) => {
-  const status = getSaoStatus(plan)
-  if (['exported', 'exported_with_warnings'].includes(status)) {
-    return 'Tornar a exportar les plantilles a SAÓ'
-  }
-  if (status === 'outdated') return 'Actualitzar les plantilles en SAÓ'
-  if (['failed', 'partial_failure'].includes(status)) return 'Reintentar l’exportació a SAÓ'
-  return 'Exportar les plantilles a SAÓ'
-}
 
 const rememberSaoExport = (plan, saoExport) => {
   saoExports.value = { ...saoExports.value, [plan.id]: saoExport }
   plan.saoExportStatus = saoExport.status
 }
 
-const clearSaoPoll = (planId) => {
-  const timer = saoPollTimers.get(planId)
-  if (timer === undefined) return
-  window.clearInterval(timer)
-  saoPollTimers.delete(planId)
-}
-
-const clearSaoPolls = () => {
-  for (const planId of saoPollTimers.keys()) clearSaoPoll(planId)
-}
-
-const refreshSaoExport = async (plan, silent = false) => {
+const refreshSaoExport = async (plan) => {
   try {
     const response = await api.getIndividualTrainingPlanSaoExport(props.pccId, plan.id)
     rememberSaoExport(plan, response.data)
-    if (isSaoExportActive(response.data.status) && response.data.progressStage === 'otp_required') {
-      saoAccessPlan.value = plan
-      saoAccessModalRef.value?.show(true)
-    } else if (!isSaoExportActive(response.data.status)) {
-      clearSaoPoll(plan.id)
-      if (saoAccessPlan.value?.id === plan.id) finishSaoInteraction(plan, response.data)
-    }
     return response.data
   } catch (error) {
-    clearSaoPoll(plan.id)
-    if (!silent) showActionError('No s’ha pogut consultar SAÓ', error)
+    showActionError('No s’ha pogut consultar SAÓ', error)
     return null
-  }
-}
-
-const startSaoPolling = (plan) => {
-  clearSaoPoll(plan.id)
-  saoPollTimers.set(
-    plan.id,
-    window.setInterval(() => refreshSaoExport(plan, true), 1500)
-  )
-}
-
-const finishSaoInteraction = (plan, saoExport) => {
-  if (isSaoExportActive(saoExport.status)) return
-  saoAccessModalRef.value?.hide()
-  saoDetailsPlan.value = plan
-  saoDetailsModalRef.value?.show()
-}
-
-const handleSaoExport = (plan) => {
-  saoAccessPlan.value = plan
-  saoAccessError.value = ''
-  saoAccessModalRef.value?.show()
-}
-
-const submitSaoCredentials = async (credentials) => {
-  const plan = saoAccessPlan.value
-  if (!plan) return
-
-  saoExportingPlanId.value = plan.id
-  saoAccessError.value = ''
-  try {
-    const response = await api.exportIndividualTrainingPlanToSao(props.pccId, plan.id, credentials)
-    rememberSaoExport(plan, response.data)
-    if (isSaoExportActive(response.data.status)) startSaoPolling(plan)
-    finishSaoInteraction(plan, response.data)
-  } catch (error) {
-    saoAccessError.value = getErrorMessage(error)
-  } finally {
-    saoExportingPlanId.value = null
-  }
-}
-
-const submitSaoOtp = async (otp) => {
-  const plan = saoAccessPlan.value
-  if (!plan) return
-
-  saoExportingPlanId.value = plan.id
-  saoAccessError.value = ''
-  try {
-    const response = await api.provideIndividualTrainingPlanSaoOtp(props.pccId, plan.id, otp)
-    rememberSaoExport(plan, response.data)
-    startSaoPolling(plan)
-  } catch (error) {
-    saoAccessError.value = getErrorMessage(error)
-  } finally {
-    saoExportingPlanId.value = null
   }
 }
 
@@ -1327,8 +1235,6 @@ const openSaoDetails = async (plan) => {
 }
 
 const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : '')
-
-onBeforeUnmount(clearSaoPolls)
 
 // ==========================================
 // ESTAT DEL PLA (pendent -> enviada -> aprovada/rebutjada)
@@ -2254,17 +2160,6 @@ const handleCopyPlanToCurrentYear = async (plan) => {
       </div>
     </ModalComponent>
 
-    <SaoExportAccessModal
-      ref="saoAccessModalRef"
-      :plan-name="saoAccessPlan?.name || ''"
-      :export-state="saoAccessPlan ? getSaoExport(saoAccessPlan) : null"
-      :allow-force="saoAccessPlan ? Boolean(getSaoStatus(saoAccessPlan)) : false"
-      :busy="saoExportingPlanId === saoAccessPlan?.id"
-      :error="saoAccessError"
-      @submit-credentials="submitSaoCredentials"
-      @submit-otp="submitSaoOtp"
-    />
-
     <ModalComponent
       ref="saoDetailsModalRef"
       modal-id="saoExportDetailsModalPcc"
@@ -2472,22 +2367,6 @@ const handleCopyPlanToCurrentYear = async (plan) => {
                     @click="openEditModal(plan)"
                   >
                     <i class="bi bi-pencil"></i>
-                  </button>
-                  <button
-                    v-if="canExportToSao(plan)"
-                    data-testid="sao-export-button"
-                    class="btn btn-sm btn-outline-primary"
-                    :title="getSaoActionTitle(plan)"
-                    :disabled="
-                      saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
-                    "
-                    @click="handleSaoExport(plan)"
-                  >
-                    <span
-                      v-if="saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))"
-                      class="spinner-border spinner-border-sm"
-                    ></span>
-                    <i v-else class="bi bi-cloud-arrow-up-fill"></i>
                   </button>
                   <button
                     v-if="plan.status === 'pendent' || canDeleteNonPendingPlan"

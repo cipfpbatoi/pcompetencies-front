@@ -54,92 +54,66 @@ describe('PccIndividualTrainingPlans', () => {
     })
   })
 
-  it('allows a tutor to export an approved current-year plan to SAÓ', async () => {
+  it.each(['ROLE_TEACHER', 'ROLE_ADMIN', 'ROLE_COORDINADOR_FCT'])(
+    'does not offer SAÓ export from the PCC for %s',
+    async (role) => {
+      const store = useDataStore()
+      store.$patch({
+        pcc: {
+          individualTrainingPlans: [
+            {
+              id: 18,
+              name: 'Empresa de programació web',
+              status: 'aprovada',
+              courseYear: '2026-2027',
+              turn: 'presential',
+              courseLevel: 2,
+              moduleHours: []
+            }
+          ]
+        },
+        user: { info: { roles: [role] } }
+      })
+      const wrapper = mountComponent()
+      await flushPromises()
+      expect(wrapper.find('[data-testid="sao-export-button"]').exists()).toBe(false)
+      expect(wrapper.findComponent(SaoExportAccessModal).exists()).toBe(false)
+      expect(api.exportIndividualTrainingPlanToSao).not.toHaveBeenCalled()
+      wrapper.unmount()
+    }
+  )
+
+  it('shows SAÓ details without reexport actions in the PCC', async () => {
     const store = useDataStore()
-    store.$patch({
-      pcc: {
-        individualTrainingPlans: [
-          {
-            id: 18,
-            name: 'Empresa de programació web',
-            status: 'aprovada',
-            courseYear: '2026-2027',
-            turn: 'presential',
-            courseLevel: 2,
-            moduleHours: []
-          }
+    store.pcc.individualTrainingPlans = [
+      {
+        id: 18,
+        name: 'Pla de prova',
+        status: 'aprovada',
+        courseYear: '2026-2027',
+        saoExportStatus: 'exported_with_warnings',
+        moduleHours: [{ module: { code: '0614', name: 'Desplegament web' }, hours: 10 }]
+      }
+    ]
+    api.getIndividualTrainingPlanSaoExport.mockResolvedValue({
+      data: {
+        status: 'exported_with_warnings',
+        modules: [
+          { moduleCode: '0614', status: 'exported_with_warnings' },
+          { moduleCode: '0612', status: 'exported' }
         ]
-      },
-      user: { info: { roles: ['ROLE_TEACHER'] } }
-    })
-    api.exportIndividualTrainingPlanToSao.mockResolvedValue({
-      status: 202,
-      data: { status: 'queued', modules: [] }
+      }
     })
     const wrapper = mountComponent()
     await flushPromises()
-    await wrapper.get('[data-testid="sao-export-button"]').trigger('click')
-    const accessModal = wrapper.findComponent(SaoExportAccessModal)
-    expect(accessModal.props('allowForce')).toBe(false)
-    accessModal.vm.$emit('submit-credentials', {
-      username: 'professor',
-      password: 'secret',
-      force: false
-    })
+    await wrapper.get('[title="Veure el detall de l’exportació"]').trigger('click')
     await flushPromises()
-
-    expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18, {
-      username: 'professor',
-      password: 'secret',
-      force: false
-    })
-    expect(wrapper.text()).toContain('En cua')
+    expect(api.getIndividualTrainingPlanSaoExport).toHaveBeenCalledWith(1, 18)
+    expect(wrapper.text()).toContain('0614 - Desplegament web')
+    expect(wrapper.find('[title="Reexportar el mòdul 0614"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="sao-export-button"]').exists()).toBe(false)
+    expect(wrapper.findComponent(SaoExportAccessModal).exists()).toBe(false)
     wrapper.unmount()
-  })
-
-  it('allows the tutor to choose a forced reexport when the plan is already synchronized', async () => {
-    const store = useDataStore()
-    store.$patch({
-      pcc: {
-        individualTrainingPlans: [
-          {
-            id: 18,
-            name: 'Empresa de programació web',
-            status: 'aprovada',
-            courseYear: '2026-2027',
-            turn: 'presential',
-            courseLevel: 2,
-            moduleHours: [],
-            saoExportStatus: 'exported_with_warnings'
-          }
-        ]
-      },
-      user: { info: { roles: ['ROLE_TEACHER'] } }
-    })
-
-    api.exportIndividualTrainingPlanToSao.mockResolvedValue({
-      status: 202,
-      data: { status: 'queued', modules: [] }
-    })
-    const wrapper = mountComponent()
-    await flushPromises()
-
-    await wrapper.get('[data-testid="sao-export-button"]').trigger('click')
-    const accessModal = wrapper.findComponent(SaoExportAccessModal)
-    expect(accessModal.props('allowForce')).toBe(true)
-    accessModal.vm.$emit('submit-credentials', {
-      username: 'professor',
-      password: 'secret',
-      force: true
-    })
-    await flushPromises()
-
-    expect(api.exportIndividualTrainingPlanToSao).toHaveBeenCalledWith(1, 18, {
-      username: 'professor',
-      password: 'secret',
-      force: true
-    })
-    expect(wrapper.text()).toContain('En cua')
   })
 
   it('shows and hides the contextual help for the plan fields', async () => {

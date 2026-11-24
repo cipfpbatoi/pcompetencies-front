@@ -1,9 +1,13 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import ModalComponent from './ModalComp.vue'
-import { isSaoExportActive, saoProgressLabel } from '../utils/sao.js'
+import { isSaoExportActive, saoProgressLabel, saoStatusLabel } from '../utils/sao.js'
 
 const props = defineProps({
+  batchPlans: {
+    type: Array,
+    default: () => []
+  },
   planName: {
     type: String,
     default: ''
@@ -38,7 +42,12 @@ const otp = ref('')
 const force = ref(false)
 
 const isStarted = computed(() => isSaoExportActive(props.exportState?.status))
-const isOtpRequired = computed(() => props.exportState?.progressStage === 'otp_required')
+const isOtpRequired = computed(
+  () => isStarted.value && props.exportState?.progressStage === 'otp_required'
+)
+watch(isOtpRequired, (required) => {
+  if (!required) otp.value = ''
+})
 const progressLabel = computed(() => saoProgressLabel(props.exportState))
 const saveButtonText = computed(() =>
   isOtpRequired.value ? 'Verifica el codi' : 'Inicia la sincronització'
@@ -51,6 +60,7 @@ const saveDisabled = computed(() => {
 })
 
 const submit = () => {
+  if (saveDisabled.value) return
   if (isOtpRequired.value) {
     emit('submit-otp', otp.value.trim())
     otp.value = ''
@@ -98,7 +108,18 @@ defineExpose({ show, hide })
     close-button-text="Tanca"
     @save="submit"
   >
-    <p class="mb-3">
+    <div v-if="batchPlans.length" class="mb-3">
+      <strong>Lot de {{ batchPlans.length }} plans (màxim 4)</strong>
+      <ul class="mb-0 mt-2">
+        <li v-for="plan in batchPlans" :key="plan.id">
+          {{ plan.name }}<span v-if="plan.status"> — {{ saoStatusLabel(plan.status) }}</span>
+        </li>
+      </ul>
+      <p class="small text-secondary mt-2 mb-0">
+        Els plans se sincronitzen consecutivament amb una única sessió d’ITACA/SAÓ.
+      </p>
+    </div>
+    <p v-else class="mb-3">
       Pla: <strong>{{ planName }}</strong>
     </p>
     <p v-if="moduleLabel" class="mb-3">

@@ -58,6 +58,38 @@ export default {
     },
     saoObsoleteModules() {
       return (this.saoDetailsExport?.modules || []).filter((module) => module.status === 'obsolete')
+    },
+    saoBatchRunning() {
+      return (
+        this.saoBatchStarted &&
+        this.saoBatchPlans.some((plan) => isSaoExportActive(this.saoBatchStates[plan.id]?.status))
+      )
+    },
+    saoAccessExport() {
+      if (!this.saoBatchMode)
+        return this.saoAccessPlan ? this.getSaoExport(this.saoAccessPlan) : null
+      if (!this.saoBatchStarted) return null
+      const exports = this.saoBatchPlans.map((plan) => this.saoBatchStates[plan.id]).filter(Boolean)
+      return (
+        exports.find(
+          (item) => isSaoExportActive(item.status) && item.progressStage === 'otp_required'
+        ) ||
+        exports.find(
+          (item) =>
+            isSaoExportActive(item.status) &&
+            ['module_started', 'plan_started'].includes(item.progressStage)
+        ) ||
+        exports.find((item) => isSaoExportActive(item.status)) ||
+        exports[0] ||
+        null
+      )
+    },
+    saoBatchSummary() {
+      return this.saoBatchPlans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        status: this.saoBatchStarted ? this.saoBatchStates[plan.id]?.status : null
+      }))
     }
   },
   data() {
@@ -107,6 +139,14 @@ export default {
       saoAccessPlan: null,
       saoAccessModule: null,
       saoAccessError: '',
+      selectedSaoPlans: [],
+      saoBatchPlans: [],
+      saoBatchStates: {},
+      saoBatchMode: false,
+      saoBatchStarted: false,
+      saoBatchBusy: false,
+      saoBatchRefreshing: false,
+      saoBatchTimer: null,
       pageInitialized: false
     }
   },
@@ -129,6 +169,7 @@ export default {
   },
   beforeUnmount() {
     this.clearSaoPolls()
+    this.clearSaoBatchPoll()
   },
   methods: {
     async initPage() {
@@ -265,6 +306,108 @@ export default {
     canExportToSao(plan) {
       return plan.status === 'aprovada' && this.isPlanOfCurrentSchoolYear(plan)
     },
+    isSaoPlanSelected(plan) {
+      return this.selectedSaoPlans.some((item) => item.id === plan.id)
+    },
+    canSelectSaoPlan(plan) {
+      return (
+        this.canExportToSao(plan) &&
+        !isSaoExportActive(this.getSaoStatus(plan)) &&
+        !this.saoBatchRunning &&
+        !this.saoBatchBusy &&
+        (this.selectedSaoPlans.length < 4 || this.isSaoPlanSelected(plan))
+      )
+    },
+    toggleSaoPlan(plan) {
+      if (this.isSaoPlanSelected(plan)) {
+        this.selectedSaoPlans = this.selectedSaoPlans.filter((item) => item.id !== plan.id)
+      } else if (this.canSelectSaoPlan(plan)) {
+        this.selectedSaoPlans.push(plan)
+      }
+    },
+    selectSaoPage() {
+      this.plans.forEach((plan) => {
+        if (!this.isSaoPlanSelected(plan) && this.canSelectSaoPlan(plan))
+          this.selectedSaoPlans.push(plan)
+      })
+    },
+    handleSaoBatchExport() {
+      if (this.saoBatchRunning || this.saoBatchBusy || !this.selectedSaoPlans.length) return
+      const plans = this.selectedSaoPlans.filter(
+        (plan) => this.canExportToSao(plan) && !isSaoExportActive(this.getSaoStatus(plan))
+      )
+      if (!plans.length || plans.length > 4) return
+      this.saoBatchPlans = [...plans]
+      this.saoBatchStates = {}
+      this.saoBatchMode = true
+      this.saoBatchStarted = false
+      this.saoAccessModule = null
+      this.saoAccessError = ''
+      this.$refs.saoAccessModal.show()
+    },
+    clearSaoBatchPoll() {
+      if (this.saoBatchTimer) window.clearInterval(this.saoBatchTimer)
+      this.saoBatchTimer = null
+    },
+    showSaoBatchProgress() {
+      this.saoBatchMode = true
+      this.$refs.saoAccessModal.show(true)
+    },
+    async submitSaoBatchCredentials(credentials) {
+      if (this.saoBatchBusy || this.saoBatchRunning) return
+      this.saoBatchBusy = true
+      this.saoAccessError = ''
+      try {
+        const response = await api.exportIndividualTrainingPlansToSao({
+          ...credentials,
+          plans: this.saoBatchPlans.map((plan) => ({
+            pccId: plan.curricularProject.id,
+            planId: plan.id
+          }))
+        })
+        response.data.exports.forEach((item) => this.rememberSaoBatchExport(item.planId, item))
+        this.saoBatchStarted = true
+        this.selectedSaoPlans = []
+        this.clearSaoBatchPoll()
+        if (this.saoBatchRunning) {
+          this.saoBatchTimer = window.setInterval(() => this.refreshSaoBatch(), 1500)
+        } else {
+          this.$refs.saoAccessModal.hide()
+        }
+      } catch (error) {
+        this.saoAccessError = this.getErrorMessage(error)
+      } finally {
+        this.saoBatchBusy = false
+      }
+    },
+    async refreshSaoBatch() {
+      if (this.saoBatchRefreshing) return
+      this.saoBatchRefreshing = true
+      try {
+        await Promise.all(
+          this.saoBatchPlans
+            .filter((plan) => isSaoExportActive(this.saoBatchStates[plan.id]?.status))
+            .map(async (plan) => {
+              const response = await api.getIndividualTrainingPlanSaoExport(
+                plan.curricularProject.id,
+                plan.id
+              )
+              this.rememberSaoBatchExport(plan.id, response.data)
+            })
+        )
+        if (!this.saoBatchRunning) {
+          this.clearSaoBatchPoll()
+          if (this.saoBatchMode) this.$refs.saoAccessModal.hide()
+        } else if (this.saoAccessExport?.progressStage === 'otp_required') {
+          this.saoBatchMode = true
+          this.$refs.saoAccessModal.show(true)
+        }
+      } catch (error) {
+        this.saoAccessError = this.getErrorMessage(error)
+      } finally {
+        this.saoBatchRefreshing = false
+      }
+    },
     getSaoActionTitle(plan) {
       const status = this.getSaoStatus(plan)
       if (status === 'exported') {
@@ -278,6 +421,10 @@ export default {
     rememberSaoExport(planId, saoExport) {
       this.saoExports = { ...this.saoExports, [planId]: saoExport }
       this.mergePlanStatus(planId, { saoExportStatus: saoExport.status })
+    },
+    rememberSaoBatchExport(planId, saoExport) {
+      this.saoBatchStates = { ...this.saoBatchStates, [planId]: saoExport }
+      this.rememberSaoExport(planId, saoExport)
     },
     clearSaoPoll(planId) {
       if (!this.saoPollTimers[planId]) return
@@ -301,6 +448,10 @@ export default {
           plan.id
         )
         this.rememberSaoExport(plan.id, response.data)
+        if (this.saoBatchRunning && this.saoBatchPlans.some((item) => item.id === plan.id)) {
+          this.clearSaoPoll(plan.id)
+          return response.data
+        }
         if (
           isSaoExportActive(response.data.status) &&
           response.data.progressStage === 'otp_required'
@@ -321,12 +472,16 @@ export default {
       }
     },
     handleSaoExport(plan) {
+      if (this.saoBatchRunning || this.saoBatchBusy) return
+      this.saoBatchMode = false
       this.saoAccessPlan = plan
       this.saoAccessModule = null
       this.saoAccessError = ''
       this.$refs.saoAccessModal.show()
     },
     handleSaoModuleExport(plan, moduleExport) {
+      if (this.saoBatchRunning || this.saoBatchBusy) return
+      this.saoBatchMode = false
       this.saoDetailsModal.hide()
       this.saoAccessPlan = plan
       this.saoAccessModule = moduleExport
@@ -340,6 +495,7 @@ export default {
       this.saoDetailsModal.show()
     },
     async submitSaoCredentials(credentials) {
+      if (this.saoBatchMode) return this.submitSaoBatchCredentials(credentials)
       const plan = this.saoAccessPlan
       if (!plan) return
       this.saoExportingPlanId = plan.id
@@ -364,7 +520,13 @@ export default {
       }
     },
     async submitSaoOtp(otp) {
-      const plan = this.saoAccessPlan
+      const plan = this.saoBatchMode
+        ? this.saoBatchPlans.find(
+            (item) =>
+              isSaoExportActive(this.saoBatchStates[item.id]?.status) &&
+              this.saoBatchStates[item.id]?.progressStage === 'otp_required'
+          )
+        : this.saoAccessPlan
       if (!plan) return
 
       this.saoExportingPlanId = plan.id
@@ -375,10 +537,22 @@ export default {
           plan.id,
           otp
         )
-        this.rememberSaoExport(plan.id, response.data)
-        this.startSaoPolling(plan)
+        if (this.saoBatchMode) {
+          this.rememberSaoBatchExport(plan.id, response.data)
+          this.saoBatchPlans.forEach((item) => {
+            const state = this.saoBatchStates[item.id]
+            if (isSaoExportActive(state?.status) && state.progressStage === 'otp_required') {
+              this.rememberSaoBatchExport(item.id, { ...state, progressStage: 'otp_submitted' })
+            }
+          })
+        } else {
+          this.rememberSaoExport(plan.id, response.data)
+          this.startSaoPolling(plan)
+        }
       } catch (error) {
         this.saoAccessError = this.getErrorMessage(error)
+        if (this.saoBatchMode) await this.refreshSaoBatch()
+        else await this.refreshSaoExport(plan, true)
       } finally {
         this.saoExportingPlanId = null
       }
@@ -462,9 +636,13 @@ export default {
           }
         }
         if (isSaoExportActive(this.getSaoStatus(plan))) {
-          this.startSaoPolling(plan)
+          if (!this.saoBatchPlans.some((item) => item.id === plan.id) || !this.saoBatchRunning)
+            this.startSaoPolling(plan)
         }
       })
+      this.selectedSaoPlans = this.selectedSaoPlans
+        .map((selected) => this.plans.find((plan) => plan.id === selected.id) || selected)
+        .filter((plan) => this.canExportToSao(plan) && !isSaoExportActive(this.getSaoStatus(plan)))
     },
     async loadPlans() {
       if (!this.canView) return
@@ -517,6 +695,9 @@ export default {
       if (index > -1) {
         this.plans.splice(index, 1, { ...this.plans[index], ...patch })
       }
+      this.selectedSaoPlans = this.selectedSaoPlans
+        .map((plan) => (plan.id === planId ? { ...plan, ...patch } : plan))
+        .filter((plan) => this.canExportToSao(plan) && !isSaoExportActive(this.getSaoStatus(plan)))
     },
     async handleDeletePlan(plan) {
       if (!confirm(`Segur que vols eliminar el pla formatiu individual "${plan.name}"?`)) return
@@ -754,12 +935,14 @@ export default {
     <SaoExportAccessModal
       ref="saoAccessModal"
       :plan-name="saoAccessPlan?.name || ''"
+      :batch-plans="saoBatchMode ? saoBatchSummary : []"
       :module-label="saoAccessModule ? getModuleExportLabel(saoAccessPlan, saoAccessModule) : ''"
-      :export-state="saoAccessPlan ? getSaoExport(saoAccessPlan) : null"
+      :export-state="saoAccessExport"
       :allow-force="
-        saoAccessPlan ? !saoAccessModule && Boolean(getSaoStatus(saoAccessPlan)) : false
+        saoBatchMode ||
+        (saoAccessPlan ? !saoAccessModule && Boolean(getSaoStatus(saoAccessPlan)) : false)
       "
-      :busy="saoExportingPlanId === saoAccessPlan?.id"
+      :busy="saoBatchBusy || saoExportingPlanId !== null"
       :error="saoAccessError"
       @submit-credentials="submitSaoCredentials"
       @submit-otp="submitSaoOtp"
@@ -842,7 +1025,9 @@ export default {
                         class="btn btn-sm btn-outline-primary"
                         :disabled="
                           saoExportingPlanId === saoDetailsPlan.id ||
-                          isSaoExportActive(getSaoStatus(saoDetailsPlan))
+                          isSaoExportActive(getSaoStatus(saoDetailsPlan)) ||
+                          saoBatchRunning ||
+                          saoBatchBusy
                         "
                         :title="`Reexportar el mòdul ${moduleExport.moduleCode}`"
                         @click="handleSaoModuleExport(saoDetailsPlan, moduleExport)"
@@ -983,6 +1168,63 @@ export default {
         <!-- LLISTAT -->
         <div class="mt-4">
           <h4 class="h6 fw-bold">Plans</h4>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <span class="small">Seleccionats: {{ selectedSaoPlans.length }}/4</span>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              :disabled="
+                loadingPlans || saoBatchRunning || saoBatchBusy || selectedSaoPlans.length >= 4
+              "
+              @click="selectSaoPage"
+            >
+              Seleccionar esta pàgina (màxim 4)
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              :disabled="!selectedSaoPlans.length || saoBatchRunning || saoBatchBusy"
+              @click="selectedSaoPlans = []"
+            >
+              Desmarcar tots
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-primary"
+              data-testid="sao-batch-export"
+              :disabled="!selectedSaoPlans.length || saoBatchRunning || saoBatchBusy"
+              @click="handleSaoBatchExport"
+            >
+              Sincronitzar seleccionats ({{ selectedSaoPlans.length }}/4)
+            </button>
+            <button
+              v-if="saoBatchRunning"
+              type="button"
+              class="btn btn-sm btn-outline-info"
+              @click="showSaoBatchProgress"
+            >
+              Veure el progrés del lot
+            </button>
+          </div>
+          <div v-if="saoBatchStarted" class="alert alert-info" data-testid="sao-batch-summary">
+            <strong>{{
+              saoBatchRunning ? 'Sincronització del lot en curs' : 'Lot finalitzat'
+            }}</strong>
+            <span class="ms-2"
+              >{{ saoBatchSummary.filter((item) => !isSaoExportActive(item.status)).length }}/{{
+                saoBatchPlans.length
+              }}
+              plans finalitzats</span
+            >
+            <ul class="mb-0 mt-2">
+              <li v-for="item in saoBatchSummary" :key="item.id">
+                {{ item.name }}:
+                <span class="badge" :class="saoStatusClass(item.status)">{{
+                  saoStatusLabel(item.status)
+                }}</span>
+              </li>
+            </ul>
+          </div>
           <div v-if="loadingPlans" class="text-center py-3">
             <span class="spinner-border text-primary"></span>
           </div>
@@ -993,6 +1235,7 @@ export default {
             <table class="table table-bordered table-striped align-middle">
               <thead class="table-light">
                 <tr>
+                  <th>Seleccionar</th>
                   <th>Nom</th>
                   <th>Departament</th>
                   <th>Cicle</th>
@@ -1008,6 +1251,16 @@ export default {
               </thead>
               <tbody>
                 <tr v-for="plan in plans" :key="plan.id">
+                  <td class="text-center">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      :aria-label="`Seleccionar ${plan.name}`"
+                      :checked="isSaoPlanSelected(plan)"
+                      :disabled="!canSelectSaoPlan(plan)"
+                      @change="toggleSaoPlan(plan)"
+                    />
+                  </td>
                   <td>
                     {{ plan.name }}
                     <i
@@ -1112,7 +1365,10 @@ export default {
                         class="btn btn-sm btn-outline-primary"
                         :title="getSaoActionTitle(plan)"
                         :disabled="
-                          saoExportingPlanId === plan.id || isSaoExportActive(getSaoStatus(plan))
+                          saoExportingPlanId === plan.id ||
+                          isSaoExportActive(getSaoStatus(plan)) ||
+                          saoBatchRunning ||
+                          saoBatchBusy
                         "
                         @click="handleSaoExport(plan)"
                       >

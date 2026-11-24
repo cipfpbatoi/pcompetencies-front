@@ -330,9 +330,13 @@ export const useDataStore = defineStore('data', {
         const individualTrainingPlansMatch = /^\/pcc\/(\d+)\/individual-training-plans\/?$/.exec(
           window.location.pathname
         )
-        if (individualTrainingPlansMatch) {
-          await this.loadPccById(Number(individualTrainingPlansMatch[1]))
-        } else if (localStorage.pccCycleId && window.location.pathname.startsWith('/pcc')) {
+        // Esta ruta carrega el PCC i els plans des de la vista. Tornar a carregar
+        // ací el PCC pot sobreescriure la llista de plans quan es refresca la pàgina.
+        if (
+          !individualTrainingPlansMatch &&
+          localStorage.pccCycleId &&
+          window.location.pathname.startsWith('/pcc')
+        ) {
           try {
             const response = await api.getPCCByCycleId(localStorage.pccCycleId)
             this.pcc = response.data

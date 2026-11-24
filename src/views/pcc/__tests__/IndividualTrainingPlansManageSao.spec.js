@@ -14,7 +14,9 @@ const apiMocks = vi.hoisted(() => ({
   getIndividualTrainingPlansCenter: vi.fn(),
   individualTrainingPlanSend: vi.fn(),
   individualTrainingPlanApprove: vi.fn(),
-  exportIndividualTrainingPlanToSao: vi.fn()
+  exportIndividualTrainingPlanToSao: vi.fn(),
+  getIndividualTrainingPlanSaoExport: vi.fn(),
+  provideIndividualTrainingPlanSaoOtp: vi.fn()
 }))
 
 vi.mock('@/repositories/api', () => ({ api: apiMocks }))
@@ -57,6 +59,36 @@ describe('IndividualTrainingPlansManage SAÓ warnings', () => {
       'Cicle Informàtica',
       'Cicle Sanitat'
     ])
+    wrapper.unmount()
+  })
+
+  it('refreshes the export state after an expired OTP is rejected', async () => {
+    apiMocks.getIndividualTrainingPlansCenter.mockResolvedValue({ data: [] })
+    useDataStore().$patch({ user: { info: { roles: ['ROLE_ADMIN'] } } })
+    const wrapper = mount(IndividualTrainingPlansManage, {
+      global: { stubs: { IndividualTrainingPlanViewModal: true } }
+    })
+    await flushPromises()
+    const plan = { id: 18, name: 'Pla de prova', curricularProject: { id: 4 } }
+    wrapper.vm.saoAccessPlan = plan
+    wrapper.vm.rememberSaoExport(18, { status: 'exporting', progressStage: 'otp_required' })
+    apiMocks.provideIndividualTrainingPlanSaoOtp.mockRejectedValue({
+      response: { status: 409, data: { detail: 'El procés de SAÓ ja no està disponible.' } }
+    })
+    apiMocks.getIndividualTrainingPlanSaoExport.mockResolvedValue({
+      data: { status: 'failed', progressStage: 'otp_required' }
+    })
+
+    await wrapper.vm.submitSaoOtp('123456')
+    await flushPromises()
+
+    expect(apiMocks.getIndividualTrainingPlanSaoExport).toHaveBeenCalledWith(4, 18)
+    expect(wrapper.vm.getSaoStatus(plan)).toBe('failed')
+    wrapper.vm.handleSaoExport(plan)
+    await wrapper.vm.$nextTick()
+    const accessModal = wrapper.findComponent(SaoExportAccessModal)
+    expect(accessModal.find('#saoOtp').exists()).toBe(false)
+    expect(accessModal.find('#saoUsername').exists()).toBe(true)
     wrapper.unmount()
   })
 
